@@ -1,3 +1,5 @@
-# aind-capsule-template
+# Foraging behavior browser
 
-Basic structure of a capsule to be customized as needed.
+Streamlit app for browsing foraging behavior sessions.
+
+https://foraging-behavior-browser.streamlit.app/
