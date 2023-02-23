@@ -57,55 +57,34 @@ def load_data(tables=['sessions']):
         
     return df
 
-def fetch_img_from_s3(glob_patterns):
+def _fetch_img(glob_patterns, crop=None):
+    # Fetch the img that first matches the patterns
     for pattern in glob_patterns:
-        file = fs.glob(pattern)
+        file = fs.glob(pattern) if use_s3 else glob.glob(pattern)
         if len(file): break
         
-    if not len(file): return None
-    with fs.open(file[0]) as f:
-        img = Image.open(f)
-        img = img.crop() 
+    if not len(file): 
+        return None
+
+    if use_s3:
+        with fs.open(file[0]) as f:
+            img = Image.open(f)
+            img = img.crop(crop) 
+    else:
+        img = Image.open(file[0])
+        img = img.crop(crop)         
     
     return img
 
-# @st.cache_data(ttl=24*3600)
-def get_session_logistic_regression(key):
+# @st.cache_data(ttl=24*3600, max_entries=20)
+def get_img_by_key(key, prefix, other_patterns=[''], crop=None):
     sess_date_str = datetime.strftime(datetime.strptime(key['session_date'], '%Y-%m-%dT%H:%M:%S'), '%Y%m%d')
      
-    fn = f'/{key["h2o"]}_{sess_date_str}_*'
-    glob_patterns = [cache_fig_folder + 'logistic_regression/' + key["h2o"] + fn]
+    fns = [f'/{key["h2o"]}_{sess_date_str}_*{other_pattern}*' for other_pattern in other_patterns]
+    glob_patterns = [cache_fig_folder + f'{prefix}/' + key["h2o"] + fn for fn in fns]
     
-    if use_s3:
-        img = fetch_img_from_s3(glob_patterns)
-        # img = img.crop((0, 0, 5400, 3000))     
-    else:
-        file = glob.glob(glob_str)
-        if len(file) == 1:
-            img = Image.open(file[0])
-            img = img.crop((500, 140, 5400, 3000))
-            
-    return img
+    img = _fetch_img(glob_patterns, crop)
 
-
-# @st.cache_data(ttl=24*3600)
-def get_session_fitted_choice(key):
-    sess_date_str = datetime.strftime(datetime.strptime(key['session_date'], '%Y-%m-%dT%H:%M:%S'), '%Y%m%d')
-     
-    fns = [f'/{key["h2o"]}_{sess_date_str}_*model_best*',
-           f'/{key["h2o"]}_{sess_date_str}_*model_None*']
-    
-    glob_patterns = [cache_fig_folder + 'fitted_choice/' + key["h2o"] + fn for fn in fns]
-    
-    if use_s3:
-        img = fetch_img_from_s3(glob_patterns)
-        img = img.crop((0, 0, img.size[0], img.size[1])) 
-    else:
-        file = glob.glob(glob_patterns)
-        if len(file) == 1:
-            img = Image.open(file[0])
-            img = img.crop((500, 140, 5400, 3000))
-            
     return img
 
 
@@ -154,13 +133,18 @@ def app():
     
     with container_unit_all_in_one:
         # with st.expander("Expand to see all-in-one plot for selected unit", expanded=True):
-        if len(st.session_state.aggrid_outputs['selected_rows']) == 1:
-            fig_fitted_choice = get_session_fitted_choice(st.session_state.aggrid_outputs['selected_rows'][0])
-            st.image(fig_fitted_choice, output_format='PNG', width=1500, caption='')  # use_column_width='always', 
 
-            fig_logistic_regression = get_session_logistic_regression(st.session_state.aggrid_outputs['selected_rows'][0])
-            st.image(fig_logistic_regression, output_format='PNG', width=500)
+        selected_keys = st.session_state.aggrid_outputs['selected_rows']
+        if len(selected_keys):
+            for key in selected_keys:
+                fig_fitted_choice = get_img_by_key(key, prefix='fitted_choice', other_patterns=['model_best', 'model_None'])
+                st.image(fig_fitted_choice, output_format='PNG', width=1500, caption='')  # use_column_width='always', 
 
+                fig_logistic_regression = get_img_by_key(key, prefix='logistic_regression')
+                st.image(fig_logistic_regression, output_format='PNG', width=500)
+
+                fig_lick_psth = get_img_by_key(key, prefix='lick_psth')
+                st.image(fig_lick_psth, output_format='PNG', width=None)
 
 
 
