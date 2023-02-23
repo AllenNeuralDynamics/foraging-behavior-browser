@@ -48,8 +48,8 @@ def aggrid_interactive_table_session(df: pd.DataFrame):
 
     options.configure_side_bar()
     options.configure_selection(selection_mode="multiple")# , use_checkbox=True, header_checkbox=True)
-    options.configure_column(field="session", sort="asc")
-    options.configure_column(field="h2o", hide=True, rowGroup=True)
+    options.configure_column(field="session_date", sort="desc")
+    # options.configure_column(field="h2o", hide=True, rowGroup=True)
     options.configure_column(field='subject_id', hide=True)
     options.configure_column(field="session_date", type=["customDateTimeFormat"], custom_format_string='yyyy-MM-dd')
     options.configure_column(field="ephys_ins", dateType="DateType")
@@ -65,7 +65,7 @@ def aggrid_interactive_table_session(df: pd.DataFrame):
         theme="balham",
         update_mode=GridUpdateMode.SELECTION_CHANGED,
         allow_unsafe_jscode=True,
-        height=500,
+        height=400,
         columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
         custom_css=custom_css,
     )
@@ -157,7 +157,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                                                             label_visibility='collapsed',
                                                             default=st.session_state.to_filter_columns_cache 
                                                                     if 'to_filter_columns_cache' in st.session_state
-                                                                    else ['h2o'],
+                                                                    else ['h2o', 'task', 'finished', 'photostim'],
                                                             key='to_filter_columns',
                                                             on_change=cache_widget,
                                                             args=['to_filter_columns'])
@@ -165,7 +165,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
             left, right = st.columns((1, 20))
             # Treat columns with < 10 unique values as categorical
             if is_categorical_dtype(df[column]) or df[column].nunique() < 30:
-                right.markdown(f"Filter for **{column}**")
+                right.markdown(f"Filter for :red[**{column}**]")
                 selected = right.multiselect(
                     f"Values for {column}",
                     df[column].unique(),
@@ -191,8 +191,8 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                 #                 x='x', y='y')
                 
                 with right:
-                    col1, col2 = st.columns((3, 1))
-                    col1.markdown(f"Filter for **{column}**")
+                    col1, col2 = st.columns((2, 1))
+                    col1.markdown(f"Filter for :red[**{column}**]")
                     if float(df[column].min()) >= 0: 
                         show_log = col2.checkbox('log 10', 
                                                  value=st.session_state[f'if_log_{column}_cache']
@@ -248,7 +248,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                 
             elif is_datetime64_any_dtype(df[column]):
                 user_date_input = right.date_input(
-                    f"Values for {column}",
+                    f"Values for :red[**{column}**]",
                     value=(
                         df[column].min(),
                         df[column].max(),
@@ -261,7 +261,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
             else:
                 
                 user_text_input = right.text_input(
-                    f"Substring or regex in {column}",
+                    f"Substring or regex in :red[**{column}**]",
                 )
                 if user_text_input:
                     df = df[df[column].astype(str).str.contains(user_text_input)]
