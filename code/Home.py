@@ -13,8 +13,7 @@ from PIL import Image, ImageColor
 import streamlit.components.v1 as components
 import streamlit_nested_layout
 
-from streamlit_util import filter_dataframe, aggrid_interactive_table_units
-
+from streamlit_util import filter_dataframe, aggrid_interactive_table_session
 
 if_profile = False
 
@@ -45,11 +44,11 @@ if 'selected_points' not in st.session_state:
     st.session_state['selected_points'] = []
 
     
-@st.experimental_memo(ttl=24*3600)
+@st.cache_data(ttl=24*3600)
 def load_data(tables=['sessions']):
     df = {}
     for table in tables:
-        file_name = cache_folder + f'{table}.pkl'
+        file_name = cache_folder + f'df_{table}.pkl'
         if use_s3:
             with fs.open(file_name) as f:
                 df[table] = pd.read_pickle(f)
@@ -58,19 +57,28 @@ def load_data(tables=['sessions']):
         
     return df
 
-# @st.experimental_memo(ttl=24*3600)
+def fetch_img_from_s3(glob_patterns):
+    for pattern in glob_patterns:
+        file = fs.glob(pattern)
+        if len(file): break
+        
+    if not len(file): return None
+    with fs.open(file[0]) as f:
+        img = Image.open(f)
+        img = img.crop() 
+    
+    return img
+
+# @st.cache_data(ttl=24*3600)
 def get_session_logistic_regression(key):
     sess_date_str = datetime.strftime(datetime.strptime(key['session_date'], '%Y-%m-%dT%H:%M:%S'), '%Y%m%d')
      
     fn = f'/{key["h2o"]}_{sess_date_str}_*'
-    glob_str = cache_fig_folder + 'logistic_regression/' + key["h2o"] + fn
+    glob_patterns = [cache_fig_folder + 'logistic_regression/' + key["h2o"] + fn]
     
     if use_s3:
-        file = fs.glob(glob_str)
-        if len(file) == 1:
-            with fs.open(file[0]) as f:
-                img = Image.open(f)
-                img = img.crop((0, 0, 5400, 3000))           
+        img = fetch_img_from_s3(glob_patterns)
+        # img = img.crop((0, 0, 5400, 3000))     
     else:
         file = glob.glob(glob_str)
         if len(file) == 1:
@@ -79,22 +87,36 @@ def get_session_logistic_regression(key):
             
     return img
 
+
+# @st.cache_data(ttl=24*3600)
+def get_session_fitted_choice(key):
+    sess_date_str = datetime.strftime(datetime.strptime(key['session_date'], '%Y-%m-%dT%H:%M:%S'), '%Y%m%d')
+     
+    fns = [f'/{key["h2o"]}_{sess_date_str}_*model_best*',
+           f'/{key["h2o"]}_{sess_date_str}_*model_None*']
+    
+    glob_patterns = [cache_fig_folder + 'fitted_choice/' + key["h2o"] + fn for fn in fns]
+    
+    if use_s3:
+        img = fetch_img_from_s3(glob_patterns)
+        img = img.crop((0, 0, img.size[0], img.size[1])) 
+    else:
+        file = glob.glob(glob_patterns)
+        if len(file) == 1:
+            img = Image.open(file[0])
+            img = img.crop((500, 140, 5400, 3000))
+            
+    return img
+
+
 # table_mapping = {
 #     'sessions': fetch_sessions,
 #     'ephys_units': fetch_ephys_units,
 # }
 
 
-@st.experimental_memo(ttl=24*3600)
-def get_fig(key):
-    fig = plt.figure(figsize=(8, 3), constrained_layout=True)
-    ax = fig.subplots(1,1)
-    
-    foraging_model_plot.plot_session_fitted_choice(key, ax=ax, remove_ignored=False, first_n=2)
-    return fig   
-
 def add_session_filter():
-    with st.expander("Unit filter", expanded=True):   
+    with st.expander("Behavioral session filter", expanded=True):   
         st.session_state.df_session_filtered = filter_dataframe(df=st.session_state.df['sessions'])
     st.markdown(f"### {len(st.session_state.df_session_filtered)} sessions filtered (use_s3 = {use_s3})")
 
@@ -110,7 +132,6 @@ def init():
 def app():
     st.markdown('## Foraging Behavior Browser')
        
-          
     with st.container():
         # col1, col2 = st.columns([1.5, 1], gap='small')
         # with col1:
@@ -125,7 +146,7 @@ def app():
     with st.sidebar:
         add_session_filter()
         
-    st.session_state.aggrid_outputs = aggrid_interactive_table_units(df=st.session_state.df_session_filtered)
+    st.session_state.aggrid_outputs = aggrid_interactive_table_session(df=st.session_state.df_session_filtered)
 
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
 
@@ -134,8 +155,14 @@ def app():
     with container_unit_all_in_one:
         # with st.expander("Expand to see all-in-one plot for selected unit", expanded=True):
         if len(st.session_state.aggrid_outputs['selected_rows']) == 1:
-            unit_fig = get_session_logistic_regression(st.session_state.aggrid_outputs['selected_rows'][0])
-            st.image(unit_fig, output_format='PNG', width=3000)
+            fig_fitted_choice = get_session_fitted_choice(st.session_state.aggrid_outputs['selected_rows'][0])
+            st.image(fig_fitted_choice, output_format='PNG', width=1500, caption='')  # use_column_width='always', 
+
+            fig_logistic_regression = get_session_logistic_regression(st.session_state.aggrid_outputs['selected_rows'][0])
+            st.image(fig_logistic_regression, output_format='PNG', width=500)
+
+
+
 
 if 'df' not in st.session_state: 
     init()
