@@ -85,12 +85,13 @@ def show_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], cr
     
     img, f_name = _fetch_img(glob_patterns, crop)
 
-    if img is not None:
-        _f = st if column is None else column
-        _f.image(img, output_format='PNG', 
-                 caption=f_name if caption else '',
-                 use_column_width='always',
-                 **kwargs)
+    _f = st if column is None else column
+    
+    _f.image(img if img is not None else "https://cdn-icons-png.flaticon.com/512/3585/3585596.png", 
+                output_format='PNG', 
+                caption=f_name if caption else '',
+                use_column_width='always',
+                **kwargs)
 
     return img
 
