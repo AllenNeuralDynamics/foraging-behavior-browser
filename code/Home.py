@@ -74,16 +74,23 @@ def _fetch_img(glob_patterns, crop=None):
         img = Image.open(file[0])
         img = img.crop(crop)         
     
-    return img
+    return img, file[0]
 
 # @st.cache_data(ttl=24*3600, max_entries=20)
-def get_img_by_key(key, prefix, other_patterns=[''], crop=None):
+def show_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], crop=None, caption=True, **kwargs):
     sess_date_str = datetime.strftime(datetime.strptime(key['session_date'], '%Y-%m-%dT%H:%M:%S'), '%Y%m%d')
      
     fns = [f'/{key["h2o"]}_{sess_date_str}_*{other_pattern}*' for other_pattern in other_patterns]
     glob_patterns = [cache_fig_folder + f'{prefix}/' + key["h2o"] + fn for fn in fns]
     
-    img = _fetch_img(glob_patterns, crop)
+    img, f_name = _fetch_img(glob_patterns, crop)
+
+    if img is not None:
+        _f = st if column is None else column
+        _f.image(img, output_format='PNG', 
+                 caption=f_name if caption else '',
+                 use_column_width='always',
+                 **kwargs)
 
     return img
 
@@ -128,6 +135,16 @@ def app():
     st.session_state.aggrid_outputs = aggrid_interactive_table_session(df=st.session_state.df_session_filtered)
 
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
+    
+    draw_type_mapper = {'Choice history': ('fitted_choice', 0, dict(other_patterns=['model_best', 'model_None'])),
+                        'Logistic regression on choice': ('logistic_regression', 1, 
+                                                          dict(crop=(0, 0, 1200, 2000))),
+                        'Lick times': ('lick_psth', 0, {}), 
+                        'Win-stay-lose-shift prob.': ('wsls', 1, dict(crop=(0, 0, 1200, 600))), 
+                        }
+
+    draw_types = st.multiselect('Which plot(s) to draw?', draw_type_mapper.keys(), default=draw_type_mapper.keys())
+    num_cols = st.number_input('Number of columns', 1, 10)
 
     container_unit_all_in_one = st.container()
     
@@ -135,16 +152,26 @@ def app():
         # with st.expander("Expand to see all-in-one plot for selected unit", expanded=True):
 
         selected_keys = st.session_state.aggrid_outputs['selected_rows']
+        
         if len(selected_keys):
-            for key in selected_keys:
-                fig_fitted_choice = get_img_by_key(key, prefix='fitted_choice', other_patterns=['model_best', 'model_None'])
-                st.image(fig_fitted_choice, output_format='PNG', width=1500, caption='')  # use_column_width='always', 
+            st.write(f'Draw selected {len(selected_keys)} sessions')
+            my_bar = st.columns((1, 7))[0].progress(0)
+                    
+            cols = st.columns([1] * num_cols)
 
-                fig_logistic_regression = get_img_by_key(key, prefix='logistic_regression')
-                st.image(fig_logistic_regression, output_format='PNG', width=500)
+            for i, key in enumerate(selected_keys):
+                with cols[i % num_cols]:
+                    sub_col = st.columns((2.5, 1))
+                    for draw_type in draw_types:
+                        show_img_by_key_and_prefix(key, 
+                                                   column=sub_col[draw_type_mapper[draw_type][1]],
+                                                   prefix=draw_type_mapper[draw_type][0], 
+                                                   **draw_type_mapper[draw_type][2])
+                        
+                    st.markdown("---")
 
-                fig_lick_psth = get_img_by_key(key, prefix='lick_psth')
-                st.image(fig_lick_psth, output_format='PNG', width=None)
+                    
+                my_bar.progress(int((i + 1) / len(selected_keys) * 100))
 
 
 
