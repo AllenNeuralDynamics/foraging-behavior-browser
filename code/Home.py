@@ -89,7 +89,7 @@ def show_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], cr
     
     _f.image(img if img is not None else "https://cdn-icons-png.flaticon.com/512/3585/3585596.png", 
                 output_format='PNG', 
-                caption=f_name if caption else '',
+                caption=f_name.split('/')[-1] if caption else '',
                 use_column_width='always',
                 **kwargs)
 
@@ -137,42 +137,64 @@ def app():
 
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
     
-    draw_type_mapper = {'Choice history': ('fitted_choice', 0, dict(other_patterns=['model_best', 'model_None'])),
-                        'Logistic regression on choice': ('logistic_regression', 1, 
+    # Setting up layout for each session
+    layout_definition = [[1],   # columns in the first row
+                         [2, 1],  # columns in the second row
+                         ]  
+    
+    draw_type_mapper = {'1. Choice history': ('fitted_choice',   # prefix
+                                           (0, 0),     # location (row_idx, column_idx)
+                                           dict(other_patterns=['model_best', 'model_None'])),
+                        '2. Lick times': ('lick_psth', 
+                                       (1, 0), 
+                                       {}),                         
+                        '3. Logistic regression on choice': ('logistic_regression', 
+                                                          (1, 1), 
                                                           dict(crop=(0, 0, 1200, 2000))),
-                        'Lick times': ('lick_psth', 0, {}), 
-                        'Win-stay-lose-shift prob.': ('wsls', 1, dict(crop=(0, 0, 1200, 600))), 
+                        '4. Win-stay-lose-shift prob.': ('wsls', 
+                                                      (1, 1), 
+                                                      dict(crop=(0, 0, 1200, 600))), 
                         }
     
-    st.markdown('### Select sessions(s) above to draw')
+    st.markdown('### Select session(s) above to draw')
     cols_option = st.columns([2, 1, 2])
-    draw_types = cols_option[0].multiselect('Which plot(s) to draw?', draw_type_mapper.keys(), default=draw_type_mapper.keys())
+    selected_draw_types = cols_option[0].multiselect('Which plot(s) to draw?', draw_type_mapper.keys(), default=draw_type_mapper.keys())
     num_cols = cols_option[1].number_input('Number of columns', 1, 10)
-
-    container_unit_all_in_one = st.container()
+    container_session_all_in_one = st.container()
     
-    with container_unit_all_in_one:
+    with container_session_all_in_one:
         # with st.expander("Expand to see all-in-one plot for selected unit", expanded=True):
 
         selected_keys = st.session_state.aggrid_outputs['selected_rows']
         
         if len(selected_keys):
-            st.write(f'Draw selected {len(selected_keys)} sessions')
+            st.write(f'Loading selected {len(selected_keys)} sessions...')
             my_bar = st.columns((1, 7))[0].progress(0)
              
-            cols = st.columns([1] * num_cols)
+            major_cols = st.columns([1] * num_cols)
 
             for i, key in enumerate(selected_keys):
-                with cols[i % num_cols]:
-                    sub_col = st.columns((2.5, 1))
-                    for draw_type in draw_types:
-                        show_img_by_key_and_prefix(key, 
-                                                   column=sub_col[draw_type_mapper[draw_type][1]],
-                                                   prefix=draw_type_mapper[draw_type][0], 
-                                                   **draw_type_mapper[draw_type][2])
-                        
+                this_major_col = major_cols[i % num_cols]
+                
+                # setting up layout for each session
+                rows = []
+                with this_major_col:
+                    st.markdown(f'''<h3 style='text-align: center; color: blue;'>{key["h2o"]}, Session {key["session"]}, {key["session_date"].split("T")[0]}''',
+                              unsafe_allow_html=True)
+                    if len(selected_draw_types) > 1:  # more than one types, use the pre-defined layout
+                        for row, column_setting in enumerate(layout_definition):
+                            rows.append(this_major_col.columns(column_setting))
+                    else:    # else, put it in the whole column
+                        rows = this_major_col.columns([1])
                     st.markdown("---")
 
+                for draw_type in selected_draw_types:
+                    prefix, position, setting = draw_type_mapper[draw_type]
+                    this_col = rows[position[0]][position[1]] if len(selected_draw_types) > 1 else rows[0]
+                    show_img_by_key_and_prefix(key, 
+                                                column=this_col,
+                                                prefix=prefix, 
+                                                **setting)
                     
                 my_bar.progress(int((i + 1) / len(selected_keys) * 100))
 
