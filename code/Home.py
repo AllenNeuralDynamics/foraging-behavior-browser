@@ -54,7 +54,6 @@ def load_data(tables=['sessions']):
                 df[table] = pd.read_pickle(f)
         else:
             df[table] = pd.read_pickle(file_name)
-        
     return df
 
 def _fetch_img(glob_patterns, crop=None):
@@ -114,7 +113,7 @@ def init():
     st.session_state.df = df
     
     # Some global variables
-
+    
 
 def app():
     st.markdown('## Foraging Behavior Browser')
@@ -123,8 +122,13 @@ def app():
         # col1, col2 = st.columns([1.5, 1], gap='small')
         # with col1:
         # -- 1. unit dataframe --
-        st.markdown(f'### Filtered sessions')
         
+        cols = st.columns([1, 2, 2])
+        cols[0].markdown(f'### Filtered sessions')
+        if cols[1].button('Press this and then Ctrl + R to reload from S3'):
+            st.cache_data.clear()
+            st.experimental_rerun()
+             
         # aggrid_outputs = aggrid_interactive_table_units(df=df['ephys_units'])
         # st.session_state.df_session_filtered = aggrid_outputs['data']
         
@@ -157,7 +161,7 @@ def app():
                         }
     
     st.markdown('### Select session(s) above to draw')
-    cols_option = st.columns([2, 1, 2])
+    cols_option = st.columns([3, 0.5, 1])
     selected_draw_types = cols_option[0].multiselect('Which plot(s) to draw?', draw_type_mapper.keys(), default=draw_type_mapper.keys())
     num_cols = cols_option[1].number_input('Number of columns', 1, 10)
     container_session_all_in_one = st.container()
