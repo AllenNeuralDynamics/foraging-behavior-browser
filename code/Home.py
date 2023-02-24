@@ -63,8 +63,8 @@ def _fetch_img(glob_patterns, crop=None):
         file = fs.glob(pattern) if use_s3 else glob.glob(pattern)
         if len(file): break
         
-    if not len(file): 
-        return None
+    if not len(file):
+        return None, None
 
     if use_s3:
         with fs.open(file[0]) as f:
@@ -142,9 +142,11 @@ def app():
                         'Lick times': ('lick_psth', 0, {}), 
                         'Win-stay-lose-shift prob.': ('wsls', 1, dict(crop=(0, 0, 1200, 600))), 
                         }
-
-    draw_types = st.multiselect('Which plot(s) to draw?', draw_type_mapper.keys(), default=draw_type_mapper.keys())
-    num_cols = st.number_input('Number of columns', 1, 10)
+    
+    st.markdown('### Select sessions(s) above to draw')
+    cols_option = st.columns([2, 1, 2])
+    draw_types = cols_option[0].multiselect('Which plot(s) to draw?', draw_type_mapper.keys(), default=draw_type_mapper.keys())
+    num_cols = cols_option[1].number_input('Number of columns', 1, 10)
 
     container_unit_all_in_one = st.container()
     
@@ -156,7 +158,7 @@ def app():
         if len(selected_keys):
             st.write(f'Draw selected {len(selected_keys)} sessions')
             my_bar = st.columns((1, 7))[0].progress(0)
-                    
+             
             cols = st.columns([1] * num_cols)
 
             for i, key in enumerate(selected_keys):

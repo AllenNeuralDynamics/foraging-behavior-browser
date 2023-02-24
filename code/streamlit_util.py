@@ -157,14 +157,14 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                                                             label_visibility='collapsed',
                                                             default=st.session_state.to_filter_columns_cache 
                                                                     if 'to_filter_columns_cache' in st.session_state
-                                                                    else ['h2o', 'task', 'finished', 'photostim'],
+                                                                    else ['h2o', 'task', 'finished', 'photostim_location'],
                                                             key='to_filter_columns',
                                                             on_change=cache_widget,
                                                             args=['to_filter_columns'])
         for column in to_filter_columns:
             left, right = st.columns((1, 20))
             # Treat columns with < 10 unique values as categorical
-            if is_categorical_dtype(df[column]) or df[column].nunique() < 30:
+            if is_categorical_dtype(df[column]) or df[column].nunique() < 10 and column not in ('finished', 'foraging_eff'):
                 right.markdown(f"Filter for :red[**{column}**]")
                 selected = right.multiselect(
                     f"Values for {column}",
@@ -233,7 +233,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                     
                     with c_hist:
                         
-                        counts, bins = np.histogram(x, bins=100)
+                        counts, bins = np.histogram(x[~np.isnan(x)], bins=100)
                         
                         fig = px.bar(x=bins[1:], y=counts)
                         fig.add_vrect(x0=user_num_input[0], x1=user_num_input[1], fillcolor='red', opacity=0.1, line_width=0)
