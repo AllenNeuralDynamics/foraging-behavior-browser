@@ -88,7 +88,7 @@ def show_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], cr
     
     _f.image(img if img is not None else "https://cdn-icons-png.flaticon.com/512/3585/3585596.png", 
                 output_format='PNG', 
-                caption=f_name.split('/')[-1] if caption else '',
+                caption=f_name.split('/')[-1] if caption and f_name else '',
                 use_column_width='always',
                 **kwargs)
 
@@ -143,7 +143,7 @@ def app():
     
     # Setting up layout for each session
     layout_definition = [[1],   # columns in the first row
-                         [2, 1],  # columns in the second row
+                         [1.5, 1],  # columns in the second row
                          ]  
     
     draw_type_mapper = {'1. Choice history': ('fitted_choice',   # prefix
@@ -151,19 +151,22 @@ def app():
                                            dict(other_patterns=['model_best', 'model_None'])),
                         '2. Lick times': ('lick_psth', 
                                        (1, 0), 
-                                       {}),                         
+                                       {}),            
                         '3. Logistic regression on choice': ('logistic_regression', 
                                                           (1, 1), 
                                                           dict(crop=(0, 0, 1200, 2000))),
                         '4. Win-stay-lose-shift prob.': ('wsls', 
                                                       (1, 1), 
-                                                      dict(crop=(0, 0, 1200, 600))), 
+                                                      dict(crop=(0, 0, 1200, 600))),
+                        '5. Linear regression on RT': ('linear_regression_rt', 
+                                                      (1, 0), 
+                                                      dict()),
                         }
     
     st.markdown('### Select session(s) above to draw')
     cols_option = st.columns([3, 0.5, 1])
     selected_draw_types = cols_option[0].multiselect('Which plot(s) to draw?', draw_type_mapper.keys(), default=draw_type_mapper.keys())
-    num_cols = cols_option[1].number_input('Number of columns', 1, 10)
+    num_cols = cols_option[1].number_input('Number of columns', 1, 10, 2)
     container_session_all_in_one = st.container()
     
     with container_session_all_in_one:
@@ -192,7 +195,8 @@ def app():
                         rows = this_major_col.columns([1])
                     st.markdown("---")
 
-                for draw_type in selected_draw_types:
+                for draw_type in draw_type_mapper:
+                    if draw_type not in selected_draw_types: continue  # To keep the draw order defined by draw_type_mapper
                     prefix, position, setting = draw_type_mapper[draw_type]
                     this_col = rows[position[0]][position[1]] if len(selected_draw_types) > 1 else rows[0]
                     show_img_by_key_and_prefix(key, 
