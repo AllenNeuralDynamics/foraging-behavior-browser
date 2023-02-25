@@ -157,7 +157,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                                                             label_visibility='collapsed',
                                                             default=st.session_state.to_filter_columns_cache 
                                                                     if 'to_filter_columns_cache' in st.session_state
-                                                                    else ['h2o', 'task', 'finished', 'photostim_location'],
+                                                                    else ['h2o', 'task', 'session_date', 'finished', 'photostim_location'],
                                                             key='to_filter_columns',
                                                             on_change=cache_widget,
                                                             args=['to_filter_columns'])
@@ -267,3 +267,10 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                     df = df[df[column].astype(str).str.contains(user_text_input)]
 
     return df
+
+
+
+def add_session_filter():
+    with st.expander("Behavioral session filter", expanded=True):   
+        st.session_state.df_session_filtered = filter_dataframe(df=st.session_state.df['sessions'])
+    st.markdown(f"### {len(st.session_state.df_session_filtered)} sessions filtered (use_s3 = {st.session_state.use_s3})")

@@ -1,4 +1,4 @@
-# hash:sha256:158f41bfd7543f3c3677969b2ab82f4c7103603702e4c407c0204a35ed86d93d
+# hash:sha256:51bda5f40316acb89ad85a82e996448f5a31d6f40b5b443e817e9b346eee2f67
 FROM registry.codeocean.allenneuraldynamics.org/codeocean/jupyterlab:3.0.9-miniconda4.9.2-python3.8-ubuntu20.04
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -65,7 +65,7 @@ RUN pip install -U --no-cache-dir \
     semver==2.13.0 \
     six==1.16.0 \
     smmap==5.0.0 \
-    streamlit==1.15.1 \
+    streamlit==1.19.0 \
     streamlit-aggrid==0.3.3 \
     streamlit-nested-layout==0.1.1 \
     streamlit-plotly-events==0.0.6 \
@@ -81,7 +81,9 @@ RUN pip install -U --no-cache-dir \
     watchdog==2.1.9 \
     wrapt==1.14.1 \
     yarl==1.8.1 \
-    zipp==3.10.0
+    zipp==3.10.0 \
+    extra_streamlit_components \
+    statsmodels
 
 ADD "https://github.com/coder/code-server/releases/download/v4.9.0/code-server-4.9.0-linux-amd64.tar.gz" /.code-server/code-server.tar.gz
 	
@@ -89,3 +91,7 @@ RUN cd /.code-server \
 	&& tar -xvf code-server.tar.gz \
 	&& rm code-server.tar.gz \
 	&& ln -s /.code-server/code-server-4.9.0-linux-amd64/bin/code-server  /usr/bin/code-server
+
+
+COPY postInstall /
+RUN /postInstall
