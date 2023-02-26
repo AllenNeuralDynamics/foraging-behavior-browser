@@ -25,39 +25,45 @@ def app():
     df_log_reg_to_do = df_to_do_population.merge(st.session_state.df['logistic_regression'], on=('subject_id', 'session'), how='inner')
     df_lin_reg_rt_to_do = df_to_do_population.merge(st.session_state.df['linear_regression_rt'], on=('subject_id', 'session'), how='inner')
 
-
-    if st.checkbox('Plot logistic regression (⚡photostim sessions)', False):
-        with st.columns([0.5, 1, 7])[1]:
-            beta_names = st.multiselect('beta names', ['RewC', 'UnrC', 'C'], ['RewC', 'UnrC', 'C'])
-            max_trials_back = st.slider('max trials back', 1, 5, 3)
-            
-        fig = plot_logistic_regression_photostim(df_log_reg_to_do.query('trial_group != "all_no_stim"'), 
-                                                 beta_names=beta_names, past_trials_to_plot=range(1, max_trials_back + 1))
-        
-        buf = BytesIO()
-        fig.savefig(buf, format="png")
-        st.image(buf, width=3000)
-        
-    if st.checkbox('Plot logistic regression (non-photostim)', False):        
-        fig = plot_logistic_regression_non_photostim(df_log_reg_to_do.query('trial_group == "all_no_stim"'))
-        buf = BytesIO()
-        fig.savefig(buf, format="png")
-        st.image(buf, width=1000)
-
+    cols = st.columns([1, 3])
     
-    if st.checkbox('Plot linear regression on RT (⚡photostim sessions)', False):
-        fig = plot_linear_regression_rt_photostim(df_lin_reg_rt_to_do.query('trial_group != "all_no_stim"'), 
-                                                  beta_names=['reward_1', 'reward_2', 'previous_iti', 'trial_number', 'this_choice', 'constant'])
-        buf = BytesIO()
-        fig.savefig(buf, format="png")
-        st.image(buf)
+    with cols[0]:    
+        if st.checkbox('Plot logistic regression (non-photostim)', True):        
+            fig = plot_logistic_regression_non_photostim(df_log_reg_to_do.query('trial_group == "all_no_stim"'))
+            buf = BytesIO()
+            fig.savefig(buf, format="png")
+            st.image(buf, use_column_width=True)
+
+            
+        if st.checkbox('Plot linear regression on RT (non-photostim)', True):
+            fig = plot_linear_regression_rt_non_photostim(df_lin_reg_rt_to_do.query('trial_group == "all_no_stim"'))
+            
+            buf = BytesIO()
+            fig.savefig(buf, format="png")
+            st.image(buf, use_column_width=True)
+
+    with cols[1]:
+        if st.checkbox('Plot logistic regression (⚡photostim sessions)', False):
+            with st.columns([0.5, 1, 7])[1]:
+                beta_names = st.multiselect('beta names', ['RewC', 'UnrC', 'C'], ['RewC', 'UnrC', 'C'])
+                max_trials_back = st.slider('max trials back', 1, 5, 3)
+                
+            fig = plot_logistic_regression_photostim(df_log_reg_to_do.query('trial_group != "all_no_stim"'), 
+                                                    beta_names=beta_names, past_trials_to_plot=range(1, max_trials_back + 1))
+            
+            buf = BytesIO()
+            fig.savefig(buf, format="png")
+            st.image(buf, width=3000)
         
-    if st.checkbox('Plot linear regression on RT (non-photostim)', True):
-        fig = plot_linear_regression_rt_non_photostim(df_lin_reg_rt_to_do.query('trial_group == "all_no_stim"'))
-        
-        buf = BytesIO()
-        fig.savefig(buf, format="png")
-        st.image(buf, width=1000)
+        if st.checkbox('Plot linear regression on RT (⚡photostim sessions)', False):
+            fig = plot_linear_regression_rt_photostim(df_lin_reg_rt_to_do.query('trial_group != "all_no_stim"'), 
+                                                    beta_names=['reward_1', 'reward_2', 'previous_iti', 'trial_number', 'this_choice', 'constant'])
+            buf = BytesIO()
+            fig.savefig(buf, format="png")
+            st.image(buf)
+            
+
+
     
     # st.pyplot(fig)
     
