@@ -203,7 +203,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                             showlegend=not if_smooth,
                             mode="markers",
                             marker_color=col_map[i%len(col_map)],
-                            opacity=0.5,
+                            opacity=0.5 if if_smooth else 1,
                             ))
 
         if if_smooth:
@@ -276,7 +276,7 @@ def population_analysis():
              ('session', 'finished'):   'Finished trials', 
              }
 
-    df_selected_from_plotly = []
+    df_selected_from_plotly = pd.DataFrame()
     # for i, (title, (x_name, y_name)) in enumerate(names.items()):
         # with cols[i]:
     with cols[1]:
@@ -289,8 +289,8 @@ def population_analysis():
                                         if_smooth=if_smooth,
                                         title=names[(x_name, y_name)] if (x_name, y_name) in names else y_name)
     if len(selected):
-        df_selected_from_plotly.append(df_selected.merge(pd.DataFrame(selected).rename({'x': x_name, 'y': y_name}, axis=1), 
-                                                    on=[x_name, y_name], how='inner')) 
+        df_selected_from_plotly = df_selected.merge(pd.DataFrame(selected).rename({'x': x_name, 'y': y_name}, axis=1), 
+                                                    on=[x_name, y_name], how='inner')
 
     return df_selected_from_plotly
 
@@ -300,7 +300,7 @@ def add_xy_selector():
         # with st.form("axis_selection"):
         cols = st.columns([1, 1, 1])
         x_name = cols[0].selectbox("x axis", st.session_state.session_stats_names, index=st.session_state.session_stats_names.index('session'))
-        y_name = cols[1].selectbox("y axis", st.session_state.session_stats_names, index=st.session_state.session_stats_names.index('finished'))
+        y_name = cols[1].selectbox("y axis", st.session_state.session_stats_names, index=st.session_state.session_stats_names.index('foraging_eff'))
         group_by = cols[2].selectbox("grouped by", ['h2o', 'task'], index=['h2o', 'task'].index('h2o'))
             # st.form_submit_button("update axes")
     return x_name, y_name, group_by
@@ -308,9 +308,10 @@ def add_xy_selector():
 
 # ------- Layout starts here -------- #    
 def init():
-    df = load_data(['sessions', 'logistic_regression'])
+    df = load_data(['sessions', 'logistic_regression', 'linear_regression_rt'])
     st.session_state.df = df
     
+    st.session_state.df_selected_from_plotly = pd.DataFrame()
     st.session_state.session_stats_names = [keys for keys in st.session_state.df['sessions'].keys()]
     
     # Some global variables
@@ -337,6 +338,8 @@ def app():
         
     with st.sidebar:
         add_session_filter()
+
+
         
     if len(st.session_state.df_session_filtered) == 0:
         st.markdown('## No filtered results!')
@@ -356,8 +359,12 @@ def app():
             df_selected_from_plotly = population_analysis()
             st.markdown('##### Select session(s) from the plots above to draw')
 
-            if len(df_selected_from_plotly):
-                draw_session_plots(df_selected_from_plotly[0])
+            if len(st.session_state.df_selected_from_plotly):
+                draw_session_plots(st.session_state.df_selected_from_plotly)
+                
+            if len(df_selected_from_plotly) and not df_selected_from_plotly.equals(st.session_state.df_selected_from_plotly):
+                st.session_state.df_selected_from_plotly = df_selected_from_plotly
+                st.experimental_rerun()
             
     elif chosen_id == "tab2":
         with placeholder:
