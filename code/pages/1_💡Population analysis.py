@@ -10,6 +10,14 @@ from population_util import _draw_variable_trial_back, _draw_variable_trial_back
 import seaborn as sns
 
 st.session_state.use_s3 = True
+st.set_page_config(layout="wide", 
+                   page_title='Foraging behavior browser',
+                   page_icon=':mouse2:',
+                    menu_items={
+                    'Report a bug': "https://github.com/hanhou/foraging-behavior-browser/issues",
+                    'About': "Github repo: https://github.com/hanhou/foraging-behavior-browser/"
+                    }
+                   )
 
 
 def app():

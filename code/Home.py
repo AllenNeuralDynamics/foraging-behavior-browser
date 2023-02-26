@@ -204,6 +204,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                             mode="markers",
                             marker_color=col_map[i%len(col_map)],
                             opacity=0.5 if if_smooth else 1,
+                            unselected=dict(marker_color='grey')
                             ))
 
         if if_smooth:
@@ -215,7 +216,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                         mode="lines",
                         marker_color=col_map[i%len(col_map)],
                         opacity=0.5 if if_average else 1,
-                        hoveron = 'points+fills',   # Scattergl doesn't support this
+                        hoveron='points+fills',   # Scattergl doesn't support this
                         ))        
 
     if if_average:
@@ -227,7 +228,8 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
             error_y=dict(type='data',
                          symmetric=True,
                          array=sem),
-            name='mean +/- sem'
+            name='mean +/- sem',
+            mode="lines",
         )
     )
 
