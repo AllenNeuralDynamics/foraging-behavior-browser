@@ -75,4 +75,4 @@ scipy
 extra_streamlit_components 
 statsmodels
 statannotations
-seaborn
+seaborn==0.12.2

@@ -10,14 +10,6 @@ from population_util import _draw_variable_trial_back, _draw_variable_trial_back
 import seaborn as sns
 
 st.session_state.use_s3 = True
-st.set_page_config(layout="wide", 
-                   page_title='Foraging behavior browser',
-                   page_icon=':mouse2:',
-                    menu_items={
-                    'Report a bug': "https://github.com/hanhou/foraging-behavior-browser/issues",
-                    'About': "Github repo: https://github.com/hanhou/foraging-behavior-browser/"
-                    }
-                   )
 
 
 def app():
@@ -105,7 +97,7 @@ def plot_logistic_regression_photostim(df_all, beta_names=['RewC', 'UnrC', 'C'],
 def plot_logistic_regression_non_photostim(df_all, max_trials_back=10, ax=None):
     
     if ax is None:
-        fig, ax = plt.subplots(1, 1, figsize=(6, 4), dpi=200,
+        fig, ax = plt.subplots(1, 1, figsize=(5, 4), dpi=200,
                                gridspec_kw=dict(bottom=0.2, top=0.9))
         
     xx = np.arange(1, max_trials_back + 1)
@@ -134,7 +126,7 @@ def plot_logistic_regression_non_photostim(df_all, max_trials_back=10, ax=None):
     ax.legend()
     ax.set(xlabel='Past trials', ylabel='Logistic regression coeffs')
     ax.axhline(y=0, color='k', linestyle=':', linewidth=0.5)
-    ax.set(xticks=[1, 5, 10])
+    ax.set(xticks=[1, 5, 10], ylim=(-0.1, 1.3))
 
     sns.despine(trim=True)
 
@@ -170,10 +162,10 @@ def plot_linear_regression_rt_non_photostim(df_all, ax=None):
     '''
     
     if ax is None:
-        fig, ax = plt.subplots(1, 1, figsize=(6, 4), dpi=200,
-                               gridspec_kw=dict(bottom=0.3))
+        fig, ax = plt.subplots(1, 1, figsize=(5, 4), dpi=200,
+                               gridspec_kw=dict(bottom=0.2, left=0.2))
         
-    gs = ax._subplotspec.subgridspec(1, 2, width_ratios=[1, 3], wspace=0.3)
+    gs = ax._subplotspec.subgridspec(1, 2, width_ratios=[1, 3], wspace=0.5)
     ax_others = ax.get_figure().add_subplot(gs[0, 0])
     ax_reward = ax.get_figure().add_subplot(gs[0, 1])
     
@@ -190,7 +182,7 @@ def plot_linear_regression_rt_non_photostim(df_all, ax=None):
                        color='k', 
                        capsize=5, markeredgewidth=1,
                       )
-    ax_others.set_xlim(-0.5, 2.5)
+    ax_others.set(xlim=(-0.5, 2.5), ylim=(-0.3, 1))
     
     ax_others.set_xticks(range(len(other_names)))
     ax_others.set_xticklabels(other_names, rotation=45, ha='right')
@@ -214,7 +206,7 @@ def plot_linear_regression_rt_non_photostim(df_all, ax=None):
     
     ax_reward.set(xlabel='Reward of past trials')
     ax_reward.axhline(y=0, color='k', linestyle=':', linewidth=1)
-    ax_reward.set(xticks=[1, 5, 10])
+    ax_reward.set(xticks=[1, 5, 10], ylim=(-0.35, 0.05))
     ax_reward.invert_yaxis()
     
     sns.despine(trim=True)

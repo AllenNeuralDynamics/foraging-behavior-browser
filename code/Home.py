@@ -11,6 +11,7 @@ import os
 import plotly.express as px
 import plotly.graph_objects as go
 from scipy.stats import linregress
+import statsmodels.api as sm
 
 from PIL import Image, ImageColor
 import streamlit.components.v1 as components
@@ -193,43 +194,70 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                          title=''):
     
     def _add_agg(df_this, x_name, y_name, group, aggr_method, col):
-        x = df_this[x_name].astype(float)
-        y = df_this[y_name].astype(float)
+        x = df_this.sort_values(x_name)[x_name].astype(float)
+        y = df_this.sort_values(x_name)[y_name].astype(float)
+        
+        n_mice = len(df_this['h2o'].unique())
+        n_sessions = len(df_this.groupby(['h2o', 'session']).count())
+        n_str = f' ({n_mice} mice, {n_sessions} sessions)'
 
-        if aggr_method == 'smooth':
+        if aggr_method == 'running average':
             fig.add_trace(go.Scatter(    
                         x=x, 
                         y=y.rolling(window=smooth_factor, center=True, min_periods=1).mean(), 
-                        name=group,
+                        name=group + n_str,
                         legendgroup=f'group_{group}',
                         mode="lines",
                         marker_color=col,
                         opacity=1,
                         hoveron='points+fills',   # Scattergl doesn't support this
                         ))
-        elif aggr_method == 'mean +/- sem':
+        elif aggr_method == 'lowess':
+            x_new = np.linspace(x.min(), x.max(), 200)
+            lowess = sm.nonparametric.lowess(y, x, frac=0.3)
+            
+            fig.add_trace(go.Scatter(    
+                        x=lowess[:, 0], 
+                        y=lowess[:, 1], 
+                        name=group + n_str,
+                        legendgroup=f'group_{group}',
+                        mode="lines",
+                        marker_color=col,
+                        opacity=1,
+                        hoveron='points+fills',   # Scattergl doesn't support this
+                        ))            
+        elif aggr_method in ('mean +/- sem', 'mean'):
             # mean and sem groupby x_name
             mean = df_this.groupby(x_name)[y_name].mean()
             sem = df_this.groupby(x_name)[y_name].sem()
-            
             fig.add_trace(go.Scatter(    
                         x=mean.index, 
                         y=mean, 
                         error_y=dict(type='data',
                                     symmetric=True,
-                                    array=sem),
-                        name=group,
+                                    array=sem) if 'sem' in aggr_method else None,
+                        name=group + n_str,
                         legendgroup=f'group_{group}',
                         mode="lines",
                         marker_color=col,
                         opacity=1,
                         hoveron='points+fills',   # Scattergl doesn't support this
                         ))
-            
         elif aggr_method == 'linear fit':
             # perform linear regression
             mask = ~np.isnan(x) & ~np.isnan(y)
-            slope, intercept, r_value, p_value, std_err = linregress(x[mask], y[mask])
+            try:
+                slope, intercept, r_value, p_value, std_err = linregress(x[mask], y[mask])
+                fig.add_trace(go.Scatter(x=x, 
+                                        y=intercept + slope*x, 
+                                        mode='lines',
+                                        name=f"{group} (r={r_value:.2f}, p={p_value:.2f})" + n_str,
+                                        marker_color=col,
+                                        legendgroup=f'group_{group}',
+                                        hoverinfo='skip')
+                )            
+            except:
+                pass
             
             # fig_trendlines = px.scatter(
             #                             x=x.astype(float), 
@@ -243,14 +271,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
             # fig_trendlines.update_traces(showlegend=True)
             # fig = go.Figure(data=fig.data + fig_trendlines.data)
             
-            fig.add_trace(go.Scatter(x=x, 
-                                    y=intercept + slope*x, 
-                                    mode='lines',
-                                    name=f"{group} (r={r_value:.2f}, p={p_value:.2f})",
-                                    marker_color=col,
-                                    legendgroup=f'group_{group}',
-                                    hoverinfo='skip')
-            )
+
             
     
     fig = go.Figure()
@@ -266,11 +287,11 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                             y=this_session[y_name], 
                             name=group,
                             legendgroup=f'group_{group}',
-                            showlegend=not (if_aggr_all or if_aggr_each_group),
+                            showlegend=not if_aggr_each_group,
                             mode="markers",
                             marker_size=10,
                             marker_color=col,
-                            opacity=0.15 if if_aggr_all or if_aggr_each_group else 0.5,
+                            opacity=0.15 if if_aggr_each_group else 0.5,
                             unselected=dict(marker_color='grey')
                             ))
             
@@ -285,7 +306,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
     n_mice = len(df['h2o'].unique())
     n_sessions = len(df.groupby(['h2o', 'session']).count())
     
-    fig.update_layout(width=1200, 
+    fig.update_layout(width=1400, 
                     height=800,
                     xaxis_title=x_name,
                     yaxis_title=y_name,
@@ -318,15 +339,17 @@ def population_analysis():
         
         s_cols = st.columns([1, 1, 1])
         if_show_dots = s_cols[0].checkbox('Show data points', True)
+        
+        aggr_methods =  ['mean', 'mean +/- sem', 'lowess', 'running average', 'linear fit']
 
         if_aggr_each_group = s_cols[1].checkbox('Aggr each group', True)
-        aggr_method_group = s_cols[1].selectbox('aggr method group', ['smooth', 'mean +/- sem', 'linear fit'], disabled=not if_aggr_each_group)
+        aggr_method_group = s_cols[1].selectbox('aggr method group', aggr_methods, disabled=not if_aggr_each_group)
         
         if_aggr_all = s_cols[2].checkbox('Aggr all', False)
-        aggr_method_all = s_cols[2].selectbox('aggr method all', ['smooth', 'mean +/- sem', 'linear fit'], disabled=not if_aggr_all)
+        aggr_method_all = s_cols[2].selectbox('aggr method all', aggr_methods, disabled=not if_aggr_all)
         
-        smooth_factor = s_cols[0].slider('Smooth factor', 1, 20, 5, disabled=not ((if_aggr_each_group and aggr_method_group=='smooth')
-                                                                            or (if_aggr_all and aggr_method_all=='smooth')))
+        smooth_factor = s_cols[0].slider('Smooth factor', 1, 20, 5, disabled=not ((if_aggr_each_group and aggr_method_group=='lowess')
+                                                                            or (if_aggr_all and aggr_method_all=='lowess')))
 
         
     names = {('session', 'foraging_eff'): 'Foraging efficiency',
@@ -360,32 +383,49 @@ def add_xy_selector():
         cols = st.columns([1, 1, 1])
         x_name = cols[0].selectbox("x axis", st.session_state.session_stats_names, index=st.session_state.session_stats_names.index('session'))
         y_name = cols[1].selectbox("y axis", st.session_state.session_stats_names, index=st.session_state.session_stats_names.index('foraging_eff'))
-        group_by = cols[2].selectbox("grouped by", ['h2o', 'task', 'photostim_location', ''], index=['h2o', 'task'].index('h2o'))
+        group_by = cols[2].selectbox("grouped by", ['h2o', 'task', 'photostim_location', 
+                                                    'headbar', 'user_name', 'sex', 'rig'], index=['h2o', 'task'].index('h2o'))
             # st.form_submit_button("update axes")
     return x_name, y_name, group_by
 
 
 # ------- Layout starts here -------- #    
 def init():
-    df = load_data(['sessions', 'logistic_regression', 'linear_regression_rt'])
+    df = load_data(['sessions', 
+                    'logistic_regression', 
+                    'linear_regression_rt',
+                    'model_fitting_params'])
     st.session_state.df = df
     
     st.session_state.df_selected_from_plotly = pd.DataFrame()
-    st.session_state.session_stats_names = [keys for keys in st.session_state.df['sessions'].keys()]
     
-    # Some global variables
+    # add some model fitting params to session
+    to_add_model = st.session_state.df['model_fitting_params'].query('model_id == 21')[['session', 'subject_id', 'prediction_accuracy', 'biasL',
+                                                                                        'learn_rate_rew', 'learn_rate_unrew', 'forget_rate',
+                                                                                        'softmax_temperature', 'choice_softmax_temperature']]
+    st.session_state.df['sessions'] = st.session_state.df['sessions'].merge(to_add_model, on=('subject_id', 'session'), how='left')
+
+    # add something else
+    st.session_state.df['sessions']['abs(bias)'] = np.abs(st.session_state.df['sessions'].biasL)
+
+
+    st.session_state.session_stats_names = [keys for keys in st.session_state.df['sessions'].keys()]
+   
     
 
 def app():
     st.markdown('## Foraging Behavior Browser')
-       
+    
+    with st.sidebar:
+        add_session_filter()
+
     with st.container():
         # col1, col2 = st.columns([1.5, 1], gap='small')
         # with col1:
         # -- 1. unit dataframe --
         
-        cols = st.columns([1, 2, 2])
-        cols[0].markdown(f'### Filtered sessions')
+        cols = st.columns([2, 2, 2])
+        cols[0].markdown(f'### Filter the sessions on the sidebar ({len(st.session_state.df_session_filtered)} filtered)')
         if cols[1].button('Press this and then Ctrl + R to reload from S3'):
             st.cache_data.clear()
             st.experimental_rerun()
@@ -394,10 +434,6 @@ def app():
         # st.session_state.df_session_filtered = aggrid_outputs['data']
         
         container_filtered_frame = st.container()
-        
-    with st.sidebar:
-        add_session_filter()
-
 
         
     if len(st.session_state.df_session_filtered) == 0:
