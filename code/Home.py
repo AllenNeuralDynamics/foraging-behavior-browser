@@ -55,7 +55,7 @@ if 'selected_points' not in st.session_state:
     st.session_state['selected_points'] = []
 
     
-@st.experimental_memo(ttl=24*3600)
+@st.cache_data(ttl=24*3600)
 def load_data(tables=['sessions']):
     df = {}
     for table in tables:
@@ -87,7 +87,7 @@ def _fetch_img(glob_patterns, crop=None):
     return img, file[0]
 
 
-# @st.experimental_memo(ttl=24*3600, max_entries=20)
+# @st.cache_data(ttl=24*3600, max_entries=20)
 def show_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], crop=None, caption=True, **kwargs):
     sess_date_str = datetime.strftime(datetime.strptime(key['session_date'], '%Y-%m-%dT%H:%M:%S'), '%Y%m%d')
      
@@ -113,7 +113,7 @@ def show_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], cr
 # }
 
     
-def draw_session_plots():
+def draw_session_plots(keys_to_draw_session):
     st.markdown('##### Select session(s) from the table above to draw')
     
     # Setting up layout for each session
@@ -145,16 +145,17 @@ def draw_session_plots():
     
     with container_session_all_in_one:
         # with st.expander("Expand to see all-in-one plot for selected unit", expanded=True):
-
-        selected_keys = st.session_state.aggrid_outputs['selected_rows']
         
-        if len(selected_keys):
-            st.write(f'Loading selected {len(selected_keys)} sessions...')
+        if len(keys_to_draw_session):
+            st.write(f'Loading selected {len(keys_to_draw_session)} sessions...')
             my_bar = st.columns((1, 7))[0].progress(0)
              
             major_cols = st.columns([1] * num_cols)
+            
+            if not isinstance(keys_to_draw_session, list):  # Turn dataframe to list, if necessary
+                keys_to_draw_session = keys_to_draw_session.to_dict(orient='records')
 
-            for i, key in enumerate(selected_keys):
+            for i, key in enumerate(keys_to_draw_session):
                 this_major_col = major_cols[i % num_cols]
                 
                 # setting up layout for each session
@@ -178,12 +179,13 @@ def draw_session_plots():
                                                 prefix=prefix, 
                                                 **setting)
                     
-                my_bar.progress(int((i + 1) / len(selected_keys) * 100))
+                my_bar.progress(int((i + 1) / len(keys_to_draw_session) * 100))
                 
                 
 
 def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', 
-                         smooth_factor=5, if_average=True, if_show_dots=True):
+                         smooth_factor=5, if_average=True, if_show_dots=True,
+                         title=''):
     
     fig = go.Figure()
     col_map = px.colors.qualitative.Plotly
@@ -229,6 +231,9 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff',
         )
     )
 
+    n_mice = len(df['h2o'].unique())
+    n_sessions = len(df.groupby(['h2o', 'session']).count())
+    
     fig.update_layout(width=1000, 
                     height=700,
                     xaxis_title=x_name,
@@ -236,7 +241,8 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff',
                     xaxis_range=[0, min(100, df.session.max())],
                     font=dict(size=15),
                     hovermode='closest',
-                    legend={'traceorder':'reversed'}
+                    legend={'traceorder':'reversed'},
+                    title=f'{title}, {n_mice} mice, {n_sessions} sessions',
                     )
     
     # st.plotly_chart(fig)
@@ -259,19 +265,24 @@ def population_analysis():
     if_show_dots = cols[1].checkbox('Show data points', True)
     if_average = cols[1].checkbox('Show population average', True)
     
-    cols = st.columns([1, 1])
-    with cols[0]:
-       _plot_population_x_y(df=df_selected, x_name='session', y_name='foraging_eff', 
-                            smooth_factor=smooth_factor, 
-                            if_show_dots=if_show_dots,
-                            if_average=if_average)
-    with cols[1]:
-        _plot_population_x_y(df=df_selected, x_name='session', y_name='finished', 
-                             smooth_factor=smooth_factor, 
-                             if_show_dots=if_show_dots,
-                             if_average=if_average)
-       
+    names = {'Foraging efficiency': ('session', 'foraging_eff'),
+             'Finished trials': ('session', 'finished'), 
+             }
+    cols = st.columns([1] * len(names))
 
+    df_selected_from_plotly = []
+    for i, (title, (x_name, y_name)) in enumerate(names.items()):
+        with cols[i]:
+            selected = _plot_population_x_y(df=df_selected, x_name=x_name, y_name=y_name, 
+                                smooth_factor=smooth_factor, 
+                                if_show_dots=if_show_dots,
+                                if_average=if_average,
+                                title=title)
+            if len(selected):
+                df_selected_from_plotly.append(df_selected.merge(pd.DataFrame(selected).rename({'x': x_name, 'y': y_name}, axis=1), 
+                                                            on=[x_name, y_name], how='inner')) 
+
+    return df_selected_from_plotly
 
 # ------- Layout starts here -------- #    
 def init():
@@ -292,7 +303,7 @@ def app():
         cols = st.columns([1, 2, 2])
         cols[0].markdown(f'### Filtered sessions')
         if cols[1].button('Press this and then Ctrl + R to reload from S3'):
-            st.experimental_memo.clear()
+            st.cache_data.clear()
             st.experimental_rerun()
              
         # aggrid_outputs = aggrid_interactive_table_units(df=df['ephys_units'])
@@ -315,11 +326,15 @@ def app():
 
     if chosen_id == "tab1":
         with placeholder:
-            selected_sessions_from_plot = population_analysis()
-            selected_sessions_from_plot
+            df_selected_from_plotly = population_analysis()
+            if len(df_selected_from_plotly):
+                draw_session_plots(df_selected_from_plotly[0])
+            
     elif chosen_id == "tab2":
         with placeholder:
-            draw_session_plots()
+            
+            selected_keys_from_aggrid = st.session_state.aggrid_outputs['selected_rows']
+            draw_session_plots(selected_keys_from_aggrid)
 
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
 

@@ -170,7 +170,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                     f"Values for {column}",
                     df[column].unique(),
                     label_visibility='collapsed',
-                    default=st.session_state[f'select_{column}_cache']
+                    default=[i for i in st.session_state[f'select_{column}_cache'] if i in list(df[column].unique())]
                             if f'select_{column}_cache' in st.session_state
                             else list(df[column].unique()),
                     key=f'select_{column}',
