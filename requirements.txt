@@ -74,3 +74,5 @@ zipp==3.10.0
 scipy
 extra_streamlit_components 
 statsmodels
+statannotations
+seaborn

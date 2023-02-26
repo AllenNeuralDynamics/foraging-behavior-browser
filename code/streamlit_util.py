@@ -273,4 +273,11 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 def add_session_filter():
     with st.expander("Behavioral session filter", expanded=True):   
         st.session_state.df_session_filtered = filter_dataframe(df=st.session_state.df['sessions'])
-    st.markdown(f"### {len(st.session_state.df_session_filtered)} sessions filtered (use_s3 = {st.session_state.use_s3})")
+        st.markdown(f"{len(st.session_state.df_session_filtered)} sessions filtered (use_s3 = {st.session_state.use_s3})")
+    
+    with st.expander(f'{len(st.session_state.df_selected_from_plotly)} sessions selected from plotly', expanded=True):
+        if st.button('clear selection'):
+            st.session_state.df_selected_from_plotly = pd.DataFrame()
+        
+        with st.expander('show sessions', expanded=False):
+            st.dataframe(st.session_state.df_selected_from_plotly)
