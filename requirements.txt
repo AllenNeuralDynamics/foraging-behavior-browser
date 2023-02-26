@@ -72,3 +72,5 @@ wrapt==1.14.1
 yarl==1.8.1
 zipp==3.10.0
 scipy
+extra_streamlit_components 
+statsmodels
