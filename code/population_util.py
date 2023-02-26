@@ -85,3 +85,67 @@ def _draw_variable_trial_back(df, beta_name, trials_back, ax=None):
     ax.remove()
     
     return axes
+
+
+
+
+
+def _draw_variable_trial_back_linear_reg(df, beta_name, ax=None):
+    if ax is None:
+        _, ax = plt.subplots(1, 1, figsize=(7, 3), constrained_layout=True) 
+               
+    plot_range = (-1.0, 1.0) if beta_name == 'bias' else (0, 1.5)
+
+    q_para = f'variable == "{beta_name}"' if 'reward' not in beta_name else f'variable == "reward" and trials_back == {beta_name.split("_")[-1]}'
+    
+    df_beta = df.query(q_para)
+
+    #--- Wilcoxon plot ---
+    # with sns.plotting_context("notebook", font_scale=1):
+    plotting_parameters = {
+    'data': df_beta,
+    'x': 'trial_group',
+    'y': 'beta',
+    }
+
+    ax.plot(np.arange(len(df_beta['trial_group'].unique())), 
+                 np.matrix([df_beta.query(f'trial_group == "{group}"')['beta']
+                            for group in df_beta['trial_group'].unique()]),
+                 'ok-', alpha=0.2)
+    
+    sns.pointplot(ax=ax, 
+                  **plotting_parameters,
+                  errorbar=('ci', 95), 
+                #   errorbar='se',
+                  capsize=.1,
+                  color='k')
+    
+    # Add stat annotations
+    pairs = [('ctrl', 'photostim'), 
+             ('ctrl', 'photostim_next'), 
+            ]
+    pvalues = [scipy.stats.wilcoxon(x=df_beta.query(f"trial_group == '{x}'")['beta'], 
+                                    y=df_beta.query(f"trial_group == '{y}'")['beta']).pvalue
+               for x, y in pairs]
+    
+    sig = lambda p: '***' if p < 0.001 else '**' if p < 0.01 else '*' if p < 0.05 else ''
+    formatted_pvalues = [f"{sig(p)} p={p:.2g}" for p in pvalues]
+
+    annotator = Annotator(ax, pairs, **plotting_parameters)
+    annotator.set_pvalues(pvalues)
+    # annotator.configure(#text_format='star', 
+    #                     text_format='simple', 
+    #                     verbose=True)
+    annotator.set_custom_annotations(formatted_pvalues)
+    annotator.annotate()
+    
+    ax.set_xticklabels(['Ctrl', 'Stim + 0', '+ 1'], rotation=0, ha='center')
+    ax.set(#ylim=plot_range, 
+           xlabel='', ylabel='Session mean $\pm$ CI')
+    ax.spines[['right', 'top']].set_visible(False)
+    ax.set_title(f"{beta_name}, {len(df_beta['h2o'].unique())} mice, {len(df_beta['session'].unique())} sessions")
+    ax.axhline(y=0, c='k', ls='--', lw=1)
+    
+    if 'reward' in beta_name: ax.invert_yaxis()
+            
+    return ax
