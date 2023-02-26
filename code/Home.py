@@ -114,7 +114,6 @@ def show_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], cr
 
     
 def draw_session_plots(keys_to_draw_session):
-    st.markdown('##### Select session(s) from the table above to draw')
     
     # Setting up layout for each session
     layout_definition = [[1],   # columns in the first row
@@ -183,15 +182,15 @@ def draw_session_plots(keys_to_draw_session):
                 
                 
 
-def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', 
-                         smooth_factor=5, if_average=True, if_show_dots=True,
+def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='h2o',
+                         smooth_factor=5, if_average=True, if_show_dots=True, if_smooth=True,
                          title=''):
     
     fig = go.Figure()
     col_map = px.colors.qualitative.Plotly
     
-    for i, h2o in enumerate(df.sort_values('h2o')['h2o'].unique()):
-        this_session = df.query(f'h2o == "{h2o}"').sort_values('session')
+    for i, group in enumerate(df.sort_values(group_by)[group_by].unique()):
+        this_session = df.query(f'{group_by} == "{group}"').sort_values('session')
         x = this_session[x_name]
         y = this_session[y_name]
         
@@ -199,19 +198,20 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff',
             fig.add_trace(go.Scattergl(
                             x=x, 
                             y=y, 
-                            name=h2o,
-                            legendgroup=f'group_{h2o}',
-                            showlegend=False,
+                            name=group,
+                            legendgroup=f'group_{group}',
+                            showlegend=not if_smooth,
                             mode="markers",
                             marker_color=col_map[i%len(col_map)],
                             opacity=0.5,
                             ))
 
-        fig.add_trace(go.Scatter(    
+        if if_smooth:
+            fig.add_trace(go.Scatter(    
                         x=x, 
                         y=y.rolling(window=smooth_factor, center=True, min_periods=1).mean(), 
-                        name=h2o,
-                        legendgroup=f'group_{h2o}',
+                        name=group,
+                        legendgroup=f'group_{group}',
                         mode="lines",
                         marker_color=col_map[i%len(col_map)],
                         opacity=0.5 if if_average else 1,
@@ -234,11 +234,11 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff',
     n_mice = len(df['h2o'].unique())
     n_sessions = len(df.groupby(['h2o', 'session']).count())
     
-    fig.update_layout(width=1000, 
-                    height=700,
+    fig.update_layout(width=1200, 
+                    height=800,
                     xaxis_title=x_name,
                     yaxis_title=y_name,
-                    xaxis_range=[0, min(100, df.session.max())],
+                    # xaxis_range=[0, min(100, df[x_name].max())],
                     font=dict(size=15),
                     hovermode='closest',
                     legend={'traceorder':'reversed'},
@@ -246,7 +246,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff',
                     )
     
     # st.plotly_chart(fig)
-    selected_sessions_from_plot = plotly_events(fig, click_event=True, hover_event=False, select_event=True, override_height=700)
+    selected_sessions_from_plot = plotly_events(fig, click_event=True, hover_event=False, select_event=True, override_height=800)
         
     return selected_sessions_from_plot
                 
@@ -258,36 +258,60 @@ def population_analysis():
     # If no sessions are selected, use all filtered entries
     use_all_filtered = len(selected_keys) == 0  
     df_selected = pd.DataFrame(selected_keys) if not use_all_filtered else st.session_state.df_session_filtered
-    st.markdown(f'to do population: {len(df_selected)} sessions')
+    # st.markdown(f'to do population: {len(df_selected)} sessions')
     
-    cols = st.columns([1, 1, 6])
-    smooth_factor = cols[0].slider('Smooth factor', 1, 20, 5)
-    if_show_dots = cols[1].checkbox('Show data points', True)
-    if_average = cols[1].checkbox('Show population average', True)
+    cols = st.columns([5, 10])
     
-    names = {'Foraging efficiency': ('session', 'foraging_eff'),
-             'Finished trials': ('session', 'finished'), 
+    with cols[0]:
+        x_name, y_name, group_by = add_xy_selector()
+        
+        s_cols = st.columns([1, 1])
+        if_show_dots = s_cols[0].checkbox('Show data points', True)
+        if_smooth = s_cols[0].checkbox('Show smoothed', True)
+        smooth_factor = s_cols[0].slider('Smooth factor', 1, 20, 5, disabled=not if_smooth)
+        if_average = s_cols[1].checkbox('Show population average', True)
+
+        
+    names = {('session', 'foraging_eff'): 'Foraging efficiency',
+             ('session', 'finished'):   'Finished trials', 
              }
-    cols = st.columns([1] * len(names))
 
     df_selected_from_plotly = []
-    for i, (title, (x_name, y_name)) in enumerate(names.items()):
-        with cols[i]:
-            selected = _plot_population_x_y(df=df_selected, x_name=x_name, y_name=y_name, 
-                                smooth_factor=smooth_factor, 
-                                if_show_dots=if_show_dots,
-                                if_average=if_average,
-                                title=title)
-            if len(selected):
-                df_selected_from_plotly.append(df_selected.merge(pd.DataFrame(selected).rename({'x': x_name, 'y': y_name}, axis=1), 
-                                                            on=[x_name, y_name], how='inner')) 
+    # for i, (title, (x_name, y_name)) in enumerate(names.items()):
+        # with cols[i]:
+    with cols[1]:
+        selected = _plot_population_x_y(df=df_selected, 
+                                        x_name=x_name, y_name=y_name, 
+                                        group_by=group_by,
+                                        smooth_factor=smooth_factor, 
+                                        if_show_dots=if_show_dots,
+                                        if_average=if_average,
+                                        if_smooth=if_smooth,
+                                        title=names[(x_name, y_name)] if (x_name, y_name) in names else y_name)
+    if len(selected):
+        df_selected_from_plotly.append(df_selected.merge(pd.DataFrame(selected).rename({'x': x_name, 'y': y_name}, axis=1), 
+                                                    on=[x_name, y_name], how='inner')) 
 
     return df_selected_from_plotly
+
+
+def add_xy_selector():
+    with st.expander("Select axes", expanded=True):
+        # with st.form("axis_selection"):
+        cols = st.columns([1, 1, 1])
+        x_name = cols[0].selectbox("x axis", st.session_state.session_stats_names, index=st.session_state.session_stats_names.index('session'))
+        y_name = cols[1].selectbox("y axis", st.session_state.session_stats_names, index=st.session_state.session_stats_names.index('finished'))
+        group_by = cols[2].selectbox("grouped by", ['h2o', 'task'], index=['h2o', 'task'].index('h2o'))
+            # st.form_submit_button("update axes")
+    return x_name, y_name, group_by
+
 
 # ------- Layout starts here -------- #    
 def init():
     df = load_data(['sessions', 'logistic_regression'])
     st.session_state.df = df
+    
+    st.session_state.session_stats_names = [keys for keys in st.session_state.df['sessions'].keys()]
     
     # Some global variables
     
@@ -314,30 +338,34 @@ def app():
     with st.sidebar:
         add_session_filter()
         
+    if len(st.session_state.df_session_filtered) == 0:
+        st.markdown('## No filtered results!')
+        return
+    
     st.session_state.aggrid_outputs = aggrid_interactive_table_session(df=st.session_state.df_session_filtered)
 
     chosen_id = stx.tab_bar(data=[
-        stx.TabBarItemData(id="tab1", title="📈Population plots", description="Do population analysis"),
-        stx.TabBarItemData(id="tab2", title="📚Session plots", description="Generate plots for each session"),
+        stx.TabBarItemData(id="tab1", title="📈Training summary", description="Plot training summary"),
+        stx.TabBarItemData(id="tab2", title="📚Session inspection", description="Generate plots for each session"),
         ], default="tab1")
 
     placeholder = st.container()
-    
 
     if chosen_id == "tab1":
         with placeholder:
             df_selected_from_plotly = population_analysis()
+            st.markdown('##### Select session(s) from the plots above to draw')
+
             if len(df_selected_from_plotly):
                 draw_session_plots(df_selected_from_plotly[0])
             
     elif chosen_id == "tab2":
         with placeholder:
-            
             selected_keys_from_aggrid = st.session_state.aggrid_outputs['selected_rows']
+            st.markdown('##### Select session(s) from the table above to draw')
             draw_session_plots(selected_keys_from_aggrid)
 
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
-
 
 
 if 'df' not in st.session_state: 
