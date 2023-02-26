@@ -10,6 +10,7 @@ import s3fs
 import os
 import plotly.express as px
 import plotly.graph_objects as go
+from scipy.stats import linregress
 
 from PIL import Image, ImageColor
 import streamlit.components.v1 as components
@@ -183,55 +184,103 @@ def draw_session_plots(keys_to_draw_session):
                 
 
 def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='h2o',
-                         smooth_factor=5, if_average=True, if_show_dots=True, if_smooth=True,
+                         smooth_factor=5, 
+                         if_show_dots=True, 
+                         if_aggr_each_group=True,
+                         if_aggr_all=True, 
+                         aggr_method_group='smooth',
+                         aggr_method_all='mean +/ sem',
                          title=''):
     
-    fig = go.Figure()
-    col_map = px.colors.qualitative.Plotly
-    
-    for i, group in enumerate(df.sort_values(group_by)[group_by].unique()):
-        this_session = df.query(f'{group_by} == "{group}"').sort_values('session')
-        x = this_session[x_name]
-        y = this_session[y_name]
-        
-        if if_show_dots:
-            fig.add_trace(go.Scattergl(
-                            x=x, 
-                            y=y, 
-                            name=group,
-                            legendgroup=f'group_{group}',
-                            showlegend=not if_smooth,
-                            mode="markers",
-                            marker_color=col_map[i%len(col_map)],
-                            opacity=0.5 if if_smooth else 1,
-                            unselected=dict(marker_color='grey')
-                            ))
+    def _add_agg(df_this, x_name, y_name, group, aggr_method, col):
+        x = df_this[x_name].astype(float)
+        y = df_this[y_name].astype(float)
 
-        if if_smooth:
+        if aggr_method == 'smooth':
             fig.add_trace(go.Scatter(    
                         x=x, 
                         y=y.rolling(window=smooth_factor, center=True, min_periods=1).mean(), 
                         name=group,
                         legendgroup=f'group_{group}',
                         mode="lines",
-                        marker_color=col_map[i%len(col_map)],
-                        opacity=0.5 if if_average else 1,
+                        marker_color=col,
+                        opacity=1,
                         hoveron='points+fills',   # Scattergl doesn't support this
-                        ))        
+                        ))
+        elif aggr_method == 'mean +/- sem':
+            # mean and sem groupby x_name
+            mean = df_this.groupby(x_name)[y_name].mean()
+            sem = df_this.groupby(x_name)[y_name].sem()
+            
+            fig.add_trace(go.Scatter(    
+                        x=mean.index, 
+                        y=mean, 
+                        error_y=dict(type='data',
+                                    symmetric=True,
+                                    array=sem),
+                        name=group,
+                        legendgroup=f'group_{group}',
+                        mode="lines",
+                        marker_color=col,
+                        opacity=1,
+                        hoveron='points+fills',   # Scattergl doesn't support this
+                        ))
+            
+        elif aggr_method == 'linear fit':
+            # perform linear regression
+            mask = ~np.isnan(x) & ~np.isnan(y)
+            slope, intercept, r_value, p_value, std_err = linregress(x[mask], y[mask])
+            
+            # fig_trendlines = px.scatter(
+            #                             x=x.astype(float), 
+            #                             y=y.astype(float),
+            #                             trendline='ols',
+            #                             trendline_color_override=col_map[i%len(col_map)],
+            #                             hover_data=['x', 'y', 'trendline']
+            #                             )
+            
+            # fig_trendlines.data = [t for t in fig_trendlines.data if t.mode == "lines"]
+            # fig_trendlines.update_traces(showlegend=True)
+            # fig = go.Figure(data=fig.data + fig_trendlines.data)
+            
+            fig.add_trace(go.Scatter(x=x, 
+                                    y=intercept + slope*x, 
+                                    mode='lines',
+                                    name=f"{group} (r={r_value:.2f}, p={p_value:.2f})",
+                                    marker_color=col,
+                                    legendgroup=f'group_{group}',
+                                    hoverinfo='skip')
+            )
+            
+    
+    fig = go.Figure()
+    col_map = px.colors.qualitative.Plotly
+    
+    for i, group in enumerate(df.sort_values(group_by)[group_by].unique()):
+        this_session = df.query(f'{group_by} == "{group}"').sort_values('session')
+        col = col_map[i%len(col_map)]
+        
+        if if_show_dots:
+            fig.add_trace(go.Scattergl(
+                            x=this_session[x_name], 
+                            y=this_session[y_name], 
+                            name=group,
+                            legendgroup=f'group_{group}',
+                            showlegend=not (if_aggr_all or if_aggr_each_group),
+                            mode="markers",
+                            marker_size=10,
+                            marker_color=col,
+                            opacity=0.15 if if_aggr_all or if_aggr_each_group else 0.5,
+                            unselected=dict(marker_color='grey')
+                            ))
+            
+        if if_aggr_each_group:
+            _add_agg(this_session, x_name, y_name, group, aggr_method_group, col)
+        
 
-    if if_average:
-        mean = df.groupby(x_name)[y_name].mean()
-        sem = df.groupby(x_name)[y_name].sem()
-        fig.add_trace(go.Scattergl(
-            x=mean.index,
-            y=mean,
-            error_y=dict(type='data',
-                         symmetric=True,
-                         array=sem),
-            name='mean +/- sem',
-            mode="lines",
-        )
-    )
+    if if_aggr_all:
+        _add_agg(df, x_name, y_name, 'all', aggr_method_all, 'black')
+        
 
     n_mice = len(df['h2o'].unique())
     n_sessions = len(df.groupby(['h2o', 'session']).count())
@@ -267,11 +316,17 @@ def population_analysis():
     with cols[0]:
         x_name, y_name, group_by = add_xy_selector()
         
-        s_cols = st.columns([1, 1])
+        s_cols = st.columns([1, 1, 1])
         if_show_dots = s_cols[0].checkbox('Show data points', True)
-        if_smooth = s_cols[0].checkbox('Show smoothed', True)
-        smooth_factor = s_cols[0].slider('Smooth factor', 1, 20, 5, disabled=not if_smooth)
-        if_average = s_cols[1].checkbox('Show population average', True)
+
+        if_aggr_each_group = s_cols[1].checkbox('Aggr each group', True)
+        aggr_method_group = s_cols[1].selectbox('aggr method group', ['smooth', 'mean +/- sem', 'linear fit'], disabled=not if_aggr_each_group)
+        
+        if_aggr_all = s_cols[2].checkbox('Aggr all', False)
+        aggr_method_all = s_cols[2].selectbox('aggr method all', ['smooth', 'mean +/- sem', 'linear fit'], disabled=not if_aggr_all)
+        
+        smooth_factor = s_cols[0].slider('Smooth factor', 1, 20, 5, disabled=not ((if_aggr_each_group and aggr_method_group=='smooth')
+                                                                            or (if_aggr_all and aggr_method_all=='smooth')))
 
         
     names = {('session', 'foraging_eff'): 'Foraging efficiency',
@@ -287,8 +342,10 @@ def population_analysis():
                                         group_by=group_by,
                                         smooth_factor=smooth_factor, 
                                         if_show_dots=if_show_dots,
-                                        if_average=if_average,
-                                        if_smooth=if_smooth,
+                                        if_aggr_each_group=if_aggr_each_group,
+                                        if_aggr_all=if_aggr_all,
+                                        aggr_method_group=aggr_method_group,
+                                        aggr_method_all=aggr_method_all,
                                         title=names[(x_name, y_name)] if (x_name, y_name) in names else y_name)
     if len(selected):
         df_selected_from_plotly = df_selected.merge(pd.DataFrame(selected).rename({'x': x_name, 'y': y_name}, axis=1), 
@@ -303,7 +360,7 @@ def add_xy_selector():
         cols = st.columns([1, 1, 1])
         x_name = cols[0].selectbox("x axis", st.session_state.session_stats_names, index=st.session_state.session_stats_names.index('session'))
         y_name = cols[1].selectbox("y axis", st.session_state.session_stats_names, index=st.session_state.session_stats_names.index('foraging_eff'))
-        group_by = cols[2].selectbox("grouped by", ['h2o', 'task'], index=['h2o', 'task'].index('h2o'))
+        group_by = cols[2].selectbox("grouped by", ['h2o', 'task', 'photostim_location', ''], index=['h2o', 'task'].index('h2o'))
             # st.form_submit_button("update axes")
     return x_name, y_name, group_by
 
