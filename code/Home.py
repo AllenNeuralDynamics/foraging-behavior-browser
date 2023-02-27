@@ -286,7 +286,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                 fig.add_trace(go.Scatter(x=x, 
                                         y=intercept + slope*x, 
                                         mode='lines',
-                                        name=f"{group} ({sig(p_value)}p={p_value:.1e}, r={r_value:.3f})<br>" + n_str,
+                                        name=f"{group} {n_str}<br>  {sig(p_value):<5}p={p_value:.1e}, r={r_value:.3f}",
                                         marker_color=col,
                                         legendgroup=f'group_{group}',
                                         # hoverinfo='skip'
@@ -348,12 +348,13 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
     n_mice = len(df['h2o'].unique())
     n_sessions = len(df.groupby(['h2o', 'session']).count())
     
-    fig.update_layout(width=1400, 
+    fig.update_layout(
+                    # width=1300, 
                     height=850,
                     xaxis_title=x_name,
                     yaxis_title=y_name,
                     # xaxis_range=[0, min(100, df[x_name].max())],
-                    font=dict(size=20),
+                    font=dict(size=17),
                     hovermode='closest',
                     legend={'traceorder':'reversed'},
                     title=f'{title}, {n_mice} mice, {n_sessions} sessions',
@@ -374,7 +375,7 @@ def population_analysis():
     df_selected = pd.DataFrame(selected_keys) if not use_all_filtered else st.session_state.df_session_filtered
     # st.markdown(f'to do population: {len(df_selected)} sessions')
     
-    cols = st.columns([5, 10])
+    cols = st.columns([4, 10])
     
     with cols[0]:
         x_name, y_name, group_by = add_xy_selector()
@@ -385,10 +386,10 @@ def population_analysis():
         aggr_methods =  ['mean', 'mean +/- sem', 'lowess', 'running average', 'linear fit']
 
         if_aggr_each_group = s_cols[1].checkbox('Aggr each group', True)
-        aggr_method_group = s_cols[1].selectbox('aggr method group', aggr_methods, disabled=not if_aggr_each_group)
+        aggr_method_group = s_cols[1].selectbox('aggr method group', aggr_methods, index=aggr_methods.index('lowess'), disabled=not if_aggr_each_group)
         
-        if_aggr_all = s_cols[2].checkbox('Aggr all', False)
-        aggr_method_all = s_cols[2].selectbox('aggr method all', aggr_methods, disabled=not if_aggr_all)
+        if_aggr_all = s_cols[2].checkbox('Aggr all', True)
+        aggr_method_all = s_cols[2].selectbox('aggr method all', aggr_methods, index=aggr_methods.index('mean +/- sem'), disabled=not if_aggr_all)
         
         smooth_factor = s_cols[0].slider('Smooth factor', 1, 20, 5, disabled=not ((if_aggr_each_group and aggr_method_group=='lowess')
                                                                             or (if_aggr_all and aggr_method_all=='lowess')))
