@@ -9,6 +9,7 @@ from datetime import datetime
 import s3fs
 import os
 import plotly.express as px
+import plotly
 import plotly.graph_objects as go
 from scipy.stats import linregress
 import statsmodels.api as sm
@@ -230,12 +231,17 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
             # mean and sem groupby x_name
             mean = df_this.groupby(x_name)[y_name].mean()
             sem = df_this.groupby(x_name)[y_name].sem()
+            x = mean.index
+            sem[np.isnan(sem)] = 0
+            y_upper = mean + sem
+            y_lower = mean - sem
+            
             fig.add_trace(go.Scatter(    
-                        x=mean.index, 
+                        x=x, 
                         y=mean, 
-                        error_y=dict(type='data',
-                                    symmetric=True,
-                                    array=sem) if 'sem' in aggr_method else None,
+                        # error_y=dict(type='data',
+                        #             symmetric=True,
+                        #             array=sem) if 'sem' in aggr_method else None,
                         name=group + n_str,
                         legendgroup=f'group_{group}',
                         mode="lines",
@@ -243,6 +249,34 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                         opacity=1,
                         hoveron='points+fills',   # Scattergl doesn't support this
                         ))
+            
+            if 'sem' in aggr_method:
+                fig.add_trace(go.Scatter(
+                                # name='Upper Bound',
+                                x=x,
+                                y=y_upper,
+                                mode='lines',
+                                marker=dict(color=col),
+                                line=dict(width=0),
+                                legendgroup=f'group_{group}',
+                                showlegend=False,
+                                hoverinfo='skip',
+                            ))
+                fig.add_trace(go.Scatter(
+                                # name='Upper Bound',
+                                x=x,
+                                y=y_lower,
+                                mode='lines',
+                                marker=dict(color=col),
+                                line=dict(width=0),
+                                fill='tonexty',
+                                fillcolor=f'rgba({plotly.colors.convert_colors_to_same_type(col)[0][0].split("(")[-1][:-1]}, 0.2)',
+                                legendgroup=f'group_{group}',
+                                showlegend=False,
+                                hoverinfo='skip'
+                            ))                                            
+            
+
         elif aggr_method == 'linear fit':
             # perform linear regression
             mask = ~np.isnan(x) & ~np.isnan(y)
@@ -308,7 +342,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
         
 
     if if_aggr_all:
-        _add_agg(df, x_name, y_name, 'all', aggr_method_all, 'black')
+        _add_agg(df, x_name, y_name, 'all', aggr_method_all, 'rgb(0, 0, 0)')
         
 
     n_mice = len(df['h2o'].unique())

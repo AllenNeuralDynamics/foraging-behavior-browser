@@ -67,13 +67,15 @@ def _draw_variable_trial_back(df, beta_name, trials_back, ax=None):
     pvalues = [scipy.stats.wilcoxon(x=df_beta.query(f"trial_group == '{x}'")['mean'], 
                                     y=df_beta.query(f"trial_group == '{y}'")['mean']).pvalue
                for x, y in pairs]
-    formatted_pvalues = [f"p={p:.2e}" for p in pvalues]
+
+    sig = lambda p: '***' if p < 0.001 else '**' if p < 0.01 else '*' if p < 0.05 else ''
+    formatted_pvalues = [f"{sig(p)} p={p:.2g}" for p in pvalues]
 
     annotator = Annotator(axes[1], pairs, **plotting_parameters)
     annotator.set_pvalues(pvalues)
-    annotator.configure(#text_format='simple', 
-        verbose=False)
-    # annotator.set_custom_annotations(formatted_pvalues)
+    # annotator.configure(#text_format='simple', 
+    #     verbose=False)
+    annotator.set_custom_annotations(formatted_pvalues)
     annotator.annotate()
     
     axes[1].set_xticklabels(['Ctrl', 'Stim + 0', '+ 1', '+ 5'], rotation=0, ha='center')
