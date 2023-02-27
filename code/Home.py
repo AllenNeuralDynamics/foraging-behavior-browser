@@ -248,13 +248,15 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
             mask = ~np.isnan(x) & ~np.isnan(y)
             try:
                 slope, intercept, r_value, p_value, std_err = linregress(x[mask], y[mask])
+                sig = lambda p: '***' if p < 0.001 else '**' if p < 0.01 else '*' if p < 0.05 else ''
                 fig.add_trace(go.Scatter(x=x, 
                                         y=intercept + slope*x, 
                                         mode='lines',
-                                        name=f"{group} (r={r_value:.2f}, p={p_value:.2f})" + n_str,
+                                        name=f"{group} ({sig(p_value)}p={p_value:.1e}, r={r_value:.3f})<br>" + n_str,
                                         marker_color=col,
                                         legendgroup=f'group_{group}',
-                                        hoverinfo='skip')
+                                        # hoverinfo='skip'
+                                        )
                 )            
             except:
                 pass
@@ -291,7 +293,13 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                             mode="markers",
                             marker_size=10,
                             marker_color=col,
-                            opacity=0.15 if if_aggr_each_group else 0.5,
+                            opacity=0.2 if if_aggr_each_group else 0.5,
+                            text=this_session['session'],
+                            hovertemplate =   '<br>%{customdata[0]}, Session %{text}' +
+                                              '<br>%s = %%{x}' % (x_name) +
+                                              '<br>%s = %%{y}' % (y_name),
+                                            #   '<extra>%{name}</extra>',
+                            customdata=np.stack((this_session.h2o, this_session.session), axis=-1),
                             unselected=dict(marker_color='grey')
                             ))
             
@@ -307,18 +315,18 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
     n_sessions = len(df.groupby(['h2o', 'session']).count())
     
     fig.update_layout(width=1400, 
-                    height=800,
+                    height=850,
                     xaxis_title=x_name,
                     yaxis_title=y_name,
                     # xaxis_range=[0, min(100, df[x_name].max())],
-                    font=dict(size=15),
+                    font=dict(size=20),
                     hovermode='closest',
                     legend={'traceorder':'reversed'},
                     title=f'{title}, {n_mice} mice, {n_sessions} sessions',
                     )
     
     # st.plotly_chart(fig)
-    selected_sessions_from_plot = plotly_events(fig, click_event=True, hover_event=False, select_event=True, override_height=800)
+    selected_sessions_from_plot = plotly_events(fig, click_event=True, hover_event=False, select_event=True, override_height=870)
         
     return selected_sessions_from_plot
                 
@@ -400,14 +408,18 @@ def init():
     st.session_state.df_selected_from_plotly = pd.DataFrame()
     
     # add some model fitting params to session
-    to_add_model = st.session_state.df['model_fitting_params'].query('model_id == 21')[['session', 'subject_id', 'prediction_accuracy', 'biasL',
-                                                                                        'learn_rate_rew', 'learn_rate_unrew', 'forget_rate',
-                                                                                        'softmax_temperature', 'choice_softmax_temperature']]
+    if not 'model_id' in st.session_state:
+        st.session_state.model_id = 21
+    selected_id = st.session_state.model_id 
+    
+    df_this_model = st.session_state.df['model_fitting_params'].query(f'model_id == {selected_id}')
+    valid_field = df_this_model.columns[~np.all(~df_this_model.notna(), axis=0)]
+    to_add_model = st.session_state.df['model_fitting_params'].query(f'model_id == {selected_id}')[valid_field]
+    
     st.session_state.df['sessions'] = st.session_state.df['sessions'].merge(to_add_model, on=('subject_id', 'session'), how='left')
 
     # add something else
     st.session_state.df['sessions']['abs(bias)'] = np.abs(st.session_state.df['sessions'].biasL)
-
 
     st.session_state.session_stats_names = [keys for keys in st.session_state.df['sessions'].keys()]
    
@@ -418,6 +430,14 @@ def app():
     
     with st.sidebar:
         add_session_filter()
+    
+        with st.expander('Debug', expanded=False):
+            st.session_state.model_id = st.selectbox('model_id', st.session_state.df['model_fitting_params'].model_id.unique())
+            if st.button('Reload data'):
+                st.cache_data.clear()
+                init()
+                st.experimental_rerun()
+    
 
     with st.container():
         # col1, col2 = st.columns([1.5, 1], gap='small')
@@ -426,9 +446,8 @@ def app():
         
         cols = st.columns([2, 2, 2])
         cols[0].markdown(f'### Filter the sessions on the sidebar ({len(st.session_state.df_session_filtered)} filtered)')
-        if cols[1].button('Press this and then Ctrl + R to reload from S3'):
-            st.cache_data.clear()
-            st.experimental_rerun()
+        # if cols[1].button('Press this and then Ctrl + R to reload from S3'):
+        #     st.experimental_rerun()
              
         # aggrid_outputs = aggrid_interactive_table_units(df=df['ephys_units'])
         # st.session_state.df_session_filtered = aggrid_outputs['data']
