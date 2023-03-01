@@ -212,8 +212,12 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
             # mean and sem groupby x_name
             mean = df_this.groupby(x_name)[y_name].mean()
             sem = df_this.groupby(x_name)[y_name].sem()
+            valid_y = mean.notna()
+            mean = mean[valid_y]
+            sem = sem[valid_y]
+            sem[~sem.notna()] = 0
+            
             x = mean.index
-            sem[np.isnan(sem)] = 0
             y_upper = mean + sem
             y_lower = mean - sem
             
