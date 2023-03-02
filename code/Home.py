@@ -79,13 +79,17 @@ def _fetch_img(glob_patterns, crop=None):
     if not len(file):
         return None, None
 
-    if st.session_state.use_s3:
-        with fs.open(file[0]) as f:
-            img = Image.open(f)
-            img = img.crop(crop) 
-    else:
-        img = Image.open(file[0])
-        img = img.crop(crop)         
+    try:
+        if st.session_state.use_s3:
+            with fs.open(file[0]) as f:
+                img = Image.open(f)
+                img = img.crop(crop) 
+        else:
+            img = Image.open(file[0])
+            img = img.crop(crop)         
+    except:
+        st.write('File found on S3 but failed to load...')
+        return None, None
     
     return img, file[0]
 
@@ -366,6 +370,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                     hovermode='closest',
                     legend={'traceorder':'reversed'},
                     title=f'{title}, {n_mice} mice, {n_sessions} sessions',
+                    dragmode='select',
                     )
     
     # st.plotly_chart(fig)
@@ -536,7 +541,8 @@ def app():
                 st.experimental_rerun()
         
         st.markdown('---')
-        st.write('Han Hou @ 2023\nv1.0.0')
+        st.markdown('Han Hou @ 2023 v1.0.2')
+        st.markdown('[bug report / feature request](https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues)')
     
 
     with st.container():
