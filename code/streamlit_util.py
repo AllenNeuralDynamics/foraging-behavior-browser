@@ -138,16 +138,6 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
     df = df.copy()
 
-    # Try to convert datetimes into a standard format (datetime, no timezone)
-    for col in df.columns:
-        if is_object_dtype(df[col]):
-            try:
-                df[col] = pd.to_datetime(df[col])
-            except Exception:
-                pass
-
-        if is_datetime64_any_dtype(df[col]):
-            df[col] = df[col].dt.tz_localize(None)
 
     modification_container = st.container()
     

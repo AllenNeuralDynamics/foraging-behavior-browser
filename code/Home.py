@@ -474,9 +474,15 @@ def init():
                     'logistic_regression', 
                     'linear_regression_rt',
                     'model_fitting_params'])
-    st.session_state.df = df
     
+    # Try to convert datetimes into a standard format (datetime, no timezone)
+    df['sessions']['session_date'] = pd.to_datetime(df['sessions']['session_date'])
+    # if is_datetime64_any_dtype(df[col]):
+    df['sessions']['session_date'] = df['sessions']['session_date'].dt.tz_localize(None)
+    
+    st.session_state.df = df
     st.session_state.df_selected_from_plotly = pd.DataFrame()
+    
     
     # Init session states
     # add some model fitting params to session
