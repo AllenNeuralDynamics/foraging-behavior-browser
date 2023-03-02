@@ -239,20 +239,29 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
             elif is_datetime64_any_dtype(df[column]):
                 user_date_input = right.date_input(
                     f"Values for :red[**{column}**]",
-                    value=(
-                        df[column].min(),
-                        df[column].max(),
-                    ),
+                    value=st.session_state[f'select_{column}_cache']
+                                if f'select_{column}_cache' in st.session_state
+                                else (df[column].min(), df[column].max()),
+                    key=f'select_{column}',
+                    on_change=cache_widget,
+                    args=[f'select_{column}']
                 )
+                
                 if len(user_date_input) == 2:
                     user_date_input = tuple(map(pd.to_datetime, user_date_input))
                     start_date, end_date = user_date_input
                     df = df.loc[df[column].between(start_date, end_date)]
             else:
-                
                 user_text_input = right.text_input(
                     f"Substring or regex in :red[**{column}**]",
-                )
+                    value=st.session_state[f'select_{column}_cache']
+                                if f'select_{column}_cache' in st.session_state
+                                else '',
+                    key=f'select_{column}',
+                    on_change=cache_widget,
+                    args=[f'select_{column}']
+                    )
+                
                 if user_text_input:
                     df = df[df[column].astype(str).str.contains(user_text_input)]
 
