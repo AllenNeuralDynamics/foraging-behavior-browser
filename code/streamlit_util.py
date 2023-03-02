@@ -157,7 +157,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                                                             label_visibility='collapsed',
                                                             default=st.session_state.to_filter_columns_cache 
                                                                     if 'to_filter_columns_cache' in st.session_state
-                                                                    else ['h2o', 'task', 'finished', 'photostim_location'],
+                                                                    else ['h2o', 'task', 'finished_trials', 'photostim_location'],
                                                             key='to_filter_columns',
                                                             on_change=cache_widget,
                                                             args=['to_filter_columns'])

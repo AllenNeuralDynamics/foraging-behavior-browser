@@ -173,9 +173,13 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                          if_aggr_all=True, 
                          aggr_method_group='smooth',
                          aggr_method_all='mean +/ sem',
+                         if_use_x_quantile_group=False,
+                         q_quantiles_group=10,
+                         if_use_x_quantile_all=False,
+                         q_quantiles_all=20,
                          title=''):
     
-    def _add_agg(df_this, x_name, y_name, group, aggr_method, col):
+    def _add_agg(df_this, x_name, y_name, group, aggr_method, if_use_x_quantile, q_quantiles, col):
         x = df_this.sort_values(x_name)[x_name].astype(float)
         y = df_this.sort_values(x_name)[y_name].astype(float)
         
@@ -194,9 +198,10 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                         opacity=1,
                         hoveron='points+fills',   # Scattergl doesn't support this
                         ))
+            
         elif aggr_method == 'lowess':
             x_new = np.linspace(x.min(), x.max(), 200)
-            lowess = sm.nonparametric.lowess(y, x, frac=0.3)
+            lowess = sm.nonparametric.lowess(y, x, frac=smooth_factor/20)
             
             fig.add_trace(go.Scatter(    
                         x=lowess[:, 0], 
@@ -207,15 +212,37 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                         marker_color=col,
                         opacity=1,
                         hoveron='points+fills',   # Scattergl doesn't support this
-                        ))            
+                        ))
+            
         elif aggr_method in ('mean +/- sem', 'mean'):
-            # mean and sem groupby x_name
-            mean = df_this.groupby(x_name)[y_name].mean()
-            sem = df_this.groupby(x_name)[y_name].sem()
-            x = mean.index
-            sem[np.isnan(sem)] = 0
-            y_upper = mean + sem
-            y_lower = mean - sem
+            
+            # Re-bin x if use quantiles of x
+            if if_use_x_quantile:
+                df_this[f'{x_name}_quantile'] = pd.qcut(df_this[x_name], q=q_quantiles, labels=False, duplicates='drop')
+ 
+                mean = df_this.groupby(f'{x_name}_quantile')[y_name].mean()
+                sem = df_this.groupby(f'{x_name}_quantile')[y_name].sem()
+                valid_y = mean.notna()
+                mean = mean[valid_y]
+                sem = sem[valid_y]
+                sem[~sem.notna()] = 0
+                
+                x = df_this.groupby(f'{x_name}_quantile')[x_name].median()  # Use median of x in each quantile as x
+                y_upper = mean + sem
+                y_lower = mean - sem
+                
+            else:    
+                # mean and sem groupby x_name
+                mean = df_this.groupby(x_name)[y_name].mean()
+                sem = df_this.groupby(x_name)[y_name].sem()
+                valid_y = mean.notna()
+                mean = mean[valid_y]
+                sem = sem[valid_y]
+                sem[~sem.notna()] = 0
+                
+                x = mean.index
+                y_upper = mean + sem
+                y_lower = mean - sem
             
             fig.add_trace(go.Scatter(    
                         x=x, 
@@ -319,11 +346,11 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                             ))
             
         if if_aggr_each_group:
-            _add_agg(this_session, x_name, y_name, group, aggr_method_group, col)
+            _add_agg(this_session, x_name, y_name, group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group, col)
         
 
     if if_aggr_all:
-        _add_agg(df, x_name, y_name, 'all', aggr_method_all, 'rgb(0, 0, 0)')
+        _add_agg(df, x_name, y_name, 'all', aggr_method_all, if_use_x_quantile_all, q_quantiles_all, 'rgb(0, 0, 0)')
         
 
     n_mice = len(df['h2o'].unique())
@@ -374,11 +401,18 @@ def population_analysis():
         if_aggr_each_group = s_cols[1].checkbox('Aggr each group', True)
         aggr_method_group = s_cols[1].selectbox('aggr method group', aggr_methods, index=aggr_methods.index('lowess'), disabled=not if_aggr_each_group)
         
+        if_use_x_quantile_group = s_cols[1].checkbox('Use quantiles of x ', False) if 'mean' in aggr_method_group else False
+        q_quantiles_group = s_cols[1].slider('Number of quantiles ', 1, 100, 20, disabled=not if_use_x_quantile_group) if if_use_x_quantile_group else None
+        
         if_aggr_all = s_cols[2].checkbox('Aggr all', True)
         aggr_method_all = s_cols[2].selectbox('aggr method all', aggr_methods, index=aggr_methods.index('mean +/- sem'), disabled=not if_aggr_all)
+
+        if_use_x_quantile_all = s_cols[2].checkbox('Use quantiles of x', False) if 'mean' in aggr_method_all else False
+        q_quantiles_all = s_cols[2].slider('Number of quantiles', 1, 100, 20, disabled=not if_use_x_quantile_all) if if_use_x_quantile_all else None
+
+        smooth_factor = s_cols[0].slider('Smooth factor', 1, 20, 5) if ((if_aggr_each_group and aggr_method_group in ('running average', 'lowess'))
+                                                                     or (if_aggr_all and aggr_method_all in ('running average', 'lowess'))) else None
         
-        smooth_factor = s_cols[0].slider('Smooth factor', 1, 20, 5, disabled=not ((if_aggr_each_group and aggr_method_group=='lowess')
-                                                                            or (if_aggr_all and aggr_method_all=='lowess')))
         for i in range(7): st.write('\n')
         
         st.markdown("***")
@@ -410,6 +444,10 @@ def population_analysis():
                                         if_aggr_all=if_aggr_all,
                                         aggr_method_group=aggr_method_group,
                                         aggr_method_all=aggr_method_all,
+                                        if_use_x_quantile_group=if_use_x_quantile_group,
+                                        q_quantiles_group=q_quantiles_group,
+                                        if_use_x_quantile_all=if_use_x_quantile_all,
+                                        q_quantiles_all=q_quantiles_all,
                                         title=names[(x_name, y_name)] if (x_name, y_name) in names else y_name)
     if len(selected):
         df_selected_from_plotly = df_selected.merge(pd.DataFrame(selected).rename({'x': x_name, 'y': y_name}, axis=1), 
