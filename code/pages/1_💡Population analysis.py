@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from io import BytesIO
 
-from streamlit_util import filter_dataframe, aggrid_interactive_table_session, add_session_filter
+from streamlit_util import filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector
 from population_util import _draw_variable_trial_back, _draw_variable_trial_back_linear_reg
 import seaborn as sns
 
@@ -16,6 +16,7 @@ def app():
 
     with st.sidebar:
         add_session_filter()
+        data_selector()
         
         
     # st.dataframe(st.session_state.df['logistic_regression'])
