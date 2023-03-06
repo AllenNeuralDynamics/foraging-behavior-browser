@@ -312,6 +312,15 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
         col = col_map[i%len(col_map)]
         
         if if_show_dots:
+            if not len(st.session_state.df_selected_from_plotly):   
+                this_session['colors'] = col  # all use normal colors
+            else:
+                merged = pd.merge(this_session, st.session_state.df_selected_from_plotly, on=['h2o', 'session'], how='left')
+                merged['colors'] = 'lightgrey'  # default, grey
+                merged.loc[merged.subject_id_y.notna(), 'colors'] = col   # only use normal colors for the selected dots 
+                this_session['colors'] = merged.colors.values
+                this_session = pd.concat([this_session.query('colors != "lightgrey"'), this_session.query('colors == "lightgrey"')])  # make sure the real color goes first
+                
             fig.add_trace(go.Scattergl(
                             x=this_session[x_name], 
                             y=this_session[y_name], 
@@ -320,12 +329,12 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                             showlegend=not if_aggr_each_group,
                             mode="markers",
                             marker_size=10,
-                            marker_color=col,
-                            opacity=0.3 if if_aggr_each_group else 0.5,
+                            marker_color=this_session['colors'],
+                            opacity=0.4 if if_aggr_each_group else 0.7,
                             text=this_session['session'],
                             hovertemplate =   '<br>%{customdata[0]}, Session %{text}' +
-                                              '<br>%s = %%{x}' % (x_name) +
-                                              '<br>%s = %%{y}' % (y_name),
+                                            '<br>%s = %%{x}' % (x_name) +
+                                            '<br>%s = %%{y}' % (y_name),
                                             #   '<extra>%{name}</extra>',
                             customdata=np.stack((this_session.h2o, this_session.session), axis=-1),
                             unselected=dict(marker_color='lightgrey')

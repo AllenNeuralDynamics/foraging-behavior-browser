@@ -288,9 +288,4 @@ def data_selector():
  
         with st.expander(f"From plotly: {len(st.session_state.df_selected_from_plotly)} sessions", expanded=False):
             st.dataframe(st.session_state.df_selected_from_plotly)
-            
-            with st.expander('show sessions', expanded=False):
-                st.dataframe(st.session_state.df_selected_from_plotly)
-       
-        
         
