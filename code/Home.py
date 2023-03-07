@@ -128,6 +128,7 @@ def draw_session_plots(df_to_draw_session):
     # Setting up layout for each session
     layout_definition = [[1],   # columns in the first row
                          [1.5, 1],  # columns in the second row
+                         [1, 1],
                          ]  
     
     # cols_option = st.columns([3, 0.5, 1])
@@ -484,7 +485,8 @@ def add_xy_selector():
 # ------- Layout starts here -------- #    
 def init():
     df = load_data(['sessions', 
-                    'logistic_regression', 
+                    'logistic_regression_hattori', 
+                    'logistic_regression_su',
                     'linear_regression_rt',
                     'model_fitting_params'])
     
@@ -510,20 +512,23 @@ def init():
     selected_id = st.session_state.model_id 
     
     st.session_state.draw_type_mapper = {'1. Choice history': ('fitted_choice',   # prefix
-                                        (0, 0),     # location (row_idx, column_idx)
-                                        dict(other_patterns=['model_best', 'model_None'])),
-                    '2. Lick times': ('lick_psth', 
-                                    (1, 0), 
-                                    {}),            
-                    '3. Logistic regression on choice': ('logistic_regression', 
-                                                        (1, 1), 
-                                                        dict(crop=(0, 0, 1200, 2000))),
-                    '4. Win-stay-lose-shift prob.': ('wsls', 
-                                                    (1, 1), 
-                                                    dict(crop=(0, 0, 1200, 600))),
-                    '5. Linear regression on RT': ('linear_regression_rt', 
-                                                    (1, 0), 
-                                                    dict()),
+                                                            (0, 0),     # location (row_idx, column_idx)
+                                                            dict(other_patterns=['model_best', 'model_None'])),
+                                        '2. Lick times': ('lick_psth', 
+                                                        (1, 0), 
+                                                        {}),            
+                                        '3. Win-stay-lose-shift prob.': ('wsls', 
+                                                                        (1, 1), 
+                                                                        dict(crop=(0, 0, 1200, 600))),
+                                        '4. Linear regression on RT': ('linear_regression_rt', 
+                                                                        (1, 1), 
+                                                                        dict()),
+                                        '5. Logistic regression on choice (Hattori)': ('logistic_regression_hattori', 
+                                                                                        (2, 0), 
+                                                                                        dict(crop=(0, 0, 1200, 2000))),
+                                        '6. Logistic regression on choice (Su)': ('logistic_regression_su', 
+                                                                                        (2, 1), 
+                                                                                        dict(crop=(0, 0, 1200, 2000))),
                     }
     
     # process dfs
