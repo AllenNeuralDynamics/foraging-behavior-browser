@@ -49,10 +49,22 @@ def aggrid_interactive_table_session(df: pd.DataFrame):
     )
 
     options.configure_side_bar()
-    options.configure_selection(selection_mode="multiple",
-                                pre_selected_rows=[])  # , use_checkbox=True, header_checkbox=True)
     
-    options.configure_column(field="session_date", sort="desc")
+    df = df.sort_values('session_date', ascending=False)
+    
+    # preselect
+    if 'df_selected_from_dataframe' in st.session_state and len(st.session_state.df_selected_from_dataframe):
+        indexer = st.session_state.df_selected_from_dataframe.set_index(['h2o', 'session']
+                                                              ).index.get_indexer(df.set_index(['h2o', 'session']).index)
+        pre_selected_rows = np.where(indexer != -1)[0].tolist()
+    else:
+        pre_selected_rows = []
+        
+    options.configure_selection(selection_mode="multiple",
+                                pre_selected_rows=pre_selected_rows)  # , use_checkbox=True, header_checkbox=True)
+    
+    # options.configure_column(field="session_date", sort="desc")
+    
     # options.configure_column(field="h2o", hide=True, rowGroup=True)
     options.configure_column(field='subject_id', hide=True)
     options.configure_column(field="session_date", type=["customDateTimeFormat"], custom_format_string='yyyy-MM-dd')
@@ -283,9 +295,20 @@ def data_selector():
         with st.expander(f"Filtered: {len(st.session_state.df_session_filtered)} sessions", expanded=False):
             st.dataframe(st.session_state.df_session_filtered)
         
-        with st.expander(f"From dataframe: {len(st.session_state.df_selected_from_dataframe)} sessions", expanded=False):
-            st.dataframe(st.session_state.df_selected_from_dataframe)
- 
-        with st.expander(f"From plotly: {len(st.session_state.df_selected_from_plotly)} sessions", expanded=False):
+        # cols = st.columns([4, 1])
+        # with cols[0].expander(f"From dataframe: {len(st.session_state.df_selected_from_dataframe)} sessions", expanded=False):
+        #     st.dataframe(st.session_state.df_selected_from_dataframe)
+        
+        # if cols[1].button('❌'):
+        #     st.session_state.df_selected_from_dataframe = pd.DataFrame()
+        #     st.experimental_rerun()
+
+        cols = st.columns([4, 1])
+        with cols[0].expander(f"Selected: {len(st.session_state.df_selected_from_plotly)} sessions", expanded=False):
             st.dataframe(st.session_state.df_selected_from_plotly)
+            
+        if cols[1].button('❌ '):
+            st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
+            st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
+            st.experimental_rerun()
         
