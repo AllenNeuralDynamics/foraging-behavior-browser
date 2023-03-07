@@ -53,7 +53,8 @@ def aggrid_interactive_table_session(df: pd.DataFrame):
     df = df.sort_values('session_date', ascending=False)
     
     # preselect
-    if 'df_selected_from_dataframe' in st.session_state and len(st.session_state.df_selected_from_dataframe):
+    if (('df_selected_from_dataframe' in st.session_state and len(st.session_state.df_selected_from_dataframe)) 
+       and ('tab_id' in st.session_state and st.session_state.tab_id == "tab1")):
         indexer = st.session_state.df_selected_from_dataframe.set_index(['h2o', 'session']
                                                               ).index.get_indexer(df.set_index(['h2o', 'session']).index)
         pre_selected_rows = np.where(indexer != -1)[0].tolist()

@@ -370,7 +370,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                     hovermode='closest',
                     legend={'traceorder':'reversed'},
                     title=f'{title}, {n_mice} mice, {n_sessions} sessions',
-                    dragmode='zoom', # 'select',
+                    dragmode='select', # 'zoom',
                     )
     return fig
   
@@ -592,13 +592,13 @@ def app():
                                                         ) == set(st.session_state.df_selected_from_dataframe.set_index(['h2o', 'session']).index):
         st.session_state.df_selected_from_dataframe = pd.DataFrame(aggrid_outputs['selected_rows'])
         st.session_state.df_selected_from_plotly = st.session_state.df_selected_from_dataframe  # Sync selected on plotly
-        if st.session_state.tab_id == "tab1":
-            st.experimental_rerun()
+        # if st.session_state.tab_id == "tab1":
+        st.experimental_rerun()
             
     chosen_id = stx.tab_bar(data=[
         stx.TabBarItemData(id="tab2", title="📚Session Inspector", description="Select sessions from the table and show plots"),
         stx.TabBarItemData(id="tab1", title="📈Session X-Y plot", description="Interactive session-wise scatter plot"),
-        ], default="tab2")
+        ], default="tab2" if 'tab_id' not in st.session_state else st.session_state.tab_id)
     # chosen_id = "tab1"
 
     placeholder = st.container()
@@ -631,7 +631,7 @@ def app():
                 if_draw_all_sessions = session_plot_settings(need_click=False)
                 df_to_draw_sessions = st.session_state.df_selected_from_plotly if 'selected' in st.session_state.selected_draw_sessions else st.session_state.df_session_filtered
                 
-            if len(df_to_draw_sessions):
+            if if_draw_all_sessions and len(df_to_draw_sessions):
                 draw_session_plots(df_to_draw_sessions)
     
 
