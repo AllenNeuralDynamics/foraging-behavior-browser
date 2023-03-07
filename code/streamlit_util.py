@@ -9,6 +9,8 @@ from pandas.api.types import (
     is_numeric_dtype,
     is_object_dtype,
 )
+import streamlit.components.v1 as components
+
 import matplotlib.pyplot as plt
 import plotly.express as px
 import numpy as np
@@ -47,8 +49,23 @@ def aggrid_interactive_table_session(df: pd.DataFrame):
     )
 
     options.configure_side_bar()
-    options.configure_selection(selection_mode="multiple")# , use_checkbox=True, header_checkbox=True)
-    options.configure_column(field="session_date", sort="desc")
+    
+    df = df.sort_values('session_date', ascending=False)
+    
+    # preselect
+    if (('df_selected_from_dataframe' in st.session_state and len(st.session_state.df_selected_from_dataframe)) 
+       and ('tab_id' in st.session_state and st.session_state.tab_id == "tab1")):
+        indexer = st.session_state.df_selected_from_dataframe.set_index(['h2o', 'session']
+                                                              ).index.get_indexer(df.set_index(['h2o', 'session']).index)
+        pre_selected_rows = np.where(indexer != -1)[0].tolist()
+    else:
+        pre_selected_rows = []
+        
+    options.configure_selection(selection_mode="multiple",
+                                pre_selected_rows=pre_selected_rows)  # , use_checkbox=True, header_checkbox=True)
+    
+    # options.configure_column(field="session_date", sort="desc")
+    
     # options.configure_column(field="h2o", hide=True, rowGroup=True)
     options.configure_column(field='subject_id', hide=True)
     options.configure_column(field="session_date", type=["customDateTimeFormat"], custom_format_string='yyyy-MM-dd')
@@ -69,7 +86,7 @@ def aggrid_interactive_table_session(df: pd.DataFrame):
         columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
         custom_css=custom_css,
     )
-
+    
     return selection
 
 def aggrid_interactive_table_units(df: pd.DataFrame):
@@ -267,10 +284,32 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
-
-
 def add_session_filter():
     with st.expander("Behavioral session filter", expanded=True):   
         st.session_state.df_session_filtered = filter_dataframe(df=st.session_state.df['sessions'])
-        st.markdown(f"{len(st.session_state.df_session_filtered)} sessions filtered (use_s3 = {st.session_state.use_s3})")
     
+    
+def data_selector():
+            
+    with st.expander(f'Session selector', expanded=True):
+        
+        with st.expander(f"Filtered: {len(st.session_state.df_session_filtered)} sessions", expanded=False):
+            st.dataframe(st.session_state.df_session_filtered)
+        
+        # cols = st.columns([4, 1])
+        # with cols[0].expander(f"From dataframe: {len(st.session_state.df_selected_from_dataframe)} sessions", expanded=False):
+        #     st.dataframe(st.session_state.df_selected_from_dataframe)
+        
+        # if cols[1].button('❌'):
+        #     st.session_state.df_selected_from_dataframe = pd.DataFrame()
+        #     st.experimental_rerun()
+
+        cols = st.columns([4, 1])
+        with cols[0].expander(f"Selected: {len(st.session_state.df_selected_from_plotly)} sessions", expanded=False):
+            st.dataframe(st.session_state.df_selected_from_plotly)
+            
+        if cols[1].button('❌ '):
+            st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
+            st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
+            st.experimental_rerun()
+        

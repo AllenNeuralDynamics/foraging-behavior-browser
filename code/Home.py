@@ -19,7 +19,7 @@ import streamlit.components.v1 as components
 import streamlit_nested_layout
 from streamlit_plotly_events import plotly_events
 
-from streamlit_util import filter_dataframe, aggrid_interactive_table_session, add_session_filter
+from streamlit_util import filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector
 import extra_streamlit_components as stx
 
 if_profile = False
@@ -79,20 +79,27 @@ def _fetch_img(glob_patterns, crop=None):
     if not len(file):
         return None, None
 
-    if st.session_state.use_s3:
-        with fs.open(file[0]) as f:
-            img = Image.open(f)
-            img = img.crop(crop) 
-    else:
-        img = Image.open(file[0])
-        img = img.crop(crop)         
+    try:
+        if st.session_state.use_s3:
+            with fs.open(file[0]) as f:
+                img = Image.open(f)
+                img = img.crop(crop) 
+        else:
+            img = Image.open(file[0])
+            img = img.crop(crop)         
+    except:
+        st.write('File found on S3 but failed to load...')
+        return None, None
     
     return img, file[0]
 
 
 # @st.cache_data(ttl=24*3600, max_entries=20)
 def show_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], crop=None, caption=True, **kwargs):
-    sess_date_str = datetime.strftime(datetime.strptime(key['session_date'], '%Y-%m-%dT%H:%M:%S'), '%Y%m%d')
+    try:
+        sess_date_str = datetime.strftime(datetime.strptime(key['session_date'], '%Y-%m-%dT%H:%M:%S'), '%Y%m%d')
+    except:
+        sess_date_str = datetime.strftime(key['session_date'], '%Y%m%d')
      
     fns = [f'/{key["h2o"]}_{sess_date_str}_*{other_pattern}*' for other_pattern in other_patterns]
     glob_patterns = [cache_fig_folder + f'{prefix}/' + key["h2o"] + fn for fn in fns]
@@ -116,11 +123,12 @@ def show_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], cr
 # }
 
     
-def draw_session_plots(keys_to_draw_session):
+def draw_session_plots(df_to_draw_session):
     
     # Setting up layout for each session
     layout_definition = [[1],   # columns in the first row
                          [1.5, 1],  # columns in the second row
+                         [1, 1],
                          ]  
     
     # cols_option = st.columns([3, 0.5, 1])
@@ -129,22 +137,25 @@ def draw_session_plots(keys_to_draw_session):
     with container_session_all_in_one:
         # with st.expander("Expand to see all-in-one plot for selected unit", expanded=True):
         
-        if len(keys_to_draw_session):
-            st.write(f'Loading selected {len(keys_to_draw_session)} sessions...')
+        if len(df_to_draw_session):
+            st.write(f'Loading selected {len(df_to_draw_session)} sessions...')
             my_bar = st.columns((1, 7))[0].progress(0)
              
             major_cols = st.columns([1] * st.session_state.num_cols)
             
-            if not isinstance(keys_to_draw_session, list):  # Turn dataframe to list, if necessary
-                keys_to_draw_session = keys_to_draw_session.to_dict(orient='records')
-
-            for i, key in enumerate(keys_to_draw_session):
+            for i, key in enumerate(df_to_draw_session.to_dict(orient='records')):
                 this_major_col = major_cols[i % st.session_state.num_cols]
                 
                 # setting up layout for each session
                 rows = []
                 with this_major_col:
-                    st.markdown(f'''<h3 style='text-align: center; color: orange;'>{key["h2o"]}, Session {key["session"]}, {key["session_date"].split("T")[0]}''',
+                    
+                    try:
+                        date_str = key["session_date"].strftime('%Y-%m-%d')
+                    except:
+                        date_str = key["session_date"].split("T")[0]
+                    
+                    st.markdown(f'''<h3 style='text-align: center; color: orange;'>{key["h2o"]}, Session {key["session"]}, {date_str}''',
                               unsafe_allow_html=True)
                     if len(st.session_state.selected_draw_types) > 1:  # more than one types, use the pre-defined layout
                         for row, column_setting in enumerate(layout_definition):
@@ -162,10 +173,9 @@ def draw_session_plots(keys_to_draw_session):
                                                 prefix=prefix, 
                                                 **setting)
                     
-                my_bar.progress(int((i + 1) / len(keys_to_draw_session) * 100))
+                my_bar.progress(int((i + 1) / len(df_to_draw_session) * 100))
                 
-                
-
+@st.cache_data(ttl=3600*24)                
 def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='h2o',
                          smooth_factor=5, 
                          if_show_dots=True, 
@@ -177,7 +187,8 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                          q_quantiles_group=10,
                          if_use_x_quantile_all=False,
                          q_quantiles_all=20,
-                         title=''):
+                         title='',
+                         **kwarg):
     
     def _add_agg(df_this, x_name, y_name, group, aggr_method, if_use_x_quantile, q_quantiles, col):
         x = df_this.sort_values(x_name)[x_name].astype(float)
@@ -302,22 +313,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                 )            
             except:
                 pass
-            
-            # fig_trendlines = px.scatter(
-            #                             x=x.astype(float), 
-            #                             y=y.astype(float),
-            #                             trendline='ols',
-            #                             trendline_color_override=col_map[i%len(col_map)],
-            #                             hover_data=['x', 'y', 'trendline']
-            #                             )
-            
-            # fig_trendlines.data = [t for t in fig_trendlines.data if t.mode == "lines"]
-            # fig_trendlines.update_traces(showlegend=True)
-            # fig = go.Figure(data=fig.data + fig_trendlines.data)
-            
-
-            
-    
+                
     fig = go.Figure()
     col_map = px.colors.qualitative.Plotly
     
@@ -326,6 +322,15 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
         col = col_map[i%len(col_map)]
         
         if if_show_dots:
+            if not len(st.session_state.df_selected_from_plotly):   
+                this_session['colors'] = col  # all use normal colors
+            else:
+                merged = pd.merge(this_session, st.session_state.df_selected_from_plotly, on=['h2o', 'session'], how='left')
+                merged['colors'] = 'lightgrey'  # default, grey
+                merged.loc[merged.subject_id_y.notna(), 'colors'] = col   # only use normal colors for the selected dots 
+                this_session['colors'] = merged.colors.values
+                this_session = pd.concat([this_session.query('colors != "lightgrey"'), this_session.query('colors == "lightgrey"')])  # make sure the real color goes first
+                
             fig.add_trace(go.Scattergl(
                             x=this_session[x_name], 
                             y=this_session[y_name], 
@@ -334,15 +339,15 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                             showlegend=not if_aggr_each_group,
                             mode="markers",
                             marker_size=10,
-                            marker_color=col,
-                            opacity=0.2 if if_aggr_each_group else 0.5,
+                            marker_color=this_session['colors'],
+                            opacity=0.2 if if_aggr_each_group else 0.7,
                             text=this_session['session'],
                             hovertemplate =   '<br>%{customdata[0]}, Session %{text}' +
-                                              '<br>%s = %%{x}' % (x_name) +
-                                              '<br>%s = %%{y}' % (y_name),
+                                            '<br>%s = %%{x}' % (x_name) +
+                                            '<br>%s = %%{y}' % (y_name),
                                             #   '<extra>%{name}</extra>',
                             customdata=np.stack((this_session.h2o, this_session.session), axis=-1),
-                            unselected=dict(marker_color='grey')
+                            unselected=dict(marker_color='lightgrey')
                             ))
             
         if if_aggr_each_group:
@@ -366,45 +371,59 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                     hovermode='closest',
                     legend={'traceorder':'reversed'},
                     title=f'{title}, {n_mice} mice, {n_sessions} sessions',
+                    dragmode='select', # 'zoom',
                     )
-    
-    # st.plotly_chart(fig)
-    selected_sessions_from_plot = plotly_events(fig, click_event=True, hover_event=False, select_event=True, override_height=870, override_width=1400)
-        
-    return selected_sessions_from_plot
+    return fig
+  
 
-def session_plot_settings():
+def session_plot_settings(need_click=True):
+    st.markdown('##### Show plots for individual sessions ')
+    cols = st.columns([2, 1])
+    st.session_state.selected_draw_sessions = cols[0].selectbox('Which session(s) to draw?', 
+                                                           [f'selected from table/plot ({len(st.session_state.df_selected_from_plotly)} sessions)', 
+                                                            f'filtered from sidebar ({len(st.session_state.df_session_filtered)} sessions)'], 
+                                                           index=0
+                                                           )
+    st.session_state.num_cols = cols[1].number_input('Number of columns', 1, 10, 3)
     st.session_state.selected_draw_types = st.multiselect('Which plot(s) to draw?', st.session_state.draw_type_mapper.keys(), default=st.session_state.draw_type_mapper.keys())
-    st.session_state.num_cols = st.columns([1, 3])[0].number_input('Number of columns', 1, 10, 2)
+    if need_click:
+        draw_it = st.button('Show me all sessions!', use_container_width=True)
+    else:
+        draw_it = True
+    return draw_it
 
-                
 
-def population_analysis():
-    
-    selected_keys = st.session_state.aggrid_outputs['selected_rows']
-    
-    # If no sessions are selected, use all filtered entries
-    use_all_filtered = len(selected_keys) == 0  
-    df_selected = pd.DataFrame(selected_keys) if not use_all_filtered else st.session_state.df_session_filtered
-    # st.markdown(f'to do population: {len(df_selected)} sessions')
-    
+def plot_x_y_session():
+            
     cols = st.columns([4, 10])
     
     with cols[0]:
         x_name, y_name, group_by = add_xy_selector()
         
         s_cols = st.columns([1, 1, 1])
+        # if_plot_only_selected_from_dataframe = s_cols[0].checkbox('Only selected', False)
         if_show_dots = s_cols[0].checkbox('Show data points', True)
         
         aggr_methods =  ['mean', 'mean +/- sem', 'lowess', 'running average', 'linear fit']
 
-        if_aggr_each_group = s_cols[1].checkbox('Aggr each group', True)
+        if_aggr_each_group = s_cols[1].checkbox('Aggr each group', 
+                                                value=st.session_state.if_aggr_each_group_cache 
+                                                      if 'if_aggr_each_group_cache' in st.session_state
+                                                      else True, )
+        
+        st.session_state.if_aggr_each_group_cache = if_aggr_each_group  # Have to use another variable to store this explicitly (my cache_widget somehow doesn't work with checkbox)
         aggr_method_group = s_cols[1].selectbox('aggr method group', aggr_methods, index=aggr_methods.index('lowess'), disabled=not if_aggr_each_group)
         
         if_use_x_quantile_group = s_cols[1].checkbox('Use quantiles of x ', False) if 'mean' in aggr_method_group else False
         q_quantiles_group = s_cols[1].slider('Number of quantiles ', 1, 100, 20, disabled=not if_use_x_quantile_group) if if_use_x_quantile_group else None
         
-        if_aggr_all = s_cols[2].checkbox('Aggr all', True)
+        if_aggr_all = s_cols[2].checkbox('Aggr all', 
+                                         value=st.session_state.if_aggr_all_cache
+                                               if 'if_aggr_all_cache' in st.session_state
+                                               else True,
+                                        )
+        
+        st.session_state.if_aggr_all_cache = if_aggr_all  # Have to use another variable to store this explicitly (my cache_widget somehow doesn't work with checkbox)
         aggr_method_all = s_cols[2].selectbox('aggr method all', aggr_methods, index=aggr_methods.index('mean +/- sem'), disabled=not if_aggr_all)
 
         if_use_x_quantile_all = s_cols[2].checkbox('Use quantiles of x', False) if 'mean' in aggr_method_all else False
@@ -413,20 +432,11 @@ def population_analysis():
         smooth_factor = s_cols[0].slider('Smooth factor', 1, 20, 5) if ((if_aggr_each_group and aggr_method_group in ('running average', 'lowess'))
                                                                      or (if_aggr_all and aggr_method_all in ('running average', 'lowess'))) else None
         
-        for i in range(7): st.write('\n')
-        
-        st.markdown("***")
-        st.markdown('##### Click or box/lasso select session(s) from the plots to draw 👉')
-        session_plot_settings()
-        
-        with st.expander(f'{len(st.session_state.df_selected_from_plotly)} sessions selected from plotly', expanded=False):
-            if st.button('clear selection'):
-                st.session_state.df_selected_from_plotly = pd.DataFrame()
-            
-            with st.expander('show sessions', expanded=False):
-                st.dataframe(st.session_state.df_selected_from_plotly)
-                
-        
+    
+    # If no sessions are selected, use all filtered entries
+    # df_x_y_session = st.session_state.df_selected_from_dataframe if if_plot_only_selected_from_dataframe else st.session_state.df_session_filtered
+    df_x_y_session = st.session_state.df_session_filtered
+    
     names = {('session', 'foraging_eff'): 'Foraging efficiency',
              ('session', 'finished'):   'Finished trials', 
              }
@@ -435,7 +445,7 @@ def population_analysis():
     # for i, (title, (x_name, y_name)) in enumerate(names.items()):
         # with cols[i]:
     with cols[1]:
-        selected = _plot_population_x_y(df=df_selected, 
+        fig = _plot_population_x_y(df=df_x_y_session, 
                                         x_name=x_name, y_name=y_name, 
                                         group_by=group_by,
                                         smooth_factor=smooth_factor, 
@@ -448,13 +458,17 @@ def population_analysis():
                                         q_quantiles_group=q_quantiles_group,
                                         if_use_x_quantile_all=if_use_x_quantile_all,
                                         q_quantiles_all=q_quantiles_all,
-                                        title=names[(x_name, y_name)] if (x_name, y_name) in names else y_name)
+                                        title=names[(x_name, y_name)] if (x_name, y_name) in names else y_name,
+                                        states = st.session_state.df_selected_from_plotly)
+        
+        # st.plotly_chart(fig)
+        selected = plotly_events(fig, click_event=True, hover_event=False, select_event=True, override_height=870, override_width=1400)
+      
     if len(selected):
-        df_selected_from_plotly = df_selected.merge(pd.DataFrame(selected).rename({'x': x_name, 'y': y_name}, axis=1), 
+        df_selected_from_plotly = df_x_y_session.merge(pd.DataFrame(selected).rename({'x': x_name, 'y': y_name}, axis=1), 
                                                     on=[x_name, y_name], how='inner')
 
-    return df_selected_from_plotly
-
+    return df_selected_from_plotly, cols
 
 def add_xy_selector():
     with st.expander("Select axes", expanded=True):
@@ -471,7 +485,8 @@ def add_xy_selector():
 # ------- Layout starts here -------- #    
 def init():
     df = load_data(['sessions', 
-                    'logistic_regression', 
+                    'logistic_regression_hattori', 
+                    'logistic_regression_su',
                     'linear_regression_rt',
                     'model_fitting_params'])
     
@@ -481,30 +496,39 @@ def init():
     df['sessions']['session_date'] = df['sessions']['session_date'].dt.tz_localize(None)
     
     st.session_state.df = df
-    st.session_state.df_selected_from_plotly = pd.DataFrame()
-    
+    st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
+    st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
     
     # Init session states
-    # add some model fitting params to session
-    if not 'model_id' in st.session_state:
-        st.session_state.model_id = 21
+    to_init = [
+               ['model_id', 21],   # add some model fitting params to session
+               ['tab_id', "tab2"],
+               ]
+    
+    for name, default in to_init:
+        if name not in st.session_state:
+            st.session_state[name] = default
+        
     selected_id = st.session_state.model_id 
     
     st.session_state.draw_type_mapper = {'1. Choice history': ('fitted_choice',   # prefix
-                                        (0, 0),     # location (row_idx, column_idx)
-                                        dict(other_patterns=['model_best', 'model_None'])),
-                    '2. Lick times': ('lick_psth', 
-                                    (1, 0), 
-                                    {}),            
-                    '3. Logistic regression on choice': ('logistic_regression', 
-                                                        (1, 1), 
-                                                        dict(crop=(0, 0, 1200, 2000))),
-                    '4. Win-stay-lose-shift prob.': ('wsls', 
-                                                    (1, 1), 
-                                                    dict(crop=(0, 0, 1200, 600))),
-                    '5. Linear regression on RT': ('linear_regression_rt', 
-                                                    (1, 0), 
-                                                    dict()),
+                                                            (0, 0),     # location (row_idx, column_idx)
+                                                            dict(other_patterns=['model_best', 'model_None'])),
+                                        '2. Lick times': ('lick_psth', 
+                                                        (1, 0), 
+                                                        {}),            
+                                        '3. Win-stay-lose-shift prob.': ('wsls', 
+                                                                        (1, 1), 
+                                                                        dict(crop=(0, 0, 1200, 600))),
+                                        '4. Linear regression on RT': ('linear_regression_rt', 
+                                                                        (1, 1), 
+                                                                        dict()),
+                                        '5. Logistic regression on choice (Hattori)': ('logistic_regression_hattori', 
+                                                                                        (2, 0), 
+                                                                                        dict(crop=(0, 0, 1200, 2000))),
+                                        '6. Logistic regression on choice (Su)': ('logistic_regression_su', 
+                                                                                        (2, 1), 
+                                                                                        dict(crop=(0, 0, 1200, 2000))),
                     }
     
     # process dfs
@@ -527,16 +551,19 @@ def app():
     
     with st.sidebar:
         add_session_filter()
+        data_selector()
     
+        st.markdown('---')
+        st.markdown('#### Han Hou @ 2023 v1.0.2')
+        st.markdown('[bug report / feature request](https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues)')
+        
         with st.expander('Debug', expanded=False):
             st.session_state.model_id = st.selectbox('model_id', st.session_state.df['model_fitting_params'].model_id.unique())
-            if st.button('Reload data'):
+            if st.button('Reload data from AWS S3'):
                 st.cache_data.clear()
                 init()
                 st.experimental_rerun()
         
-        st.markdown('---')
-        st.write('Han Hou @ 2023\nv1.0.0')
     
 
     with st.container():
@@ -548,7 +575,11 @@ def app():
         cols[0].markdown(f'### Filter the sessions on the sidebar ({len(st.session_state.df_session_filtered)} filtered)')
         # if cols[1].button('Press this and then Ctrl + R to reload from S3'):
         #     st.experimental_rerun()
-             
+        if cols[1].button('Reload data '):
+            st.cache_data.clear()
+            init()
+            st.experimental_rerun()
+    
         # aggrid_outputs = aggrid_interactive_table_units(df=df['ephys_units'])
         # st.session_state.df_session_filtered = aggrid_outputs['data']
         
@@ -559,33 +590,55 @@ def app():
         st.markdown('## No filtered results!')
         return
     
-    st.session_state.aggrid_outputs = aggrid_interactive_table_session(df=st.session_state.df_session_filtered)
-
-    # chosen_id = stx.tab_bar(data=[
-    #     stx.TabBarItemData(id="tab1", title="📈Training summary", description="Plot training summary"),
-    #     stx.TabBarItemData(id="tab2", title="📚Session inspection", description="Generate plots for each session"),
-    #     ], default="tab1")
-    chosen_id = "tab1"
+    aggrid_outputs = aggrid_interactive_table_session(df=st.session_state.df_session_filtered)
+    
+    if len(aggrid_outputs['selected_rows']) and not set(pd.DataFrame(aggrid_outputs['selected_rows']
+                                                                 ).set_index(['h2o', 'session']).index
+                                                        ) == set(st.session_state.df_selected_from_dataframe.set_index(['h2o', 'session']).index):
+        st.session_state.df_selected_from_dataframe = pd.DataFrame(aggrid_outputs['selected_rows'])
+        st.session_state.df_selected_from_plotly = st.session_state.df_selected_from_dataframe  # Sync selected on plotly
+        # if st.session_state.tab_id == "tab1":
+        st.experimental_rerun()
+            
+    chosen_id = stx.tab_bar(data=[
+        stx.TabBarItemData(id="tab2", title="📚Session Inspector", description="Select sessions from the table and show plots"),
+        stx.TabBarItemData(id="tab1", title="📈Session X-Y plot", description="Interactive session-wise scatter plot"),
+        ], default="tab2" if 'tab_id' not in st.session_state else st.session_state.tab_id)
+    # chosen_id = "tab1"
 
     placeholder = st.container()
 
     if chosen_id == "tab1":
+        st.session_state.tab_id = chosen_id
         with placeholder:
-            df_selected_from_plotly = population_analysis()
+            df_selected_from_plotly, x_y_cols = plot_x_y_session()
+            
+            with x_y_cols[0]:
+                for i in range(7): st.write('\n')
+                st.markdown("***")
+                if_draw_all_sessions = session_plot_settings()
 
-            if len(st.session_state.df_selected_from_plotly):
-                draw_session_plots(st.session_state.df_selected_from_plotly)
+            df_to_draw_sessions = st.session_state.df_selected_from_plotly if 'selected' in st.session_state.selected_draw_sessions else st.session_state.df_session_filtered
+
+            if if_draw_all_sessions and len(df_to_draw_sessions):
+                draw_session_plots(df_to_draw_sessions)
                 
-            if len(df_selected_from_plotly) and not df_selected_from_plotly.equals(st.session_state.df_selected_from_plotly):
+            if len(df_selected_from_plotly) and not set(df_selected_from_plotly.set_index(['h2o', 'session']).index) == set(
+                                                st.session_state.df_selected_from_plotly.set_index(['h2o', 'session']).index):
                 st.session_state.df_selected_from_plotly = df_selected_from_plotly
+                st.session_state.df_selected_from_dataframe = df_selected_from_plotly  # Sync selected on dataframe
                 st.experimental_rerun()
             
     elif chosen_id == "tab2":
+        st.session_state.tab_id = chosen_id
         with placeholder:
-            selected_keys_from_aggrid = st.session_state.aggrid_outputs['selected_rows']
-            st.markdown('##### Select session(s) from the table above to draw')
-            session_plot_settings()
-            draw_session_plots(selected_keys_from_aggrid)
+            with st.columns([4, 10])[0]:
+                if_draw_all_sessions = session_plot_settings(need_click=False)
+                df_to_draw_sessions = st.session_state.df_selected_from_plotly if 'selected' in st.session_state.selected_draw_sessions else st.session_state.df_session_filtered
+                
+            if if_draw_all_sessions and len(df_to_draw_sessions):
+                draw_session_plots(df_to_draw_sessions)
+    
 
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
 
