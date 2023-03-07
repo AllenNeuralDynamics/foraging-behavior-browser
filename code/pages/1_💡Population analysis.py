@@ -19,23 +19,32 @@ def app():
         data_selector()
         
         
-    # st.dataframe(st.session_state.df['logistic_regression'])
+    # st.dataframe(st.session_state.df['logistic_regression_hattori'])
     
     
     df_to_do_population = st.session_state.df_session_filtered
-    df_log_reg_to_do = df_to_do_population.merge(st.session_state.df['logistic_regression'], on=('subject_id', 'session'), how='inner')
+    df_log_reg_hattori_to_do = df_to_do_population.merge(st.session_state.df['logistic_regression_hattori'], on=('subject_id', 'session'), how='inner')
+    df_log_reg_su_to_do = df_to_do_population.merge(st.session_state.df['logistic_regression_su'], on=('subject_id', 'session'), how='inner')
+
     df_lin_reg_rt_to_do = df_to_do_population.merge(st.session_state.df['linear_regression_rt'], on=('subject_id', 'session'), how='inner')
 
     cols = st.columns([1, 3])
     
     with cols[0]:    
         if st.checkbox('Plot logistic regression (non-photostim)', True):        
-            fig = plot_logistic_regression_non_photostim(df_log_reg_to_do.query('trial_group == "all_no_stim"'))
+            st.markdown('Hattori (Rewarded choice + Unrewarded choice + Choice)')
+            fig = plot_logistic_regression_non_photostim(df_log_reg_hattori_to_do.query('trial_group == "all_no_stim"'))
             if fig is not None:
                 buf = BytesIO()
                 fig.savefig(buf, format="png")
                 st.image(buf, use_column_width=True)
 
+            st.markdown('Su (Rewarded choice + Unrewarded choice)')
+            fig = plot_logistic_regression_non_photostim(df_log_reg_su_to_do.query('trial_group == "all_no_stim"'))
+            if fig is not None:
+                buf = BytesIO()
+                fig.savefig(buf, format="png")
+                st.image(buf, use_column_width=True)
             
         if st.checkbox('Plot linear regression on RT (non-photostim)', True):
             fig = plot_linear_regression_rt_non_photostim(df_lin_reg_rt_to_do.query('trial_group == "all_no_stim"'))
@@ -47,11 +56,24 @@ def app():
 
     with cols[1]:
         if st.checkbox('Plot logistic regression (⚡photostim sessions)', False):
-            with st.columns([1, 5])[0]:
+            st.markdown('Hattori (Rewarded choice + Unrewarded choice + Choice)')                
+            with st.columns([1, 3])[0]:
                 beta_names = st.multiselect('beta names', ['RewC', 'UnrC', 'C'], ['RewC', 'UnrC', 'C'])
                 max_trials_back = st.slider('max trials back', 1, 5, 3)
-                
-            fig = plot_logistic_regression_photostim(df_log_reg_to_do.query('trial_group != "all_no_stim"'), 
+
+            fig = plot_logistic_regression_photostim(df_log_reg_hattori_to_do.query('trial_group != "all_no_stim"'), 
+                                                    beta_names=beta_names, past_trials_to_plot=range(1, max_trials_back + 1))
+            if fig is not None:
+                buf = BytesIO()
+                fig.savefig(buf, format="png")
+                st.image(buf, width=3000)
+
+            st.markdown('Su (Rewarded choice + Unrewarded choice)')
+            with st.columns([1, 3])[0]:
+                beta_names = st.multiselect('beta names ', ['RewC', 'UnrC'], ['RewC', 'UnrC'])
+                max_trials_back = st.slider('max trials back ', 1, 5, 3)
+
+            fig = plot_logistic_regression_photostim(df_log_reg_su_to_do.query('trial_group != "all_no_stim"'), 
                                                     beta_names=beta_names, past_trials_to_plot=range(1, max_trials_back + 1))
             if fig is not None:
                 buf = BytesIO()
@@ -117,9 +139,12 @@ def plot_logistic_regression_non_photostim(df_all, max_trials_back=10, ax=None):
         
         means = [df_all.query(f'beta == "{name}" and trials_back == {t}')['mean'].mean() 
                  for t in ([0] if name == "bias" else xx)]
+        if np.all(np.isnan(means)):
+            continue
+        
         cis = [df_all.query(f'beta == "{name}" and trials_back == {t}')['mean'].sem() * 1.96 
                for t in ([0] if name == "bias" else xx)]
-                
+                        
         ax.errorbar(x=1 if name == 'bias' else xx,
                     y=means,
                     yerr=cis,
