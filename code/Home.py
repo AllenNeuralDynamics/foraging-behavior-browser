@@ -174,7 +174,7 @@ def draw_session_plots(df_to_draw_session):
                     
                 my_bar.progress(int((i + 1) / len(df_to_draw_session) * 100))
                 
-                
+@st.cache_data(ttl=3600*24)                
 def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='h2o',
                          smooth_factor=5, 
                          if_show_dots=True, 
@@ -186,7 +186,8 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                          q_quantiles_group=10,
                          if_use_x_quantile_all=False,
                          q_quantiles_all=20,
-                         title=''):
+                         title='',
+                         **kwarg):
     
     def _add_agg(df_this, x_name, y_name, group, aggr_method, if_use_x_quantile, q_quantiles, col):
         x = df_this.sort_values(x_name)[x_name].astype(float)
@@ -371,11 +372,8 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                     title=f'{title}, {n_mice} mice, {n_sessions} sessions',
                     dragmode='zoom', # 'select',
                     )
-    
-    # st.plotly_chart(fig)
-    selected_sessions_from_plot = plotly_events(fig, click_event=True, hover_event=False, select_event=True, override_height=870, override_width=1400)
-        
-    return selected_sessions_from_plot
+    return fig
+  
 
 def session_plot_settings(need_click=True):
     st.markdown('##### Show plots for individual sessions ')
@@ -446,7 +444,7 @@ def plot_x_y_session():
     # for i, (title, (x_name, y_name)) in enumerate(names.items()):
         # with cols[i]:
     with cols[1]:
-        selected = _plot_population_x_y(df=df_x_y_session, 
+        fig = _plot_population_x_y(df=df_x_y_session, 
                                         x_name=x_name, y_name=y_name, 
                                         group_by=group_by,
                                         smooth_factor=smooth_factor, 
@@ -459,7 +457,12 @@ def plot_x_y_session():
                                         q_quantiles_group=q_quantiles_group,
                                         if_use_x_quantile_all=if_use_x_quantile_all,
                                         q_quantiles_all=q_quantiles_all,
-                                        title=names[(x_name, y_name)] if (x_name, y_name) in names else y_name)
+                                        title=names[(x_name, y_name)] if (x_name, y_name) in names else y_name,
+                                        states = st.session_state.df_selected_from_plotly)
+        
+        # st.plotly_chart(fig)
+        selected = plotly_events(fig, click_event=True, hover_event=False, select_event=True, override_height=870, override_width=1400)
+      
     if len(selected):
         df_selected_from_plotly = df_x_y_session.merge(pd.DataFrame(selected).rename({'x': x_name, 'y': y_name}, axis=1), 
                                                     on=[x_name, y_name], how='inner')
