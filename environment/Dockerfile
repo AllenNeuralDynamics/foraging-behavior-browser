@@ -83,8 +83,8 @@ RUN pip install -U --no-cache-dir \
     yarl==1.8.1 \
     zipp==3.10.0 \
     extra_streamlit_components \
-    statsmodels
-    statannotations
+    statsmodels \
+    statannotations \
     seaborn
 
 ADD "https://github.com/coder/code-server/releases/download/v4.9.0/code-server-4.9.0-linux-amd64.tar.gz" /.code-server/code-server.tar.gz

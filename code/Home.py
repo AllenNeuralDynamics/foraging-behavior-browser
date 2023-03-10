@@ -307,6 +307,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                                         mode='lines',
                                         name=f"{group} {n_str}<br>  {sig(p_value):<5}p={p_value:.1e}, r={r_value:.3f}",
                                         marker_color=col,
+                                        line=dict(dash='dot' if p_value > 0.05 else 'solid'),
                                         legendgroup=f'group_{group}',
                                         # hoverinfo='skip'
                                         )
@@ -476,7 +477,7 @@ def add_xy_selector():
         cols = st.columns([1, 1, 1])
         x_name = cols[0].selectbox("x axis", st.session_state.session_stats_names, index=st.session_state.session_stats_names.index('session'))
         y_name = cols[1].selectbox("y axis", st.session_state.session_stats_names, index=st.session_state.session_stats_names.index('foraging_eff'))
-        group_by = cols[2].selectbox("grouped by", ['h2o', 'task', 'photostim_location', 
+        group_by = cols[2].selectbox("grouped by", ['h2o', 'task', 'photostim_location', 'weekday',
                                                     'headbar', 'user_name', 'sex', 'rig'], index=['h2o', 'task'].index('h2o'))
             # st.form_submit_button("update axes")
     return x_name, y_name, group_by
@@ -540,6 +541,17 @@ def init():
 
     # add something else
     st.session_state.df['sessions']['abs(bias)'] = np.abs(st.session_state.df['sessions'].biasL)
+    
+    # delta weight
+    diff_relative_weight_next_day = st.session_state.df['sessions'].set_index(
+        ['session']).sort_values('session', ascending=True).groupby('h2o').apply(
+            lambda x: - x.relative_weight.diff(periods=-1)).rename("diff_relative_weight_next_day")
+        
+    # weekday
+    st.session_state.df['sessions']['weekday'] =  st.session_state.df['sessions'].session_date.dt.dayofweek + 1
+
+    st.session_state.df['sessions'] = st.session_state.df['sessions'].merge(
+        diff_relative_weight_next_day, how='left', on=['h2o', 'session'])
 
     st.session_state.session_stats_names = [keys for keys in st.session_state.df['sessions'].keys()]
    

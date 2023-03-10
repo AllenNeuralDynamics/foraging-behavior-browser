@@ -157,7 +157,7 @@ def plot_logistic_regression_non_photostim(df_all, max_trials_back=10, ax=None):
     ax.legend()
     ax.set(xlabel='Past trials', ylabel='Logistic regression coeffs')
     ax.axhline(y=0, color='k', linestyle=':', linewidth=0.5)
-    ax.set(xticks=[1, 5, 10], ylim=(-0.1, 1.3))
+    ax.set(xticks=[1, 5, 10], ylim=(-0.1, 2))
 
     sns.despine(trim=True)
 
