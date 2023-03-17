@@ -71,8 +71,8 @@ watchdog==2.1.9
 wrapt==1.14.1
 yarl==1.8.1
 zipp==3.10.0
-scipy
-extra_streamlit_components 
-statsmodels
-statannotations
+scipy==1.10.0
+extra_streamlit_components==0.1.56
+statsmodels==0.13.5
+statannotations==0.5.0
 seaborn==0.12.2
