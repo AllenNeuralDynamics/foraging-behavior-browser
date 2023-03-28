@@ -10,13 +10,12 @@ import itertools
 import plotly.graph_objs as go
 import plotly.express as px
 from plotly.subplots import make_subplots
-
-from streamlit_util import filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector
 from streamlit_plotly_events import plotly_events
-from population_util import _draw_variable_trial_back, _draw_variable_trial_back_linear_reg
 import seaborn as sns
-
 import s3fs
+
+from util.streamlit import filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector
+from util.foraging_plotly import moving_average, plot_session_lightweight
 
 st.session_state.use_s3 = True
 fs = s3fs.S3FileSystem(anon=False)
@@ -161,6 +160,8 @@ def plot_dlc_time_course(dict_dlc, features_to_plot, t_range, if_plot_likelihood
     # st.plotly_chart(fig)
     return fig
 
+
+
 def plot_dlc_2d(dict_dlc, features_to_plot, t_range_2d, if_lines_in_2d=False):
     
     fig_2ds = {}
@@ -218,6 +219,23 @@ def plot_dlc_2d(dict_dlc, features_to_plot, t_range_2d, if_lines_in_2d=False):
         
     return fig_2ds
 
+
+def plot_trial_history(df_trials, trial_range=None):
+        
+    _choice_history = df_trials.choice.values
+    choice_history = np.array([{'left': 0, 'right': 1, 'null': np.nan}[c] for c in _choice_history])
+
+    _reward = df_trials.outcome
+    reward_history = np.zeros([2, len(_reward)])  # .shape = (2, N trials)
+    for c in (0, 1):
+        reward_history[c, choice_history==c] = (_reward[choice_history==c] == 'hit').astype(int)
+        
+    p_reward = np.vstack([df_trials.left_reward_prob, df_trials.right_reward_prob])
+ 
+    fig = plot_session_lightweight([np.array([choice_history]), reward_history, p_reward], trial_range=trial_range)
+    
+    return fig
+
 init()
 
 with st.sidebar:
@@ -232,7 +250,11 @@ with st.sidebar:
 
 if button_load or len(st.session_state.df_trials):
     st.session_state.df_trials, dict_behav_events, dict_dlc = load_nwb(nwb_folder + nwb_file)
+    
+    # --- Trial history ---    
+    h_history = st.empty()   # placeholder
 
+    # --- DLC ---
     dlc_features = list(dict_dlc.keys())
     
     st.markdown(
@@ -258,6 +280,12 @@ if button_load or len(st.session_state.df_trials):
     t_range = cols[0].slider('Time course range', 0.0, 500.0, value=20.0, step=1.0)
     t_center = cols[1].slider('Time course center', t_range / 2, max_t - t_range / 2, value=50.0, step=t_range / 10)
     t_start, t_end = t_center - t_range / 2, t_center + t_range / 2   
+    
+    with h_history:
+        trial_range = [np.searchsorted(dict_behav_events['go'], t) for t in [t_start, t_end]]
+        fig = plot_trial_history(st.session_state.df_trials, trial_range=trial_range)
+        plotly_events(fig, override_height=fig.layout.height * 1.1, override_width=fig.layout.width)
+
     
     # --- Time course ---
     h_time_course = st.empty()
