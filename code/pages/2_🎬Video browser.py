@@ -28,6 +28,7 @@ video_root = 'aind-behavior-data/Han/video/raw'
 
 # --- load raw tracks from nwb ---
 nwb_folder = '/root/capsule/data/s3/export/nwb/'  # Use s3 drive mounted in the capsule for now
+camera_mapping = {'Camera0': 'side', 'Camera1': 'bottom'}
 
 nwb_files = [f.split('/')[-1] for f in glob.glob(nwb_folder + '/*.nwb')]
 
@@ -209,7 +210,7 @@ def plot_dlc_2d(dict_dlc, features_to_plot, t_range_2d, if_lines_in_2d=False):
             ),
             height=700,
             width=900,
-            title=f'{camera}, {"side" if camera == "Camera0" else "bottom"}',
+            title=f'{camera}, {camera_mapping[camera]}',
             showlegend=True,
             )
         
@@ -280,22 +281,19 @@ if button_load or len(st.session_state.df_trials):
             with col_2d[n]:
                 plotly_events(fig_2ds[camera], override_height=fig_2ds[camera].layout.height, override_width=fig_2ds[camera].layout.width)
     
-    # # --- navigate raw annotated videos ---
-    # subfolders = fs.ls(video_root)
-    # mice = [subfolder.split('/')[-1] for subfolder in subfolders]
-    # mice = [mouse for mouse in mice if any(m in mouse for m in ['HH', 'KH', 'new'])]
-    # mouse = st.selectbox('mouse', mice)
+    #  --- navigate raw annotated videos ---
+    mouse, date= nwb_file.split('_')[0], nwb_file.split('_')[1]
+    sessions = [sub.split('/')[-1] for sub in fs.ls(f'{video_root}/{mouse}')]
+    session = [s for s in sessions if date in s][0]
+    videos = [file.split('/')[-1] for file in fs.glob(f'{video_root}/{mouse}/{session}/*.mp4')]
 
-    # sessions = [sub.split('/')[-1] for sub in fs.ls(f'{video_root}/{mouse}')]
-    # session = st.selectbox('session', sessions)
+    for n, camera in enumerate(['Camera0', 'Camera1']):
+        with col_2d[n]:
+            video = st.selectbox('video', [v for v in videos if camera_mapping[camera] in v])
+            file_name = f'{video_root}/{mouse}/{session}/{video}'
 
-    # videos = [file.split('/')[-1] for file in fs.glob(f'{video_root}/{mouse}/{session}/*.mp4')]
-    # video = st.selectbox('video', videos)
-
-    # file_name = f'{video_root}/{mouse}/{session}/{video}'
-
-    # cols = st.columns([1, 2])
-    # with fs.open(file_name, 'rb') as f:
-    #     cols[0].video(f.read())
+            cols = st.columns([1, 2])
+            with fs.open(file_name, 'rb') as f:
+                cols[0].video(f.read())
         
         
