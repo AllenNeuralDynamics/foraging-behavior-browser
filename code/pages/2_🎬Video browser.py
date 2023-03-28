@@ -8,6 +8,7 @@ import os
 import itertools
 
 import plotly.graph_objs as go
+import plotly.express as px
 from plotly.subplots import make_subplots
 
 from streamlit_util import filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector
@@ -72,26 +73,26 @@ def add_behav_events(dict_behav_events, range=None, fig=None, **kwarg):
                         name=event_name), **kwarg)
     return fig
     
-def add_dlc_feature_x_y(dict_dlc, feature, likelihood_threshold, range=None, fig=None, start_row=2, col=1, if_plot_likelihood=True):
+def add_dlc_feature_x_y(dict_dlc, feature, likelihood_threshold, color='black', range=None, fig=None, start_row=2, col=1, if_plot_likelihood=True, t_range_2d=None):
     
     this_feature = dict_dlc[feature]
 
     x, y, likelihood, t = this_feature['x'], this_feature['y'], this_feature['likelihood'], this_feature['t']
-    invalid = likelihood < likelihood_threshold
-    x[invalid] = np.nan
-    y[invalid] = np.nan
-    
     valid_time = (t_start <= t) & (t < t_end)
     x = x[valid_time]
     y = y[valid_time]
     likelihood = likelihood[valid_time]
     t = t[valid_time]
     
+    invalid = likelihood < likelihood_threshold
+    x[invalid] = np.nan
+    y[invalid] = np.nan
+
     this_row = start_row
     if if_plot_likelihood:
         fig.add_trace(go.Scattergl(x=t, y=likelihood, 
                                 mode='markers',
-                                marker_color='#FFC2D2', 
+                                marker_color='black', 
                                 name=f'likelihood',
                                 showlegend=False,
                                 hovertemplate=
@@ -99,40 +100,56 @@ def add_dlc_feature_x_y(dict_dlc, feature, likelihood_threshold, range=None, fig
                                     '%{x}, %{y}<br><extra></extra>',), row=this_row, col=1)
         
         fig.add_shape(type='line', x0=t_start, x1=t_end, y0=likelihood_threshold, y1=likelihood_threshold, 
-                    yref='y2', xref='x2', line=dict(color='red', dash='dash'))
+                      yref='y2', xref='x2', line=dict(color='red', dash='dash'), row=this_row, col=1)
+        
+        if t_range_2d is not None:
+            fig.add_vrect(x0=t_range_2d[0], x1=t_range_2d[1], fillcolor='grey', opacity=0.1, line_width=0, row=this_row, col=1)
+
         fig.update_yaxes(title_text='likelihood', range=[0, 1.05], row=this_row, col=1)
         this_row += 1
 
     fig.add_trace(go.Scattergl(x=t, y=x, mode='markers+lines', name='X',
                                showlegend=False,
+                               marker_color=color,
                                hovertemplate=
                                 '%s<br>' % (f'X ({feature})')+
                                 '%{x}, %{y}<br><extra></extra>',
                                ), row=this_row, col=1)
+    if t_range_2d is not None:
+        fig.add_vrect(x0=t_range_2d[0], x1=t_range_2d[1], fillcolor='grey', opacity=0.1, line_width=0, row=this_row, col=1)
+
     fig.update_yaxes(title_text='X', row=this_row, col=1)
     this_row += 1
     
     fig.add_trace(go.Scattergl(x=t, y=y, mode='markers+lines', name='Y',
                                showlegend=False,
+                               marker_color=color,
                                hovertemplate=
                                 '%s<br>' % (f'Y ({feature})')+
                                 '%{x}, %{y}<br><extra></extra>',
                                ), row=this_row, col=1)
+    if t_range_2d is not None:
+        fig.add_vrect(x0=t_range_2d[0], x1=t_range_2d[1], fillcolor='grey', opacity=0.1, line_width=0, row=this_row, col=1)
     fig.update_yaxes(title_text='Y', row=this_row, col=1)
     fig.update_xaxes(range=[t_start, t_end], row=this_row, col=1)
     
     
-def plot_dlc_time_course(if_plot_likelihood=True):
+@st.cache_data(max_entries=100)
+def plot_dlc_time_course(dict_dlc, features_to_plot, t_range, if_plot_likelihood=True, t_range_2d=None):
     row_heights = [1.5] + [0.7, 2, 2] * len(features_to_plot) if if_plot_likelihood else ([1.5] + [2, 2] * len(features_to_plot))
     fig = make_subplots(rows=len(row_heights), cols=1, shared_xaxes=True, row_heights=row_heights, vertical_spacing=0.025,
                         subplot_titles=[""] + list(itertools.chain(*[[feature, "", ""] for feature in features_to_plot]))
                                         if if_plot_likelihood else [""] + list(itertools.chain(*[[feature, ""] for feature in features_to_plot])))
     
-    add_behav_events(dict_behav_events, range=[t_start, t_end],
+    add_behav_events(dict_behav_events, range=t_range,
                      fig=fig, row=1, col=1)
     
-    for n, feature in enumerate(features_to_plot):
-        add_dlc_feature_x_y(dict_dlc, feature, likelihood_threshold, range=[t_start, t_end], fig=fig, start_row=2+n*(3 if if_plot_likelihood else 2), col=1, if_plot_likelihood=if_plot_likelihood)
+    col_map = px.colors.qualitative.Plotly
+    
+    for n, (feature, color) in enumerate(features_to_plot.items()):
+        add_dlc_feature_x_y(dict_dlc, feature, likelihood_threshold, range=t_range, fig=fig, 
+                            start_row=2+n*(3 if if_plot_likelihood else 2), col=1, if_plot_likelihood=if_plot_likelihood,
+                            color=color, t_range_2d=t_range_2d)
 
     fig.update_layout(height=300+row_height*len(features_to_plot), width=1700, 
                       hovermode='closest',
@@ -141,8 +158,64 @@ def plot_dlc_time_course(if_plot_likelihood=True):
 
     # Show the plot
     # st.plotly_chart(fig)
-    events_on_time_course = plotly_events(fig, override_width=fig.layout.width, override_height=fig.layout.height)
-    return events_on_time_course
+    return fig
+
+def plot_dlc_2d(dict_dlc, features_to_plot, t_range_2d, if_lines_in_2d=False):
+    
+    fig_2ds = {}
+    
+    for camera in ['Camera0', 'Camera1']:
+        features_to_plot_this = {feature: features_to_plot[feature] for feature in features_to_plot if camera in feature}
+        fig_2d = go.Figure()
+        
+        for n, (feature, color) in enumerate(features_to_plot_this.items()):
+            
+            this_feature = dict_dlc[feature]
+
+            x, y, likelihood, t = this_feature['x'], this_feature['y'], this_feature['likelihood'], this_feature['t']
+            
+            valid_time = (t_range_2d[0] <= t) & (t < t_range_2d[1])
+            x = x[valid_time]
+            y = y[valid_time]
+            likelihood = likelihood[valid_time]
+            t = t[valid_time]
+            
+            invalid = likelihood < likelihood_threshold
+            x[invalid] = np.nan
+            y[invalid] = np.nan
+
+            fig_2d.add_trace(
+                go.Scattergl(x=x,
+                            y=y,
+                            mode=f'markers{"+lines" if if_lines_in_2d else ""}',
+                            marker=dict(
+                                    size=5,
+                                    opacity=(t - np.min(t)) / (np.max(t) - np.min(t)), 
+                                    color=color,
+                                ),
+                            name=feature
+                            )
+            )
+            
+        fig_2d.update_layout(
+            xaxis=dict(
+                scaleanchor="y",
+                scaleratio=1,
+            ),
+            yaxis=dict(
+                scaleanchor="x",
+                scaleratio=1,
+                autorange = "reversed"
+            ),
+            height=700,
+            width=900,
+            title=f'{camera}, {"side" if camera == "Camera0" else "bottom"}',
+            showlegend=True,
+            )
+        
+        fig_2ds[camera] = fig_2d
+        
+    return fig_2ds
 
 init()
 
@@ -151,6 +224,9 @@ with st.sidebar:
         likelihood_threshold = st.slider('Likeshold threshold', 0.000, 1.000, 0.950, step=0.001)
         if_plot_likelihood = st.checkbox('Plot likelihood', value=True)
         row_height = st.slider('row height', 100, 1000, 200)
+        
+        if_2d = st.checkbox('If draw 2d', value=True)
+        if_lines_in_2d = st.checkbox('If show lines', value=False, disabled=not if_2d)
         
 
 if button_load or len(st.session_state.df_trials):
@@ -167,19 +243,43 @@ if button_load or len(st.session_state.df_trials):
     </style>""",
     unsafe_allow_html=True,
     )
-    features_to_plot = st.multiselect('DLC feature', dlc_features, ['Camera1_bottom_tongue'],)
+    
+    features = st.multiselect('DLC feature', dlc_features, ['Camera1_bottom_tongue'],)
     event_color_map = {'lickportready': 'greenyellow', 'go': 'green', 'choice': 'magenta', 'right_lick': 'blue', 'left_lick': 'red', 'reward': 'cyan', 'trialend': 'black'}
+    
+    col_map = px.colors.qualitative.Plotly
+    features_to_plot = {}
+    for n, feature in enumerate(features):
+        features_to_plot[feature] = col_map[n % len(col_map)]
 
     max_t = list(dict_dlc.values())[0]['t'][-1]
     cols = st.columns([1, 1, 2])
-    t_range = cols[0].slider('time_range', 0.0, 200.0, value=50.0, step=5.0)
-    t_start = cols[1].slider('time_start', 0.0, max_t, value=0.0, step=5.0)
-    t_end = t_start + t_range
+    t_range = cols[0].slider('Time course range', 0.0, 500.0, value=20.0, step=1.0)
+    t_center = cols[1].slider('Time course center', t_range / 2, max_t - t_range / 2, value=50.0, step=t_range / 10)
+    t_start, t_end = t_center - t_range / 2, t_center + t_range / 2   
     
-    events_on_time_course = plot_dlc_time_course(if_plot_likelihood)
+    # --- Time course ---
+    h_time_course = st.empty()
+    
+    if if_2d:
+        cols = st.columns([1, 1, 2])
+        t_range_2d = cols[0].slider('time_range', 0.0, t_range, value=t_range / 2, step=t_range / 50)
+        t_center_2d = cols[1].slider('time_start', t_start + t_range_2d / 2, t_end - t_range_2d / 2, value=t_center, step=t_range_2d / 10)
+        t_start_2d, t_end_2d = t_center_2d - t_range_2d / 2, t_center_2d + t_range_2d / 2  
+    
+    with h_time_course:
+        fig = plot_dlc_time_course(dict_dlc, features_to_plot, t_range=[t_start, t_end], if_plot_likelihood=if_plot_likelihood, t_range_2d=[t_start_2d, t_end_2d] if if_2d else None)
+        plotly_events(fig, override_width=fig.layout.width, override_height=fig.layout.height)
 
-
-
+    # --- 2-d view ---
+    if if_2d:
+        col_2d = st.columns([1, 1])
+        fig_2ds = plot_dlc_2d(dict_dlc, features_to_plot, t_range_2d=[t_start_2d, t_end_2d], if_lines_in_2d=if_lines_in_2d)
+        
+        for n, camera in enumerate(['Camera0', 'Camera1']):
+            with col_2d[n]:
+                plotly_events(fig_2ds[camera], override_height=fig_2ds[camera].layout.height, override_width=fig_2ds[camera].layout.width)
+    
     # # --- navigate raw annotated videos ---
     # subfolders = fs.ls(video_root)
     # mice = [subfolder.split('/')[-1] for subfolder in subfolders]
