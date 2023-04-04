@@ -214,17 +214,17 @@ def draw_mice_plots(df_to_draw_mice):
             st.write(f'Loading selected {len(df_to_draw_mice)} mice...')
             my_bar = st.columns((1, 7))[0].progress(0)
              
-            major_cols = st.columns([1] * st.session_state.num_cols)
+            major_cols = st.columns([1] * st.session_state.num_cols_mice)
             
             for i, key in enumerate(df_to_draw_mice.to_dict(orient='records')):
-                this_major_col = major_cols[i % st.session_state.num_cols]
+                this_major_col = major_cols[i % st.session_state.num_cols_mice]
                 
                 # setting up layout for each session
                 rows = []
                 with this_major_col:
                     st.markdown(f'''<h3 style='text-align: center; color: orange;'>{key["h2o"]}''',
                               unsafe_allow_html=True)
-                    if len(st.session_state.selected_draw_types) > 1:  # more than one types, use the pre-defined layout
+                    if len(st.session_state.selected_draw_types_mice) > 1:  # more than one types, use the pre-defined layout
                         for row, column_setting in enumerate(layout_definition):
                             rows.append(this_major_col.columns(column_setting))
                     else:    # else, put it in the whole column
@@ -232,9 +232,9 @@ def draw_mice_plots(df_to_draw_mice):
                     st.markdown("---")
 
                 for draw_type in st.session_state.draw_type_mapper_mouse_level:
-                    if draw_type not in st.session_state.selected_draw_types: continue
+                    if draw_type not in st.session_state.selected_draw_types_mice: continue
                     prefix, position, setting = st.session_state.draw_type_mapper_mouse_level[draw_type]
-                    this_col = rows[position[0]][position[1]] if len(st.session_state.selected_draw_types) > 1 else rows[0]
+                    this_col = rows[position[0]][position[1]] if len(st.session_state.selected_draw_types_mice) > 1 else rows[0]
                     show_mouse_level_img_by_key_and_prefix(key, 
                                                         column=this_col,
                                                         prefix=prefix, 
@@ -454,7 +454,8 @@ def session_plot_settings(need_click=True):
                                                             f'filtered from sidebar ({len(st.session_state.df_session_filtered)} sessions)'], 
                                                            index=0
                                                            )
-    st.session_state.num_cols = cols[1].number_input('Number of columns', 1, 10, 3)
+    st.session_state.num_cols = cols[1].number_input('Number of columns', 1, 10, 
+                                                     3 if 'num_cols' not in st.session_state else st.session_state.num_cols)
     
     st.markdown(
     """
@@ -465,7 +466,11 @@ def session_plot_settings(need_click=True):
     </style>""",
     unsafe_allow_html=True,
     )
-    st.session_state.selected_draw_types = st.multiselect('Which plot(s) to draw?', st.session_state.draw_type_mapper_session_level.keys(), default=st.session_state.draw_type_mapper_session_level.keys())
+    st.session_state.selected_draw_types = st.multiselect('Which plot(s) to draw?', 
+                                                          st.session_state.draw_type_mapper_session_level.keys(), 
+                                                          default=st.session_state.draw_type_mapper_session_level.keys()
+                                                          if 'selected_draw_types' not in st.session_state else 
+                                                          st.session_state.selected_draw_types)
     if need_click:
         draw_it = st.button('Show me all sessions!', use_container_width=True)
     else:
@@ -475,13 +480,13 @@ def session_plot_settings(need_click=True):
 def mouse_plot_settings(need_click=True):
     st.markdown('##### Show plots for individual mice ')
     cols = st.columns([2, 1])
-    st.session_state.selected_draw_sessions = cols[0].selectbox('Which mice to draw?', 
+    st.session_state.selected_draw_mice = cols[0].selectbox('Which mice to draw?', 
                                                            [f'selected from table/plot ({len(st.session_state.df_selected_from_plotly.h2o.unique())} mice)', 
                                                             f'filtered from sidebar ({len(st.session_state.df_session_filtered.h2o.unique())} mice)'], 
                                                            index=0
                                                            )
-    st.session_state.num_cols = cols[1].number_input('Number of columns', 1, 10, 3)
-    
+    st.session_state.num_cols_mice = cols[1].number_input('Number of columns', 1, 10, 
+                                                          3 if 'num_cols_mice' not in st.session_state else st.session_state.num_cols_mice)
     st.markdown(
         """
         <style>
@@ -491,10 +496,11 @@ def mouse_plot_settings(need_click=True):
         </style>""",
         unsafe_allow_html=True,
         )
-    st.session_state.selected_draw_types = st.multiselect('Which plot(s) to draw?', 
+    st.session_state.selected_draw_types_mice = st.multiselect('Which plot(s) to draw?', 
                                                           st.session_state.draw_type_mapper_mouse_level.keys(), 
-                                                          default=st.session_state.draw_type_mapper_mouse_level.keys())
-    
+                                                          default=st.session_state.draw_type_mapper_mouse_level.keys()
+                                                          if 'selected_draw_types_mice' not in st.session_state else
+                                                          st.session_state.selected_draw_types_mice)
     if need_click:
         draw_it = st.button('Show me all mice!', use_container_width=True)
     else:
@@ -777,7 +783,7 @@ def app():
         with placeholder:
             with st.columns([4, 10])[0]:
                 if_draw_all_mice = mouse_plot_settings(need_click=False)
-                df_selected = st.session_state.df_selected_from_plotly if 'selected' in st.session_state.selected_draw_sessions else st.session_state.df_session_filtered
+                df_selected = st.session_state.df_selected_from_plotly if 'selected' in st.session_state.selected_draw_mice else st.session_state.df_session_filtered
                 df_to_draw_mice = df_selected.groupby('h2o').count().reset_index()
                 
             if if_draw_all_mice and len(df_to_draw_mice):
