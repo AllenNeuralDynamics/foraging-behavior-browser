@@ -123,7 +123,11 @@ def show_mouse_level_img_by_key_and_prefix(key, prefix, column=None, other_patte
     glob_patterns = [cache_mouse_level_fig_folder + f'{prefix}/' + fn for fn in fns]
     
     img, f_name = _fetch_img(glob_patterns, crop)
-
+    
+    if img is None:  # Use "not_found" image
+        glob_patterns = [cache_mouse_level_fig_folder + f'{prefix}/not_found_*{other_pattern}**' for other_pattern in other_patterns]
+        img, f_name = _fetch_img(glob_patterns, crop)
+        
     _f = st if column is None else column
     
     _f.image(img if img is not None else "https://cdn-icons-png.flaticon.com/512/3585/3585596.png", 
