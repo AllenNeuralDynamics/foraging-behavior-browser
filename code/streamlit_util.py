@@ -293,7 +293,8 @@ def data_selector():
             
     with st.expander(f'Session selector', expanded=True):
         
-        with st.expander(f"Filtered: {len(st.session_state.df_session_filtered)} sessions", expanded=False):
+        with st.expander(f"Filtered: {len(st.session_state.df_session_filtered)} sessions, "
+                         f"{len(st.session_state.df_session_filtered.h2o.unique())} mice", expanded=False):
             st.dataframe(st.session_state.df_session_filtered)
         
         # cols = st.columns([4, 1])
@@ -304,11 +305,16 @@ def data_selector():
         #     st.session_state.df_selected_from_dataframe = pd.DataFrame()
         #     st.experimental_rerun()
 
-        cols = st.columns([4, 1])
-        with cols[0].expander(f"Selected: {len(st.session_state.df_selected_from_plotly)} sessions", expanded=False):
+        cols = st.columns([5, 1, 1])
+        with cols[0].expander(f"Selected: {len(st.session_state.df_selected_from_plotly)} sessions, "
+                              f"{len(st.session_state.df_selected_from_plotly.h2o.unique())} mice", expanded=False):
             st.dataframe(st.session_state.df_selected_from_plotly)
+        if cols[1].button('all'):
+            st.session_state.df_selected_from_plotly = st.session_state.df_session_filtered
+            st.experimental_rerun()
             
-        if cols[1].button('❌ '):
+        
+        if cols[2].button('❌ '):
             st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
             st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
             st.experimental_rerun()
