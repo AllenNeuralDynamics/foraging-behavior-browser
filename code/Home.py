@@ -265,7 +265,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
         
         n_mice = len(df_this['h2o'].unique())
         n_sessions = len(df_this.groupby(['h2o', 'session']).count())
-        n_str = f' ({n_mice} mice, {n_sessions} sessions)'
+        n_str = f' ({n_mice} mice, {n_sessions} sessions)' if group_by !='h2o' else f' ({n_sessions} sessions)' 
 
         if aggr_method == 'running average':
             fig.add_trace(go.Scatter(    
@@ -433,17 +433,25 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
     n_sessions = len(df.groupby(['h2o', 'session']).count())
     
     fig.update_layout(
-                    # width=1300, 
-                    # height=850,
+                    width=1300, 
+                    height=900,
                     xaxis_title=x_name,
                     yaxis_title=y_name,
-                    # xaxis_range=[0, min(100, df[x_name].max())],
-                    font=dict(size=17),
+                    font=dict(size=25),
                     hovermode='closest',
                     legend={'traceorder':'reversed'},
+                    legend_font_size=15,
                     title=f'{title}, {n_mice} mice, {n_sessions} sessions',
                     dragmode='select', # 'zoom',
+                    margin=dict(l=130, r=50, b=130, t=100),
                     )
+    fig.update_xaxes(showline=True, linewidth=2, linecolor='black', 
+                     range=[1, min(100, df[x_name].max())],
+                     ticks = "outside", tickcolor='black', ticklen=10, tickwidth=2, ticksuffix=' ')
+    
+    fig.update_yaxes(showline=True, linewidth=2, linecolor='black',
+                     title_standoff=40,
+                     ticks = "outside", tickcolor='black', ticklen=10, tickwidth=2, ticksuffix=' ')
     return fig
   
 
@@ -578,7 +586,8 @@ def plot_x_y_session():
                                         states = st.session_state.df_selected_from_plotly)
         
         # st.plotly_chart(fig)
-        selected = plotly_events(fig, click_event=True, hover_event=False, select_event=True, override_height=870, override_width=1400)
+        selected = plotly_events(fig, click_event=True, hover_event=False, select_event=True, 
+                                 override_height=fig.layout.height * 1.1, override_width=fig.layout.width)
       
     if len(selected):
         df_selected_from_plotly = df_x_y_session.merge(pd.DataFrame(selected).rename({'x': x_name, 'y': y_name}, axis=1), 
