@@ -446,7 +446,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                     margin=dict(l=130, r=50, b=130, t=100),
                     )
     fig.update_xaxes(showline=True, linewidth=2, linecolor='black', 
-                     range=[1, min(100, df[x_name].max())],
+                    #  range=[1, min(100, df[x_name].max())],
                      ticks = "outside", tickcolor='black', ticklen=10, tickwidth=2, ticksuffix=' ')
     
     fig.update_yaxes(showline=True, linewidth=2, linecolor='black',
