@@ -132,7 +132,7 @@ def show_mouse_level_img_by_key_and_prefix(key, prefix, column=None, other_patte
     
     _f.image(img if img is not None else "https://cdn-icons-png.flaticon.com/512/3585/3585596.png", 
                 output_format='PNG', 
-                caption=f_name.split('/')[-1] if caption and f_name else '',
+                #caption=f_name.split('/')[-1] if caption and f_name else '',
                 use_column_width='always',
                 **kwargs)
 
@@ -376,7 +376,8 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                                         mode='lines',
                                         name=f"{group} {n_str}<br>  {sig(p_value):<5}p={p_value:.1e}, r={r_value:.3f}",
                                         marker_color=col,
-                                        line=dict(dash='dot' if p_value > 0.05 else 'solid'),
+                                        line=dict(dash='dot' if p_value > 0.05 else 'solid',
+                                                  width=2 if p_value > 0.05 else 3),
                                         legendgroup=f'group_{group}',
                                         # hoverinfo='skip'
                                         )
@@ -648,7 +649,9 @@ def init():
     
     st.session_state.draw_type_mapper_mouse_level = {'1. Model comparison': ('model_all_sessions',   # prefix
                                                                              (0, 0),     # location (row_idx, column_idx)
-                                                                             dict(other_patterns=['comparison'])),
+                                                                             dict(other_patterns=['comparison'], 
+                                                                                  crop=(0, #900, 
+                                                                                        100, 2800, 2200))),
                                                     '2. Model prediction accuracy': ('model_all_sessions',
                                                                                      (0, 0), 
                                                                                      dict(other_patterns=['pred_acc'])),            
