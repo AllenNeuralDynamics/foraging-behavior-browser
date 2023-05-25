@@ -322,7 +322,7 @@ if button_load or len(st.session_state.df_trials):
     with h_history:
         trial_range = [np.searchsorted(dict_behav_events['go'], t) for t in [t_start, t_end]]
         fig = plot_trial_history(st.session_state.df_trials, trial_range=trial_range)
-        plotly_events(fig, override_height=fig.layout.height * 1.1, override_width=fig.layout.width)
+        plotly_events(fig, override_height=fig.layout.height * 1.1, override_width=fig.layout.width, click_event=False)
 
     
     # --- Time course ---
