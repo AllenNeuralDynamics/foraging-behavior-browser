@@ -27,7 +27,8 @@ from pynwb import NWBFile, TimeSeries, NWBHDF5IO
 video_root = 'aind-behavior-data/Han/video/raw'
 
 # --- load raw tracks from nwb ---
-nwb_folder = '/root/capsule/data/s3/export/nwb/'  # Use s3 drive mounted in the capsule for now
+# nwb_folder = '/root/capsule/data/s3/export/nwb/'  # Use s3 drive mounted in the capsule for now
+nwb_folder = '/root/capsule/data/nwb_imported/'
 camera_mapping = {'Camera0': 'side', 'Camera1': 'bottom'}
 
 nwb_files = [f.split('/')[-1] for f in glob.glob(nwb_folder + '/*.nwb')]
