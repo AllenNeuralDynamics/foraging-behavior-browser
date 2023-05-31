@@ -125,7 +125,7 @@ def plot_logistic_regression_non_photostim(df_all, max_trials_back=10, ax=None):
     if not len(df_all): return None
     
     if ax is None:
-        fig, ax = plt.subplots(1, 1, figsize=(5, 4), dpi=200,
+        fig, ax = plt.subplots(1, 1, figsize=(5, 5), dpi=500,
                                gridspec_kw=dict(bottom=0.2, top=0.9))
         
     xx = np.arange(1, max_trials_back + 1)
@@ -157,7 +157,8 @@ def plot_logistic_regression_non_photostim(df_all, max_trials_back=10, ax=None):
     ax.legend()
     ax.set(xlabel='Past trials', ylabel='Logistic regression coeffs')
     ax.axhline(y=0, color='k', linestyle=':', linewidth=0.5)
-    ax.set(xticks=[1, 5, 10], ylim=(-0.1, 2))
+    ax.set(xticks=[1, 5, 10], 
+           ylim=(-0.1, 2.5))
 
     sns.despine(trim=True)
 

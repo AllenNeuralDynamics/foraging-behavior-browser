@@ -34,13 +34,14 @@ if if_profile:
 # from pipeline.plot import foraging_model_plot
 
 cache_folder = 'xxx'  #'/root/capsule/data/s3/report/st_cache/'
-cache_fig_folder = 'xxx' #'/root/capsule/data/s3/report/all_units/'  # 
+cache_session_level_fig_folder = 'xxx' #'/root/capsule/data/s3/report/all_units/'  # 
 
 if os.path.exists(cache_folder):
     st.session_state.st.session_state.use_s3 = False
 else:
     cache_folder = 'aind-behavior-data/Han/ephys/report/st_cache/'
-    cache_fig_folder = 'aind-behavior-data/Han/ephys/report/all_sessions/'
+    cache_session_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_sessions/'
+    cache_mouse_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_subjects/'
     
     fs = s3fs.S3FileSystem(anon=False)
     st.session_state.use_s3 = True
@@ -95,14 +96,14 @@ def _fetch_img(glob_patterns, crop=None):
 
 
 # @st.cache_data(ttl=24*3600, max_entries=20)
-def show_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], crop=None, caption=True, **kwargs):
+def show_session_level_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], crop=None, caption=True, **kwargs):
     try:
         sess_date_str = datetime.strftime(datetime.strptime(key['session_date'], '%Y-%m-%dT%H:%M:%S'), '%Y%m%d')
     except:
         sess_date_str = datetime.strftime(key['session_date'], '%Y%m%d')
      
     fns = [f'/{key["h2o"]}_{sess_date_str}_*{other_pattern}*' for other_pattern in other_patterns]
-    glob_patterns = [cache_fig_folder + f'{prefix}/' + key["h2o"] + fn for fn in fns]
+    glob_patterns = [cache_session_level_fig_folder + f'{prefix}/' + key["h2o"] + fn for fn in fns]
     
     img, f_name = _fetch_img(glob_patterns, crop)
 
@@ -116,6 +117,26 @@ def show_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], cr
 
     return img
 
+def show_mouse_level_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], crop=None, caption=True, **kwargs):
+     
+    fns = [f'/{key["h2o"]}_*{other_pattern}*' for other_pattern in other_patterns]
+    glob_patterns = [cache_mouse_level_fig_folder + f'{prefix}/' + fn for fn in fns]
+    
+    img, f_name = _fetch_img(glob_patterns, crop)
+    
+    if img is None:  # Use "not_found" image
+        glob_patterns = [cache_mouse_level_fig_folder + f'{prefix}/not_found_*{other_pattern}**' for other_pattern in other_patterns]
+        img, f_name = _fetch_img(glob_patterns, crop)
+        
+    _f = st if column is None else column
+    
+    _f.image(img if img is not None else "https://cdn-icons-png.flaticon.com/512/3585/3585596.png", 
+                output_format='PNG', 
+                #caption=f_name.split('/')[-1] if caption and f_name else '',
+                use_column_width='always',
+                **kwargs)
+
+    return img
 
 # table_mapping = {
 #     'sessions': fetch_sessions,
@@ -164,17 +185,65 @@ def draw_session_plots(df_to_draw_session):
                         rows = this_major_col.columns([1])
                     st.markdown("---")
 
-                for draw_type in st.session_state.draw_type_mapper:
-                    if draw_type not in st.session_state.selected_draw_types: continue  # To keep the draw order defined by st.session_state.draw_type_mapper
-                    prefix, position, setting = st.session_state.draw_type_mapper[draw_type]
+                for draw_type in st.session_state.draw_type_mapper_session_level:
+                    if draw_type not in st.session_state.selected_draw_types: continue  # To keep the draw order defined by st.session_state.draw_type_mapper_session_level
+                    prefix, position, setting = st.session_state.draw_type_mapper_session_level[draw_type]
                     this_col = rows[position[0]][position[1]] if len(st.session_state.selected_draw_types) > 1 else rows[0]
-                    show_img_by_key_and_prefix(key, 
+                    show_session_level_img_by_key_and_prefix(key, 
                                                 column=this_col,
                                                 prefix=prefix, 
                                                 **setting)
                     
                 my_bar.progress(int((i + 1) / len(df_to_draw_session) * 100))
                 
+                
+                
+def draw_mice_plots(df_to_draw_mice):
+    
+    # Setting up layout for each session
+    layout_definition = [[1],   # columns in the first row
+                         ]  
+    
+    # cols_option = st.columns([3, 0.5, 1])
+    container_session_all_in_one = st.container()
+    
+    with container_session_all_in_one:
+        # with st.expander("Expand to see all-in-one plot for selected unit", expanded=True):
+        
+        if len(df_to_draw_mice):
+            st.write(f'Loading selected {len(df_to_draw_mice)} mice...')
+            my_bar = st.columns((1, 7))[0].progress(0)
+             
+            major_cols = st.columns([1] * st.session_state.num_cols_mice)
+            
+            for i, key in enumerate(df_to_draw_mice.to_dict(orient='records')):
+                this_major_col = major_cols[i % st.session_state.num_cols_mice]
+                
+                # setting up layout for each session
+                rows = []
+                with this_major_col:
+                    st.markdown(f'''<h3 style='text-align: center; color: orange;'>{key["h2o"]}''',
+                              unsafe_allow_html=True)
+                    if len(st.session_state.selected_draw_types_mice) > 1:  # more than one types, use the pre-defined layout
+                        for row, column_setting in enumerate(layout_definition):
+                            rows.append(this_major_col.columns(column_setting))
+                    else:    # else, put it in the whole column
+                        rows = this_major_col.columns([1])
+                    st.markdown("---")
+
+                for draw_type in st.session_state.draw_type_mapper_mouse_level:
+                    if draw_type not in st.session_state.selected_draw_types_mice: continue
+                    prefix, position, setting = st.session_state.draw_type_mapper_mouse_level[draw_type]
+                    this_col = rows[position[0]][position[1]] if len(st.session_state.selected_draw_types_mice) > 1 else rows[0]
+                    show_mouse_level_img_by_key_and_prefix(key, 
+                                                        column=this_col,
+                                                        prefix=prefix, 
+                                                        **setting)
+                    
+                my_bar.progress(int((i + 1) / len(df_to_draw_mice) * 100))
+                
+
+
 @st.cache_data(ttl=3600*24)                
 def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='h2o',
                          smooth_factor=5, 
@@ -196,7 +265,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
         
         n_mice = len(df_this['h2o'].unique())
         n_sessions = len(df_this.groupby(['h2o', 'session']).count())
-        n_str = f' ({n_mice} mice, {n_sessions} sessions)'
+        n_str = f' ({n_mice} mice, {n_sessions} sessions)' if group_by !='h2o' else f' ({n_sessions} sessions)' 
 
         if aggr_method == 'running average':
             fig.add_trace(go.Scatter(    
@@ -307,7 +376,8 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                                         mode='lines',
                                         name=f"{group} {n_str}<br>  {sig(p_value):<5}p={p_value:.1e}, r={r_value:.3f}",
                                         marker_color=col,
-                                        line=dict(dash='dot' if p_value > 0.05 else 'solid'),
+                                        line=dict(dash='dot' if p_value > 0.05 else 'solid',
+                                                  width=2 if p_value > 0.05 else 3),
                                         legendgroup=f'group_{group}',
                                         # hoverinfo='skip'
                                         )
@@ -363,17 +433,25 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
     n_sessions = len(df.groupby(['h2o', 'session']).count())
     
     fig.update_layout(
-                    # width=1300, 
-                    # height=850,
+                    width=1300, 
+                    height=900,
                     xaxis_title=x_name,
                     yaxis_title=y_name,
-                    # xaxis_range=[0, min(100, df[x_name].max())],
-                    font=dict(size=17),
+                    font=dict(size=25),
                     hovermode='closest',
                     legend={'traceorder':'reversed'},
+                    legend_font_size=15,
                     title=f'{title}, {n_mice} mice, {n_sessions} sessions',
                     dragmode='select', # 'zoom',
+                    margin=dict(l=130, r=50, b=130, t=100),
                     )
+    fig.update_xaxes(showline=True, linewidth=2, linecolor='black', 
+                    #  range=[1, min(100, df[x_name].max())],
+                     ticks = "outside", tickcolor='black', ticklen=10, tickwidth=2, ticksuffix=' ')
+    
+    fig.update_yaxes(showline=True, linewidth=2, linecolor='black',
+                     title_standoff=40,
+                     ticks = "outside", tickcolor='black', ticklen=10, tickwidth=2, ticksuffix=' ')
     return fig
   
 
@@ -385,10 +463,55 @@ def session_plot_settings(need_click=True):
                                                             f'filtered from sidebar ({len(st.session_state.df_session_filtered)} sessions)'], 
                                                            index=0
                                                            )
-    st.session_state.num_cols = cols[1].number_input('Number of columns', 1, 10, 3)
-    st.session_state.selected_draw_types = st.multiselect('Which plot(s) to draw?', st.session_state.draw_type_mapper.keys(), default=st.session_state.draw_type_mapper.keys())
+    st.session_state.num_cols = cols[1].number_input('Number of columns', 1, 10, 
+                                                     3 if 'num_cols' not in st.session_state else st.session_state.num_cols)
+    
+    st.markdown(
+    """
+    <style>
+        .stMultiSelect [data-baseweb=select] span{
+            max-width: 1000px;
+        }
+    </style>""",
+    unsafe_allow_html=True,
+    )
+    st.session_state.selected_draw_types = st.multiselect('Which plot(s) to draw?', 
+                                                          st.session_state.draw_type_mapper_session_level.keys(), 
+                                                          default=st.session_state.draw_type_mapper_session_level.keys()
+                                                          if 'selected_draw_types' not in st.session_state else 
+                                                          st.session_state.selected_draw_types)
     if need_click:
         draw_it = st.button('Show me all sessions!', use_container_width=True)
+    else:
+        draw_it = True
+    return draw_it
+
+def mouse_plot_settings(need_click=True):
+    st.markdown('##### Show plots for individual mice ')
+    cols = st.columns([2, 1])
+    st.session_state.selected_draw_mice = cols[0].selectbox('Which mice to draw?', 
+                                                           [f'selected from table/plot ({len(st.session_state.df_selected_from_plotly.h2o.unique())} mice)', 
+                                                            f'filtered from sidebar ({len(st.session_state.df_session_filtered.h2o.unique())} mice)'], 
+                                                           index=0
+                                                           )
+    st.session_state.num_cols_mice = cols[1].number_input('Number of columns', 1, 10, 
+                                                          3 if 'num_cols_mice' not in st.session_state else st.session_state.num_cols_mice)
+    st.markdown(
+        """
+        <style>
+            .stMultiSelect [data-baseweb=select] span{
+                max-width: 1000px;
+            }
+        </style>""",
+        unsafe_allow_html=True,
+        )
+    st.session_state.selected_draw_types_mice = st.multiselect('Which plot(s) to draw?', 
+                                                          st.session_state.draw_type_mapper_mouse_level.keys(), 
+                                                          default=st.session_state.draw_type_mapper_mouse_level.keys()
+                                                          if 'selected_draw_types_mice' not in st.session_state else
+                                                          st.session_state.selected_draw_types_mice)
+    if need_click:
+        draw_it = st.button('Show me all mice!', use_container_width=True)
     else:
         draw_it = True
     return draw_it
@@ -463,7 +586,8 @@ def plot_x_y_session():
                                         states = st.session_state.df_selected_from_plotly)
         
         # st.plotly_chart(fig)
-        selected = plotly_events(fig, click_event=True, hover_event=False, select_event=True, override_height=870, override_width=1400)
+        selected = plotly_events(fig, click_event=True, hover_event=False, select_event=True, 
+                                 override_height=fig.layout.height * 1.1, override_width=fig.layout.width)
       
     if len(selected):
         df_selected_from_plotly = df_x_y_session.merge(pd.DataFrame(selected).rename({'x': x_name, 'y': y_name}, axis=1), 
@@ -512,7 +636,7 @@ def init():
         
     selected_id = st.session_state.model_id 
     
-    st.session_state.draw_type_mapper = {'1. Choice history': ('fitted_choice',   # prefix
+    st.session_state.draw_type_mapper_session_level = {'1. Choice history': ('fitted_choice',   # prefix
                                                             (0, 0),     # location (row_idx, column_idx)
                                                             dict(other_patterns=['model_best', 'model_None'])),
                                         '2. Lick times': ('lick_psth', 
@@ -531,6 +655,20 @@ def init():
                                                                                         (2, 1), 
                                                                                         dict(crop=(0, 0, 1200, 2000))),
                     }
+    
+    st.session_state.draw_type_mapper_mouse_level = {'1. Model comparison': ('model_all_sessions',   # prefix
+                                                                             (0, 0),     # location (row_idx, column_idx)
+                                                                             dict(other_patterns=['comparison'], 
+                                                                                  crop=(0, #900, 
+                                                                                        100, 2800, 2200))),
+                                                    '2. Model prediction accuracy': ('model_all_sessions',
+                                                                                     (0, 0), 
+                                                                                     dict(other_patterns=['pred_acc'])),            
+                                                    '3. Model fitted parameters': ('model_all_sessions', 
+                                                                                   (0, 0), 
+                                                                                   dict(other_patterns=['fitted_para'])),
+                    }
+   
     
     # process dfs
     df_this_model = st.session_state.df['model_fitting_params'].query(f'model_id == {selected_id}')
@@ -613,8 +751,9 @@ def app():
         st.experimental_rerun()
             
     chosen_id = stx.tab_bar(data=[
-        stx.TabBarItemData(id="tab2", title="📚Session Inspector", description="Select sessions from the table and show plots"),
-        stx.TabBarItemData(id="tab1", title="📈Session X-Y plot", description="Interactive session-wise scatter plot"),
+        stx.TabBarItemData(id="tab2", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
+        stx.TabBarItemData(id="tab1", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
+        stx.TabBarItemData(id="tab3", title="🐭 Mouse Model Fitting", description="Mouse-level model fitting results"),
         ], default="tab2" if 'tab_id' not in st.session_state else st.session_state.tab_id)
     # chosen_id = "tab1"
 
@@ -650,6 +789,18 @@ def app():
                 
             if if_draw_all_sessions and len(df_to_draw_sessions):
                 draw_session_plots(df_to_draw_sessions)
+                
+    elif chosen_id == "tab3":
+        st.session_state.tab_id = chosen_id
+        with placeholder:
+            with st.columns([4, 10])[0]:
+                if_draw_all_mice = mouse_plot_settings(need_click=False)
+                df_selected = st.session_state.df_selected_from_plotly if 'selected' in st.session_state.selected_draw_mice else st.session_state.df_session_filtered
+                df_to_draw_mice = df_selected.groupby('h2o').count().reset_index()
+                
+            if if_draw_all_mice and len(df_to_draw_mice):
+                draw_mice_plots(df_to_draw_mice)
+        
     
 
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
