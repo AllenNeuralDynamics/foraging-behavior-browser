@@ -21,15 +21,17 @@ from util.foraging_plotly import moving_average, plot_session_lightweight
 st.session_state.use_s3 = True
 fs = s3fs.S3FileSystem(anon=False)
 
+import os, glob
+from pynwb import NWBFile, TimeSeries, NWBHDF5IO
+
 video_root = 'aind-behavior-data/Han/video/raw'
-nwb_folder = 'aind-behavior-data/Han/ephys/export/nwb/' 
 
 # --- load raw tracks from nwb ---
 # nwb_folder = '/root/capsule/data/s3/export/nwb/'  # Use s3 drive mounted in the capsule for now
 nwb_folder = '/root/capsule/data/nwb_imported/'
 camera_mapping = {'Camera0': 'side', 'Camera1': 'bottom'}
 
-nwb_files = [f.split('/')[-1] for f in fs.glob(nwb_folder + '/*.nwb')]
+nwb_files = [f.split('/')[-1] for f in glob.glob(nwb_folder + '/*.nwb')]
 
 cols = st.columns([1, 1, 2])
 nwb_file = cols[0].selectbox('Select nwb file', nwb_files, label_visibility='collapsed')
@@ -39,49 +41,18 @@ def init():
     if 'df_trials' not in st.session_state:
         st.session_state.df_trials = []
 
-def hdf_group_to_df(group):
-    '''
-    Convert h5py group to dataframe
-    '''
-    
-    tmp_dict = {}
-    
-    # Handle spike_times
-    # see https://nwb-schema.readthedocs.io/en/latest/format_description.html#tables-and-ragged-arrays
-    if 'spike_times' in group.keys():
-        spike_times, spike_times_index = group['spike_times'], group['spike_times_index']
-        unit_spike_times = []
-        for i, idx in enumerate(spike_times_index):
-            start_idx = 0 if i == 0 else spike_times_index[i - 1]
-            unit_spike_times.append(spike_times[start_idx : idx])
-
-        tmp_dict['spike_times'] = unit_spike_times
-
-    # Other keys
-    for key in group:
-        if 'spike_times' in key: continue
-
-        if isinstance(group[key][0], bytes):
-            tmp_dict[key] = list(map(lambda x: x.decode(), group[key][:]))
-        else:
-            tmp_dict[key] = list(group[key][:])
+@st.cache_data(ttl=3600*24)
+def load_nwb(file_name):
+    with NWBHDF5IO(file_name, mode='r') as io:
+        nwb = io.read()
+        df_trials = nwb.trials.to_dataframe()
         
-    return pd.DataFrame(tmp_dict)
-
-def import_behavior_from_nwb(nwb_hdf):
-    g_trials = nwb_hdf['intervals']['trials']
-    g_events = nwb_hdf['acquisition']['BehavioralEvents']
-    
-    df_trials = hdf_group_to_df(g_trials)
-    dict_behav_events = {key: g_events[key]['timestamps'][:] for key in g_events}
-    
-    return df_trials, dict_behav_events
-
-def import_dlc_from_nwb(file_name, features=None, time_idx_mask=None):
-    with fs.open(file_name) as f:        
-        nwb_hdf = h5py.File(f, mode='r')    # Can only use h5py (not NWBHDF5IO) for s3fs!
+        behav_events = nwb.acquisition['BehavioralEvents']
+        dict_behav_events = {}
+        for event_name in behav_events.fields['time_series'].keys():
+            dict_behav_events[event_name] = behav_events[event_name].timestamps[:]
         
-        g_dlc = nwb_hdf['acquisition']['BehavioralTimeSeries']
+        dlc = nwb.acquisition['BehavioralTimeSeries']
         dict_dlc = {}
         pupil_likelihood = []
         
