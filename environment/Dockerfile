@@ -43,7 +43,7 @@ RUN pip install -U --no-cache-dir \
     nptyping==2.4.1 \
     numpy==1.23.5 \
     packaging==21.3 \
-    pandas==1.5.2 \
+    pandas==1.5.3 \
     pillow==9.3.0 \
     plotly==5.11.0 \
     protobuf==3.20.3 \
@@ -85,7 +85,8 @@ RUN pip install -U --no-cache-dir \
     extra_streamlit_components \
     statsmodels \
     statannotations \
-    seaborn
+    seaborn \
+    pynwb --ignore-installed ruamel.yaml
 
 ADD "https://github.com/coder/code-server/releases/download/v4.9.0/code-server-4.9.0-linux-amd64.tar.gz" /.code-server/code-server.tar.gz
 	
