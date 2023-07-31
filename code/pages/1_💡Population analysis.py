@@ -9,6 +9,19 @@ from util.streamlit import filter_dataframe, aggrid_interactive_table_session, a
 from util.population import _draw_variable_trial_back, _draw_variable_trial_back_linear_reg
 import seaborn as sns
 
+
+try:
+    st.set_page_config(layout="wide", 
+                page_title='Foraging behavior browser',
+                page_icon=':mouse2:',
+                menu_items={
+                'Report a bug': "https://github.com/hanhou/foraging-behavior-browser/issues",
+                'About': "Github repo: https://github.com/hanhou/foraging-behavior-browser/"
+                }
+                )
+except:
+    pass
+
 st.session_state.use_s3 = True
 
 

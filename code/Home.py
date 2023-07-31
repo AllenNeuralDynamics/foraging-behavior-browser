@@ -46,14 +46,17 @@ else:
     fs = s3fs.S3FileSystem(anon=False)
     st.session_state.use_s3 = True
 
-st.set_page_config(layout="wide", 
-                   page_title='Foraging behavior browser',
-                   page_icon=':mouse2:',
-                    menu_items={
-                    'Report a bug': "https://github.com/hanhou/foraging-behavior-browser/issues",
-                    'About': "Github repo: https://github.com/hanhou/foraging-behavior-browser/"
-                    }
-                   )
+try:
+    st.set_page_config(layout="wide", 
+                    page_title='Foraging behavior browser',
+                    page_icon=':mouse2:',
+                        menu_items={
+                        'Report a bug': "https://github.com/hanhou/foraging-behavior-browser/issues",
+                        'About': "Github repo: https://github.com/hanhou/foraging-behavior-browser/"
+                        }
+                    )
+except:
+    pass
 
 if 'selected_points' not in st.session_state:
     st.session_state['selected_points'] = []
