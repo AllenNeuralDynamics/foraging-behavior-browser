@@ -294,7 +294,7 @@ def add_session_filter(if_bonsai=False):
             st.session_state.df_session_filtered = filter_dataframe(df=st.session_state.df['sessions'])
         else:
             st.session_state.df_session_filtered = filter_dataframe(df=st.session_state.df['sessions_bonsai'],
-                                                                    default_filters=['subject_id', 'session', 'task', 'finished_trials', 'foraging_eff'])
+                                                                    default_filters=['subject_id', 'task', 'session', 'finished_trials', 'foraging_eff'])
             
     
     
