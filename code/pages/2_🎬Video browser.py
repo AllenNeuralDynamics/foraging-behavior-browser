@@ -32,6 +32,20 @@ except:
     pass
 
 
+    
+try:
+    st.set_page_config(layout="wide", 
+                page_title='Foraging behavior browser',
+                page_icon=':mouse2:',
+                menu_items={
+                'Report a bug': "https://github.com/hanhou/foraging-behavior-browser/issues",
+                'About': "Github repo: https://github.com/hanhou/foraging-behavior-browser/"
+                }
+                )
+except:
+    pass
+
+
 st.session_state.use_s3 = True
 fs = s3fs.S3FileSystem(anon=False)
 
