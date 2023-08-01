@@ -84,13 +84,9 @@ def _fetch_img(glob_patterns, crop=None):
 
 # @st.cache_data(ttl=24*3600, max_entries=20)
 def show_session_level_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], crop=None, caption=True, **kwargs):
-    try:
-        sess_date_str = datetime.strftime(datetime.strptime(key['session_date'], '%Y-%m-%dT%H:%M:%S'), '%Y%m%d')
-    except:
-        sess_date_str = datetime.strftime(key['session_date'], '%Y%m%d')
-     
-    fns = [f'/{key["h2o"]}_{sess_date_str}_*{other_pattern}*' for other_pattern in other_patterns]
-    glob_patterns = [cache_session_level_fig_folder + f'{prefix}/' + key["h2o"] + fn for fn in fns]
+    
+    subject_session_date_str = f"{key['subject_id']}_{key['session_date']}_{key['nwb_suffix']}".split('_0')[0]
+    glob_patterns = [cache_folder + f"{subject_session_date_str}/{subject_session_date_str}_{prefix}*"]
     
     img, f_name = _fetch_img(glob_patterns, crop)
 
