@@ -70,7 +70,7 @@ def aggrid_interactive_table_session(df: pd.DataFrame):
     # options.configure_column(field="session_date", sort="desc")
     
     # options.configure_column(field="h2o", hide=True, rowGroup=True)
-    options.configure_column(field='subject_id', hide=True)
+    # options.configure_column(field='subject_id', hide=True)
     options.configure_column(field="session_date", type=["customDateTimeFormat"], custom_format_string='yyyy-MM-dd')
     options.configure_column(field="ephys_ins", dateType="DateType")
     
@@ -140,7 +140,8 @@ def cache_widget(field, clear=None):
 # def dec_cache_widget_state(widget, ):
 
 
-def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+def filter_dataframe(df: pd.DataFrame, 
+                     default_filters=['h2o', 'task', 'finished_trials', 'photostim_location']) -> pd.DataFrame:
     """
     Adds a UI on top of a dataframe to let viewers filter columns
 
@@ -167,7 +168,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                                                             label_visibility='collapsed',
                                                             default=st.session_state.to_filter_columns_cache 
                                                                     if 'to_filter_columns_cache' in st.session_state
-                                                                    else ['h2o', 'task', 'finished_trials', 'photostim_location'],
+                                                                    else default_filters,
                                                             key='to_filter_columns',
                                                             on_change=cache_widget,
                                                             args=['to_filter_columns'])
@@ -287,9 +288,14 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
-def add_session_filter():
+def add_session_filter(if_bonsai=False):
     with st.expander("Behavioral session filter", expanded=True):   
-        st.session_state.df_session_filtered = filter_dataframe(df=st.session_state.df['sessions'])
+        if not if_bonsai:
+            st.session_state.df_session_filtered = filter_dataframe(df=st.session_state.df['sessions'])
+        else:
+            st.session_state.df_session_filtered = filter_dataframe(df=st.session_state.df['sessions_bonsai'],
+                                                                    default_filters=['subject_id', 'task', 'finished_trials', 'foraging_eff'])
+            
     
     
 def data_selector():

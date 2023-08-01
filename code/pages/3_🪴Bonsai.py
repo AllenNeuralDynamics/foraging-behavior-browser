@@ -22,29 +22,13 @@ from streamlit_plotly_events import plotly_events
 from streamlit_util import filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector
 import extra_streamlit_components as stx
 
-if_profile = False
 
-if if_profile:
-    from streamlit_profiler import Profiler
-    p = Profiler()
-    p.start()
+cache_folder = 'aind-behavior-data/foraging_nwb_bonsai_processed/'
+# cache_session_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_sessions/'
+# cache_mouse_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_subjects/'
 
-
-# from pipeline import experiment, ephys, lab, psth_foraging, report, foraging_analysis
-# from pipeline.plot import foraging_model_plot
-
-cache_folder = 'xxx'  #'/root/capsule/data/s3/report/st_cache/'
-cache_session_level_fig_folder = 'xxx' #'/root/capsule/data/s3/report/all_units/'  # 
-
-if os.path.exists(cache_folder):
-    st.session_state.st.session_state.use_s3 = False
-else:
-    cache_folder = 'aind-behavior-data/Han/ephys/report/st_cache/'
-    cache_session_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_sessions/'
-    cache_mouse_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_subjects/'
-    
-    fs = s3fs.S3FileSystem(anon=False)
-    st.session_state.use_s3 = True
+fs = s3fs.S3FileSystem(anon=False)
+st.session_state.use_s3 = True
 
 try:
     st.set_page_config(layout="wide", 
@@ -69,9 +53,9 @@ def load_data(tables=['sessions']):
         file_name = cache_folder + f'df_{table}.pkl'
         if st.session_state.use_s3:
             with fs.open(file_name) as f:
-                df[table] = pd.read_pickle(f)
+                df[table + '_bonsai'] = pd.read_pickle(f)
         else:
-            df[table] = pd.read_pickle(file_name)
+            df[table + '_bonsai'] = pd.read_pickle(file_name)
     return df
 
 def _fetch_img(glob_patterns, crop=None):
@@ -142,7 +126,7 @@ def show_mouse_level_img_by_key_and_prefix(key, prefix, column=None, other_patte
     return img
 
 # table_mapping = {
-#     'sessions': fetch_sessions,
+#     'sessions_bonsai': fetch_sessions,
 #     'ephys_units': fetch_ephys_units,
 # }
 
@@ -604,8 +588,8 @@ def add_xy_selector():
         cols = st.columns([1, 1, 1])
         x_name = cols[0].selectbox("x axis", st.session_state.session_stats_names, index=st.session_state.session_stats_names.index('session'))
         y_name = cols[1].selectbox("y axis", st.session_state.session_stats_names, index=st.session_state.session_stats_names.index('foraging_eff'))
-        group_by = cols[2].selectbox("grouped by", ['h2o', 'task', 'photostim_location', 'weekday',
-                                                    'headbar', 'user_name', 'sex', 'rig'], index=['h2o', 'task'].index('h2o'))
+        group_by = cols[2].selectbox("grouped by", ['h2o', 'task',
+                                                    'user_name', 'rig'], index=['h2o', 'task'].index('h2o'))
             # st.form_submit_button("update axes")
     return x_name, y_name, group_by
 
@@ -613,32 +597,22 @@ def add_xy_selector():
 # ------- Layout starts here -------- #    
 def init():
     df = load_data(['sessions', 
-                    'logistic_regression_hattori', 
-                    'logistic_regression_su',
-                    'linear_regression_rt',
-                    'model_fitting_params'])
+                   ])
     
-    # Try to convert datetimes into a standard format (datetime, no timezone)
-    df['sessions']['session_date'] = pd.to_datetime(df['sessions']['session_date'])
-    # if is_datetime64_any_dtype(df[col]):
-    df['sessions']['session_date'] = df['sessions']['session_date'].dt.tz_localize(None)
-    
+        
     st.session_state.df = df
     st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
     st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
     
     # Init session states
     to_init = [
-               ['model_id', 21],   # add some model fitting params to session
                ['tab_id', "tab2"],
                ]
     
     for name, default in to_init:
         if name not in st.session_state:
             st.session_state[name] = default
-        
-    selected_id = st.session_state.model_id 
-    
+            
     st.session_state.draw_type_mapper_session_level = {'1. Choice history': ('fitted_choice',   # prefix
                                                             (0, 0),     # location (row_idx, column_idx)
                                                             dict(other_patterns=['model_best', 'model_None'])),
@@ -672,38 +646,35 @@ def init():
                                                                                    dict(other_patterns=['fitted_para'])),
                     }
    
+    st.session_state.df['sessions_bonsai'].columns = st.session_state.df['sessions_bonsai'].columns.get_level_values(1)
+    st.session_state.df['sessions_bonsai'] = st.session_state.df['sessions_bonsai'].reset_index()
+    st.session_state.df['sessions_bonsai']['h2o'] = st.session_state.df['sessions_bonsai']['subject_id']
     
-    # process dfs
-    df_this_model = st.session_state.df['model_fitting_params'].query(f'model_id == {selected_id}')
-    valid_field = df_this_model.columns[~np.all(~df_this_model.notna(), axis=0)]
-    to_add_model = st.session_state.df['model_fitting_params'].query(f'model_id == {selected_id}')[valid_field]
+    # # add something else
+    # st.session_state.df['sessions_bonsai']['abs(bias)'] = np.abs(st.session_state.df['sessions_bonsai'].biasL)
     
-    st.session_state.df['sessions'] = st.session_state.df['sessions'].merge(to_add_model, on=('subject_id', 'session'), how='left')
-
-    # add something else
-    st.session_state.df['sessions']['abs(bias)'] = np.abs(st.session_state.df['sessions'].biasL)
-    
-    # delta weight
-    diff_relative_weight_next_day = st.session_state.df['sessions'].set_index(
-        ['session']).sort_values('session', ascending=True).groupby('h2o').apply(
-            lambda x: - x.relative_weight.diff(periods=-1)).rename("diff_relative_weight_next_day")
+    # # delta weight
+    # diff_relative_weight_next_day = st.session_state.df['sessions_bonsai'].set_index(
+    #     ['session']).sort_values('session', ascending=True).groupby('h2o').apply(
+    #         lambda x: - x.relative_weight.diff(periods=-1)).rename("diff_relative_weight_next_day")
         
     # weekday
-    st.session_state.df['sessions']['weekday'] =  st.session_state.df['sessions'].session_date.dt.dayofweek + 1
+    # st.session_state.df['sessions_bonsai']['weekday'] =  st.session_state.df['sessions_bonsai'].session_date.dt.dayofweek + 1
 
-    st.session_state.df['sessions'] = st.session_state.df['sessions'].merge(
-        diff_relative_weight_next_day, how='left', on=['h2o', 'session'])
+    # st.session_state.df['sessions_bonsai'] = st.session_state.df['sessions_bonsai'].merge(
+    #     diff_relative_weight_next_day, how='left', on=['h2o', 'session'])
 
-    st.session_state.session_stats_names = [keys for keys in st.session_state.df['sessions'].keys()]
+    st.session_state.session_stats_names = [keys for keys in st.session_state.df['sessions_bonsai'].keys()]
    
    
     
 
 def app():
-    st.markdown('## Foraging Behavior Browser')
-    
+    st.markdown('## 🪴🪴🪴 Foraging sessions from Bonsai 🪴🪴🪴')
+    st.markdown('##### (still using a temporary workaround until AIND behavior metadata and pipeline are set up)')
+
     with st.sidebar:
-        add_session_filter()
+        add_session_filter(if_bonsai=True)
         data_selector()
     
         st.markdown('---')
@@ -711,7 +682,6 @@ def app():
         st.markdown('[bug report / feature request](https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues)')
         
         with st.expander('Debug', expanded=False):
-            st.session_state.model_id = st.selectbox('model_id', st.session_state.df['model_fitting_params'].model_id.unique())
             if st.button('Reload data from AWS S3'):
                 st.cache_data.clear()
                 init()
@@ -809,11 +779,8 @@ def app():
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
 
 
-if 'df' not in st.session_state or 'session' not in st.session_state.df.keys(): 
+if 'df' not in st.session_state or 'session_bonsai' not in st.session_state.df.keys(): 
     init()
     
 app()
 
-            
-if if_profile:    
-    p.stop()
