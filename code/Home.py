@@ -613,11 +613,6 @@ def add_xy_selector():
 # ------- Layout starts here -------- #    
 def init():
     
-    # Stupid workaround for streamlit.io
-    if pd.__version__ != '1.5.3':
-        import subprocess
-        subprocess.run(["pip", "install", "pandas==1.5.3"], check=True)
-    
     df = load_data(['sessions', 
                     'logistic_regression_hattori', 
                     'logistic_regression_su',
