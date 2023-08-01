@@ -612,6 +612,12 @@ def add_xy_selector():
 
 # ------- Layout starts here -------- #    
 def init():
+    
+    # Stupid workaround for streamlit.io
+    if pd.__version__ != '1.5.3':
+        import subprocess
+        subprocess.run(["pip", "install", "pandas==1.5.3"], check=True)
+    
     df = load_data(['sessions', 
                     'logistic_regression_hattori', 
                     'logistic_regression_su',
@@ -809,7 +815,7 @@ def app():
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
 
 
-if 'df' not in st.session_state or 'session' not in st.session_state.df.keys(): 
+if 'df' not in st.session_state or 'sessions' not in st.session_state.df.keys(): 
     init()
     
 app()

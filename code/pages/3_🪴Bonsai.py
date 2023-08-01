@@ -596,6 +596,12 @@ def add_xy_selector():
 
 # ------- Layout starts here -------- #    
 def init():
+    
+    # Stupid workaround for streamlit.io
+    if pd.__version__ != '1.5.3':
+        import subprocess
+        subprocess.run(["pip", "install", "pandas==1.5.3"], check=True)
+
     df = load_data(['sessions', 
                    ])
     
@@ -613,38 +619,42 @@ def init():
         if name not in st.session_state:
             st.session_state[name] = default
             
-    st.session_state.draw_type_mapper_session_level = {'1. Choice history': ('fitted_choice',   # prefix
+    st.session_state.draw_type_mapper_session_level = {'1. Choice history': ('choice_history',   # prefix
                                                             (0, 0),     # location (row_idx, column_idx)
-                                                            dict(other_patterns=['model_best', 'model_None'])),
-                                        '2. Lick times': ('lick_psth', 
-                                                        (1, 0), 
-                                                        {}),            
-                                        '3. Win-stay-lose-shift prob.': ('wsls', 
-                                                                        (1, 1), 
-                                                                        dict(crop=(0, 0, 1200, 600))),
-                                        '4. Linear regression on RT': ('linear_regression_rt', 
-                                                                        (1, 1), 
-                                                                        dict()),
-                                        '5. Logistic regression on choice (Hattori)': ('logistic_regression_hattori', 
-                                                                                        (2, 0), 
-                                                                                        dict(crop=(0, 0, 1200, 2000))),
-                                        '6. Logistic regression on choice (Su)': ('logistic_regression_su', 
-                                                                                        (2, 1), 
-                                                                                        dict(crop=(0, 0, 1200, 2000))),
+                                                            dict()),
+        
+                                        # '1. Choice history': ('fitted_choice',   # prefix
+                                        #                     (0, 0),     # location (row_idx, column_idx)
+                                        #                     dict(other_patterns=['model_best', 'model_None'])),
+                                        # '2. Lick times': ('lick_psth',  
+                                        #                 (1, 0), 
+                                        #                 {}),            
+                                        # '3. Win-stay-lose-shift prob.': ('wsls', 
+                                        #                                 (1, 1), 
+                                        #                                 dict(crop=(0, 0, 1200, 600))),
+                                        # '4. Linear regression on RT': ('linear_regression_rt', 
+                                        #                                 (1, 1), 
+                                        #                                 dict()),
+                                        # '5. Logistic regression on choice (Hattori)': ('logistic_regression_hattori', 
+                                        #                                                 (2, 0), 
+                                        #                                                 dict(crop=(0, 0, 1200, 2000))),
+                                        # '6. Logistic regression on choice (Su)': ('logistic_regression_su', 
+                                        #                                                 (2, 1), 
+                                        #                                                 dict(crop=(0, 0, 1200, 2000))),
                     }
     
-    st.session_state.draw_type_mapper_mouse_level = {'1. Model comparison': ('model_all_sessions',   # prefix
-                                                                             (0, 0),     # location (row_idx, column_idx)
-                                                                             dict(other_patterns=['comparison'], 
-                                                                                  crop=(0, #900, 
-                                                                                        100, 2800, 2200))),
-                                                    '2. Model prediction accuracy': ('model_all_sessions',
-                                                                                     (0, 0), 
-                                                                                     dict(other_patterns=['pred_acc'])),            
-                                                    '3. Model fitted parameters': ('model_all_sessions', 
-                                                                                   (0, 0), 
-                                                                                   dict(other_patterns=['fitted_para'])),
-                    }
+    # st.session_state.draw_type_mapper_mouse_level = {'1. Model comparison': ('model_all_sessions',   # prefix
+    #                                                                          (0, 0),     # location (row_idx, column_idx)
+    #                                                                          dict(other_patterns=['comparison'], 
+    #                                                                               crop=(0, #900, 
+    #                                                                                     100, 2800, 2200))),
+    #                                                 '2. Model prediction accuracy': ('model_all_sessions',
+    #                                                                                  (0, 0), 
+    #                                                                                  dict(other_patterns=['pred_acc'])),            
+    #                                                 '3. Model fitted parameters': ('model_all_sessions', 
+    #                                                                                (0, 0), 
+    #                                                                                dict(other_patterns=['fitted_para'])),
+    #                 }
    
     st.session_state.df['sessions_bonsai'].columns = st.session_state.df['sessions_bonsai'].columns.get_level_values(1)
     st.session_state.df['sessions_bonsai'] = st.session_state.df['sessions_bonsai'].reset_index()
@@ -726,7 +736,7 @@ def app():
     chosen_id = stx.tab_bar(data=[
         stx.TabBarItemData(id="tab2", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
         stx.TabBarItemData(id="tab1", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
-        stx.TabBarItemData(id="tab3", title="🐭 Mouse Model Fitting", description="Mouse-level model fitting results"),
+        # stx.TabBarItemData(id="tab3", title="🐭 Mouse Model Fitting", description="Mouse-level model fitting results"),
         ], default="tab2" if 'tab_id' not in st.session_state else st.session_state.tab_id)
     # chosen_id = "tab1"
 
@@ -779,7 +789,7 @@ def app():
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
 
 
-if 'df' not in st.session_state or 'session_bonsai' not in st.session_state.df.keys(): 
+if 'df' not in st.session_state or 'sessions_bonsai' not in st.session_state.df.keys(): 
     init()
     
 app()
