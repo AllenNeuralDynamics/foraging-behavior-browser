@@ -592,7 +592,6 @@ def add_xy_selector():
 
 # ------- Layout starts here -------- #    
 def init():
-    
 
     df = load_data(['sessions', 
                    ])
@@ -648,7 +647,10 @@ def init():
     #                                                                                dict(other_patterns=['fitted_para'])),
     #                 }
    
+   
+    # Some ad-hoc modifications on df_sessions
     st.session_state.df['sessions_bonsai'].columns = st.session_state.df['sessions_bonsai'].columns.get_level_values(1)
+    st.session_state.df['sessions_bonsai'].dropna(subset=['session'], inplace=True) # Remove rows with no session number (only leave the nwb file with the largest finished_trials for now)
     st.session_state.df['sessions_bonsai'] = st.session_state.df['sessions_bonsai'].reset_index()
     st.session_state.df['sessions_bonsai']['h2o'] = st.session_state.df['sessions_bonsai']['subject_id']
     
