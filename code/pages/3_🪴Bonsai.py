@@ -19,7 +19,7 @@ import streamlit.components.v1 as components
 import streamlit_nested_layout
 from streamlit_plotly_events import plotly_events
 
-from streamlit_util import filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector
+from util.streamlit import filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector
 import extra_streamlit_components as stx
 
 
@@ -592,6 +592,11 @@ def add_xy_selector():
 
 # ------- Layout starts here -------- #    
 def init():
+    
+    # Clear Session state
+    for key in ['selected_draw_types']:
+        if key in st.session_state:
+            del st.session_state[key]
 
     df = load_data(['sessions', 
                    ])
@@ -609,7 +614,7 @@ def init():
     for name, default in to_init:
         if name not in st.session_state:
             st.session_state[name] = default
-            
+    
     st.session_state.draw_type_mapper_session_level = {'1. Choice history': ('choice_history',   # prefix
                                                             (0, 0),     # location (row_idx, column_idx)
                                                             dict()),
