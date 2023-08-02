@@ -34,6 +34,12 @@ custom_css = {
 "padding": "4px !important"},
 }
 
+def add_caution():
+    st.markdown('### ***:blue[❗️Caution: Due to bugs and resource limitations of the Streamlit public cloud, the app you are currently viewing may be unstable and buggy 🐞. '
+                'It is recommended that you switch to [the one on Code Ocean](https://codeocean.allenneuraldynamics.org/cw/d4dd4015-ded7-4cab-b7bb-8b1113a5dd86/proxy/8501/) instead. '
+                'However, you will need to log in to Code Ocean first. Please contact David if you have any questions. ]***')
+    st.markdown('---')
+
 
 def aggrid_interactive_table_session(df: pd.DataFrame):
     """Creates an st-aggrid interactive table based on a dataframe.

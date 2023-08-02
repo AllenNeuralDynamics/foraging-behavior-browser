@@ -9,7 +9,7 @@ import os
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 
-from util.streamlit import filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector
+from util.streamlit import filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector, add_caution
 from streamlit_plotly_events import plotly_events
 from util.population import _draw_variable_trial_back, _draw_variable_trial_back_linear_reg
 import seaborn as sns
@@ -30,6 +30,7 @@ try:
 except:
     pass
 
+add_caution()
 
 st.session_state.use_s3 = True
 fs = s3fs.S3FileSystem(anon=False)
@@ -144,6 +145,8 @@ def load_nwb(file_name):
         dlc_features, dlc_times = get_dlc_features_and_times(nwb_hdf)
 
     return df_trials, dict_behav_events, dlc_features, dlc_times
+
+
 
 init()
 
