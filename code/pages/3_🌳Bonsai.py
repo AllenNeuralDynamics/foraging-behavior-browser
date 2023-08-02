@@ -679,7 +679,7 @@ def init():
     
 
 def app():
-    st.markdown('## 🪴🪴🪴 Foraging sessions from Bonsai 🪴🪴🪴')
+    st.markdown('## 🌳🪴 Foraging sessions from Bonsai 🌳🪴')
     st.markdown('##### (still using a temporary workaround until AIND behavior metadata and pipeline are set up)')
 
     with st.sidebar:
