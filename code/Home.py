@@ -613,6 +613,12 @@ def add_xy_selector():
 # ------- Layout starts here -------- #    
 def init():
     
+    # Clear Session state
+    for key in ['selected_draw_types']:
+        if key in st.session_state:
+            del st.session_state[key]
+
+    
     df = load_data(['sessions', 
                     'logistic_regression_hattori', 
                     'logistic_regression_su',
