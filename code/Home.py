@@ -260,6 +260,8 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                          if_use_x_quantile_all=False,
                          q_quantiles_all=20,
                          title='',
+                         dot_size=10,
+                         dot_opacity=0.4,
                          **kwarg):
     
     def _add_agg(df_this, x_name, y_name, group, aggr_method, if_use_x_quantile, q_quantiles, col):
@@ -412,9 +414,9 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                             legendgroup=f'group_{group}',
                             showlegend=not if_aggr_each_group,
                             mode="markers",
-                            marker_size=10,
+                            marker_size=dot_size,
                             marker_color=this_session['colors'],
-                            opacity=0.2 if if_aggr_each_group else 0.7,
+                            opacity=dot_opacity, # 0.5 if if_aggr_each_group else 0.8,
                             text=this_session['session'],
                             hovertemplate =   '<br>%{customdata[0]}, Session %{text}' +
                                             '<br>%s = %%{x}' % (x_name) +
@@ -527,38 +529,43 @@ def plot_x_y_session():
     with cols[0]:
         x_name, y_name, group_by = add_xy_selector()
         
-        s_cols = st.columns([1, 1, 1])
-        # if_plot_only_selected_from_dataframe = s_cols[0].checkbox('Only selected', False)
-        if_show_dots = s_cols[0].checkbox('Show data points', True)
-        
-        aggr_methods =  ['mean', 'mean +/- sem', 'lowess', 'running average', 'linear fit']
+        with st.expander('Plot settings', expanded=True):    
+            s_cols = st.columns([1, 1, 1])
+            # if_plot_only_selected_from_dataframe = s_cols[0].checkbox('Only selected', False)
+            if_show_dots = s_cols[0].checkbox('Show data points', True)
+            
+            aggr_methods =  ['mean', 'mean +/- sem', 'lowess', 'running average', 'linear fit']
 
-        if_aggr_each_group = s_cols[1].checkbox('Aggr each group', 
-                                                value=st.session_state.if_aggr_each_group_cache 
-                                                      if 'if_aggr_each_group_cache' in st.session_state
-                                                      else True, )
-        
-        st.session_state.if_aggr_each_group_cache = if_aggr_each_group  # Have to use another variable to store this explicitly (my cache_widget somehow doesn't work with checkbox)
-        aggr_method_group = s_cols[1].selectbox('aggr method group', aggr_methods, index=aggr_methods.index('lowess'), disabled=not if_aggr_each_group)
-        
-        if_use_x_quantile_group = s_cols[1].checkbox('Use quantiles of x ', False) if 'mean' in aggr_method_group else False
-        q_quantiles_group = s_cols[1].slider('Number of quantiles ', 1, 100, 20, disabled=not if_use_x_quantile_group) if if_use_x_quantile_group else None
-        
-        if_aggr_all = s_cols[2].checkbox('Aggr all', 
-                                         value=st.session_state.if_aggr_all_cache
-                                               if 'if_aggr_all_cache' in st.session_state
-                                               else True,
-                                        )
-        
-        st.session_state.if_aggr_all_cache = if_aggr_all  # Have to use another variable to store this explicitly (my cache_widget somehow doesn't work with checkbox)
-        aggr_method_all = s_cols[2].selectbox('aggr method all', aggr_methods, index=aggr_methods.index('mean +/- sem'), disabled=not if_aggr_all)
+            if_aggr_each_group = s_cols[1].checkbox('Aggr each group', 
+                                                    value=st.session_state.if_aggr_each_group_cache 
+                                                        if 'if_aggr_each_group_cache' in st.session_state
+                                                        else True, )
+            
+            st.session_state.if_aggr_each_group_cache = if_aggr_each_group  # Have to use another variable to store this explicitly (my cache_widget somehow doesn't work with checkbox)
+            aggr_method_group = s_cols[1].selectbox('aggr method group', aggr_methods, index=aggr_methods.index('lowess'), disabled=not if_aggr_each_group)
+            
+            if_use_x_quantile_group = s_cols[1].checkbox('Use quantiles of x ', False) if 'mean' in aggr_method_group else False
+            q_quantiles_group = s_cols[1].slider('Number of quantiles ', 1, 100, 20, disabled=not if_use_x_quantile_group) if if_use_x_quantile_group else None
+            
+            if_aggr_all = s_cols[2].checkbox('Aggr all', 
+                                            value=st.session_state.if_aggr_all_cache
+                                                if 'if_aggr_all_cache' in st.session_state
+                                                else True,
+                                            )
+            
+            st.session_state.if_aggr_all_cache = if_aggr_all  # Have to use another variable to store this explicitly (my cache_widget somehow doesn't work with checkbox)
+            aggr_method_all = s_cols[2].selectbox('aggr method all', aggr_methods, index=aggr_methods.index('mean +/- sem'), disabled=not if_aggr_all)
 
-        if_use_x_quantile_all = s_cols[2].checkbox('Use quantiles of x', False) if 'mean' in aggr_method_all else False
-        q_quantiles_all = s_cols[2].slider('Number of quantiles', 1, 100, 20, disabled=not if_use_x_quantile_all) if if_use_x_quantile_all else None
+            if_use_x_quantile_all = s_cols[2].checkbox('Use quantiles of x', False) if 'mean' in aggr_method_all else False
+            q_quantiles_all = s_cols[2].slider('Number of quantiles', 1, 100, 20, disabled=not if_use_x_quantile_all) if if_use_x_quantile_all else None
 
-        smooth_factor = s_cols[0].slider('Smooth factor', 1, 20, 5) if ((if_aggr_each_group and aggr_method_group in ('running average', 'lowess'))
-                                                                     or (if_aggr_all and aggr_method_all in ('running average', 'lowess'))) else None
+            smooth_factor = s_cols[0].slider('Smooth factor', 1, 20, 5) if ((if_aggr_each_group and aggr_method_group in ('running average', 'lowess'))
+                                                                        or (if_aggr_all and aggr_method_all in ('running average', 'lowess'))) else None
         
+            c = st.columns([1, 1])
+            dot_size = c[0].slider('dot size', 1, 30, step=1, value=10)
+            dot_opacity = c[1].slider('opacity', 0.0, 1.0, step=0.05, value=0.5)
+
     
     # If no sessions are selected, use all filtered entries
     # df_x_y_session = st.session_state.df_selected_from_dataframe if if_plot_only_selected_from_dataframe else st.session_state.df_session_filtered
@@ -586,7 +593,9 @@ def plot_x_y_session():
                                         if_use_x_quantile_all=if_use_x_quantile_all,
                                         q_quantiles_all=q_quantiles_all,
                                         title=names[(x_name, y_name)] if (x_name, y_name) in names else y_name,
-                                        states = st.session_state.df_selected_from_plotly)
+                                        states = st.session_state.df_selected_from_plotly,
+                                        dot_size=dot_size,
+                                        dot_opacity=dot_opacity,)
         
         # st.plotly_chart(fig)
         selected = plotly_events(fig, click_event=True, hover_event=False, select_event=True, 
