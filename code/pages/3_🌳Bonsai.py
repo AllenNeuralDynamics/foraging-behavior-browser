@@ -13,6 +13,7 @@ import plotly
 import plotly.graph_objects as go
 from scipy.stats import linregress
 import statsmodels.api as sm
+import json
 
 from PIL import Image, ImageColor
 import streamlit.components.v1 as components
@@ -784,7 +785,18 @@ def app():
                 draw_mice_plots(df_to_draw_mice)
         
     
-
+    # Add debug info
+    with st.expander('NWB errors', expanded=False):
+        with fs.open(cache_folder + 'error_files.json') as file:
+            st.json(json.load(file))
+            
+    with st.expander('Pipeline log', expanded=False):
+        with fs.open(cache_folder + 'pipeline.log') as file:
+            log_content = file.read().decode('utf-8')
+        log_content = log_content.replace('\\n', '\n')
+        st.text(log_content)
+    
+    
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
 
 
