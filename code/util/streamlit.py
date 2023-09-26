@@ -36,7 +36,7 @@ custom_css = {
 
 def add_caution():
     st.markdown('### ***:blue[❗️Caution: Due to bugs and resource limitations of the Streamlit public cloud, the app you are currently viewing may be unstable and buggy 🐞. '
-                'It is recommended that you switch to [the one on Code Ocean](https://codeocean.allenneuraldynamics.org/cw/d4dd4015-ded7-4cab-b7bb-8b1113a5dd86/proxy/8501/) instead. '
+                'It is recommended that you switch to [the one on Code Ocean](https://codeocean.allenneuraldynamics.org/cw/f939ba4d-5b39-410c-a758-ea05754dc842/proxy/8501/) instead. '
                 'However, you will need to log in to Code Ocean first. Please contact David if you have any questions. ]***')
     st.markdown('---')
 
