@@ -34,16 +34,6 @@ custom_css = {
 "padding": "4px !important"},
 }
 
-def add_caution():
-    st.markdown('### ***:blue[❗️Caution: Due to bugs and resource limitations of the Streamlit public cloud, the app you are currently viewing may be unstable and buggy 🐞. '
-                'It is recommended that you switch to [the one in Code Ocean](https://codeocean.allenneuraldynamics.org/cw/cb1da92b-9a59-43ed-a609-65eb08119d36/proxy/8501/) instead. '
-                'However, you will need to log in to Code Ocean first. Please contact David if you have any questions. '
-                'See also [the ephys browser in Code Ocean](https://codeocean.allenneuraldynamics.org/cw/4617f5e4-c7ef-43f2-bcda-703d052e1b20/proxy/8501/) '
-                '(recommended) and [the one on the public cloud](https://foraging-ephys-browser.streamlit.app/)]***')
-                
-    st.markdown('---')
-
-
 def aggrid_interactive_table_session(df: pd.DataFrame):
     """Creates an st-aggrid interactive table based on a dataframe.
 

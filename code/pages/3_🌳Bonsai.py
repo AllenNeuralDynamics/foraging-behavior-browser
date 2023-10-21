@@ -20,7 +20,8 @@ import streamlit.components.v1 as components
 import streamlit_nested_layout
 from streamlit_plotly_events import plotly_events
 
-from util.streamlit import filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector, add_caution
+from util.streamlit import filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector
+from Home import add_caution
 import extra_streamlit_components as stx
 
 

@@ -9,7 +9,8 @@ import os
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 
-from util.streamlit import filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector, add_caution
+from util.streamlit import filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector
+from Home import add_caution
 from streamlit_plotly_events import plotly_events
 from util.population import _draw_variable_trial_back, _draw_variable_trial_back_linear_reg
 import seaborn as sns
