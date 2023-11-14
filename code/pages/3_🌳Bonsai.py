@@ -797,8 +797,12 @@ def app():
     
     # Add debug info
     with st.expander('NWB errors', expanded=False):
-        with fs.open(cache_folder + 'error_files.json') as file:
-            st.json(json.load(file))
+        error_file = cache_folder + 'error_files.json'
+        if fs.exists(error_file):
+            with fs.open(error_file) as file:
+                st.json(json.load(file))
+        else:
+            st.write('No NWB error files')
             
     with st.expander('Pipeline log', expanded=False):
         with fs.open(cache_folder + 'pipeline.log') as file:
