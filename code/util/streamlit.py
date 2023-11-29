@@ -34,7 +34,6 @@ custom_css = {
 "padding": "4px !important"},
 }
 
-
 def aggrid_interactive_table_session(df: pd.DataFrame):
     """Creates an st-aggrid interactive table based on a dataframe.
 

@@ -746,7 +746,7 @@ def app():
     chosen_id = stx.tab_bar(data=[
         stx.TabBarItemData(id="tab2", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
         stx.TabBarItemData(id="tab1", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
-        # stx.TabBarItemData(id="tab3", title="🐭 Mouse Model Fitting", description="Mouse-level model fitting results"),
+        stx.TabBarItemData(id="tab3", title="🐭 Mouse Inspector", description="Mouse-level summary"),
         ], default="tab2" if 'tab_id' not in st.session_state else st.session_state.tab_id)
     # chosen_id = "tab1"
 
@@ -773,6 +773,17 @@ def app():
                 st.session_state.df_selected_from_dataframe = df_selected_from_plotly  # Sync selected on dataframe
                 st.experimental_rerun()
             
+        # Add debug info
+        with st.expander('NWB errors', expanded=False):
+            with fs.open(cache_folder + 'error_files.json') as file:
+                st.json(json.load(file))
+                
+        with st.expander('Pipeline log', expanded=False):
+            with fs.open(cache_folder + 'pipeline.log') as file:
+                log_content = file.read().decode('utf-8')
+            log_content = log_content.replace('\\n', '\n')
+            st.text(log_content)
+        
     elif chosen_id == "tab2":
         st.session_state.tab_id = chosen_id
         with placeholder:
@@ -786,13 +797,8 @@ def app():
     elif chosen_id == "tab3":
         st.session_state.tab_id = chosen_id
         with placeholder:
-            with st.columns([4, 10])[0]:
-                if_draw_all_mice = mouse_plot_settings(need_click=False)
-                df_selected = st.session_state.df_selected_from_plotly if 'selected' in st.session_state.selected_draw_mice else st.session_state.df_session_filtered
-                df_to_draw_mice = df_selected.groupby('h2o').count().reset_index()
-                
-            if if_draw_all_mice and len(df_to_draw_mice):
-                draw_mice_plots(df_to_draw_mice)
+            selected_subject_id = st.columns([1, 3])[0].selectbox('Select a mouse', options=st.session_state.df_session_filtered['subject_id'].unique())
+            st.markdown(f"### [Go to WaterLog](http://eng-tools:8004/water_weight_log/?external_donor_name={selected_subject_id})")
         
     
     # Add debug info
