@@ -81,7 +81,7 @@ tenacity==8.1.0
 toml==0.10.2
 toolz==0.12.0
 tornado==6.2
-typing_extensions==4.4.0
+typing_extensions==4.9.0
 tzdata==2022.6
 tzlocal==4.2
 urllib3==1.26.13
@@ -92,3 +92,4 @@ watchdog==2.1.9
 wrapt==1.14.1
 yarl==1.8.1
 zipp==3.10.0
+git+https://github.com/AllenNeuralDynamics/aind-foraging-behavior-bonsai-automatic-training.git@main
