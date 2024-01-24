@@ -23,6 +23,9 @@ from streamlit_plotly_events import plotly_events
 from util.streamlit import filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector
 import extra_streamlit_components as stx
 
+from aind_auto_train.curriculum_manager import CurriculumManager
+from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
+from aind_auto_train.schema.task import TrainingStage
 
 cache_folder = 'aind-behavior-data/foraging_nwb_bonsai_processed/'
 # cache_session_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_sessions/'
@@ -601,6 +604,9 @@ def add_xy_selector():
     return x_name, y_name, group_by
 
 
+def show_curriculums():
+    pass
+
 # ------- Layout starts here -------- #    
 def init():
     
@@ -747,6 +753,7 @@ def app():
         stx.TabBarItemData(id="tab2", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
         stx.TabBarItemData(id="tab1", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
         stx.TabBarItemData(id="tab3", title="🐭 Mouse Inspector", description="Mouse-level summary"),
+        stx.TabBarItemData(id="tab4", title="🎓 Automatic Training", description="Curriculum and training manager"),
         ], default="tab2" if 'tab_id' not in st.session_state else st.session_state.tab_id)
     # chosen_id = "tab1"
 
@@ -799,7 +806,19 @@ def app():
         with placeholder:
             selected_subject_id = st.columns([1, 3])[0].selectbox('Select a mouse', options=st.session_state.df_session_filtered['subject_id'].unique())
             st.markdown(f"### [Go to WaterLog](http://eng-tools:8004/water_weight_log/?external_donor_name={selected_subject_id})")
-        
+            
+    elif chosen_id == "tab4":
+        st.session_state.tab_id = chosen_id
+        with placeholder:
+            st.session_state.curriculum_manager = CurriculumManager(
+                saved_curriculums_on_s3=dict(
+                    bucket='aind-behavior-data',
+                    root='foraging_auto_training/saved_curriculums/'
+                ),
+                saved_curriculums_local='/root/capsule/curriculum_manager/',
+            )
+            
+            st.write(st.session_state.curriculum_manager.df_curriculums())
     
     # Add debug info
     with st.expander('NWB errors', expanded=False):
