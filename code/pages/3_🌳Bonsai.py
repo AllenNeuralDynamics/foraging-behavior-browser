@@ -631,6 +631,24 @@ def init():
     for name, default in to_init:
         if name not in st.session_state:
             st.session_state[name] = default
+            
+    # Init auto training database
+    st.session_state.curriculum_manager = CurriculumManager(
+        saved_curriculums_on_s3=dict(
+            bucket='aind-behavior-data',
+            root='foraging_auto_training/saved_curriculums/'
+        ),
+        saved_curriculums_local='/root/capsule/curriculum_manager/',
+    )
+    st.session_state.auto_train_manager = DynamicForagingAutoTrainManager(
+        manager_name='447_demo',
+        df_behavior_on_s3=dict(bucket='aind-behavior-data',
+                                root='foraging_nwb_bonsai_processed/',
+                                file_name='df_sessions.pkl'),
+        df_manager_root_on_s3=dict(bucket='aind-behavior-data',
+                                root='foraging_auto_training/')
+    )
+    
     
     st.session_state.draw_type_mapper_session_level = {'1. Choice history': ('choice_history',   # prefix
                                                             (0, 0),     # location (row_idx, column_idx)
@@ -753,7 +771,8 @@ def app():
         stx.TabBarItemData(id="tab2", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
         stx.TabBarItemData(id="tab1", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
         stx.TabBarItemData(id="tab3", title="🐭 Mouse Inspector", description="Mouse-level summary"),
-        stx.TabBarItemData(id="tab4", title="🎓 Automatic Training", description="Curriculum and training manager"),
+        stx.TabBarItemData(id="tab4", title="🎓 Automatic Training History", description="Track progress"),
+        stx.TabBarItemData(id="tab5", title="📚 Automatic Training Curriculums", description="Collection of curriculums"),
         ], default="tab2" if 'tab_id' not in st.session_state else st.session_state.tab_id)
     # chosen_id = "tab1"
 
@@ -807,33 +826,33 @@ def app():
             selected_subject_id = st.columns([1, 3])[0].selectbox('Select a mouse', options=st.session_state.df_session_filtered['subject_id'].unique())
             st.markdown(f"### [Go to WaterLog](http://eng-tools:8004/water_weight_log/?external_donor_name={selected_subject_id})")
             
-    elif chosen_id == "tab4":
+    elif chosen_id == "tab4":  # Automatic training history
         st.session_state.tab_id = chosen_id
         with placeholder:
-            st.session_state.curriculum_manager = CurriculumManager(
-                saved_curriculums_on_s3=dict(
-                    bucket='aind-behavior-data',
-                    root='foraging_auto_training/saved_curriculums/'
-                ),
-                saved_curriculums_local='/root/capsule/curriculum_manager/',
-            )
-            
+            df_training_manager = st.session_state.auto_train_manager.df_manager
+            st.write(df_training_manager)
+
+    elif chosen_id == "tab5":  # Automatic training curriculums
+        st.session_state.tab_id = chosen_id
+        with placeholder:
+            df_training_manager = st.session_state.auto_train_manager.df_manager
             st.write(st.session_state.curriculum_manager.df_curriculums())
-    
+
     # Add debug info
-    with st.expander('NWB errors', expanded=False):
-        error_file = cache_folder + 'error_files.json'
-        if fs.exists(error_file):
-            with fs.open(error_file) as file:
-                st.json(json.load(file))
-        else:
-            st.write('No NWB error files')
-            
-    with st.expander('Pipeline log', expanded=False):
-        with fs.open(cache_folder + 'pipeline.log') as file:
-            log_content = file.read().decode('utf-8')
-        log_content = log_content.replace('\\n', '\n')
-        st.text(log_content)
+    if chosen_id != "tab5":
+        with st.expander('NWB errors', expanded=False):
+            error_file = cache_folder + 'error_files.json'
+            if fs.exists(error_file):
+                with fs.open(error_file) as file:
+                    st.json(json.load(file))
+            else:
+                st.write('No NWB error files')
+                
+        with st.expander('Pipeline log', expanded=False):
+            with fs.open(cache_folder + 'pipeline.log') as file:
+                log_content = file.read().decode('utf-8')
+            log_content = log_content.replace('\\n', '\n')
+            st.text(log_content)
     
     
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
