@@ -648,7 +648,7 @@ def init():
     
     # Init session states
     to_init = [
-               ['tab_id', "tab2"],
+               ['tab_id', "tab1"],
                ]
     
     for name, default in to_init:
@@ -793,13 +793,12 @@ def app():
         st.experimental_rerun()
             
     chosen_id = stx.tab_bar(data=[
-        stx.TabBarItemData(id="tab2", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
         stx.TabBarItemData(id="tab1", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
-        stx.TabBarItemData(id="tab3", title="🐭 Mouse Inspector", description="Mouse-level summary"),
+        stx.TabBarItemData(id="tab2", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
         stx.TabBarItemData(id="tab4", title="🎓 Automatic Training History", description="Track progress"),
         stx.TabBarItemData(id="tab5", title="📚 Automatic Training Curriculums", description="Collection of curriculums"),
-        ], default="tab2" if 'tab_id' not in st.session_state else st.session_state.tab_id)
-    # chosen_id = "tab1"
+        stx.TabBarItemData(id="tab3", title="🐭 Mouse Inspector", description="Mouse-level summary"),
+        ], default="tab1" if 'tab_id' not in st.session_state else st.session_state.tab_id)
 
     placeholder = st.container()
 
