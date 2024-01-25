@@ -639,7 +639,7 @@ def init():
             bucket='aind-behavior-data',
             root='foraging_auto_training/saved_curriculums/'
         ),
-        saved_curriculums_local='/root/capsule/curriculum_manager/',
+        saved_curriculums_local=os.path.expanduser('~/curriculum_manager/'),
     )
     st.session_state.auto_train_manager = DynamicForagingAutoTrainManager(
         manager_name='447_demo',
