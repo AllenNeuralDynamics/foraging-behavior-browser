@@ -855,7 +855,58 @@ def app():
         st.session_state.tab_id = chosen_id
         with placeholder:
             df_training_manager = st.session_state.auto_train_manager.df_manager
-            st.write(df_training_manager)
+            # -- Show plotly chart --
+            cols = st.columns([1, 1, 1, 0.5, 3])
+            x_axis = cols[0].selectbox('X axis', options=['session', 'date', 'relative_date'])
+            sort_by = cols[1].selectbox('Sort by', options=['subject_id', 
+                                                       'first_date',
+                                                       'last_date',
+                                                       'progress_to_graduated'])
+            sort_order = cols[2].selectbox('Sort order', options=['ascending', 'descending'])
+            marker_size = cols[3].number_input('Marker size', value=15)
+                                        
+            fig_auto_train = st.session_state.auto_train_manager.plot_all_progress(
+                x_axis=x_axis,
+                sort_by=sort_by,
+                sort_order=sort_order,
+                if_show_fig=False
+            )
+            fig_auto_train.update_layout(
+                hovermode='closest',
+                hoverlabel=dict(
+                    font_size=20,
+                ),
+                title='All training progress',
+                yaxis=dict(zeroline=False, title=''),
+                font=dict(size=18),
+            )            
+            fig_auto_train.update_traces(marker=dict(size=marker_size))
+            
+            selected_ = plotly_events(fig_auto_train,
+                                        override_height=fig_auto_train.layout.height * 1.1, 
+                                        override_width=fig_auto_train.layout.width,
+                                        click_event=False,
+                                        select_event=False,
+                                        )
+            
+            
+            # -- Show dataframe --
+            # only show filtered subject
+            df_training_manager = df_training_manager[df_training_manager['subject_id'].isin(
+                st.session_state.df_session_filtered['subject_id'].unique())]
+            
+            # reorder columns
+            df_training_manager = df_training_manager[['subject_id', 'session_date', 'session', 
+                                                       'curriculum_name', 'curriculum_version', 'curriculum_schema_version',
+                                                       'current_stage_suggested', 'current_stage_actual',
+                                                       'session_at_current_stage',
+                                                       'if_closed_loop', 'if_overriden_by_trainer',
+                                                       'foraging_efficiency', 'finished_trials', 
+                                                       'decision', 'next_stage_suggested'
+                                                       ]]
+            
+            with st.expander('Automatic training manager', expanded=True):
+                st.write(df_training_manager)
 
     elif chosen_id == "tab5":  # Automatic training curriculums
         st.session_state.tab_id = chosen_id
