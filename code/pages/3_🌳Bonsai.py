@@ -842,25 +842,27 @@ def app():
             cols = st.columns([1, 1])
             with cols[0]:
                 aggrid_curriculum_outputs = aggrid_interactive_table_curriculum(df=df_curriculums)
-                
-            # Get selected curriculum
-            selected_row = aggrid_curriculum_outputs['selected_rows'][0]
-            selected_curriculum = st.session_state.curriculum_manager.get_curriculum(
-                curriculum_name=selected_row['curriculum_name'],
-                curriculum_schema_version=selected_row['curriculum_schema_version'],
-                curriculum_version=selected_row['curriculum_version'],
-                )
-            curriculum = selected_curriculum['curriculum']
-        
-            # Show diagrams
-            cols = st.columns([1, 1.5])
-            with cols[0]:
-                st.graphviz_chart(curriculum.diagram_rules(render_file_format=''),
-                                use_container_width=True)
-            with cols[1]:
-                st.graphviz_chart(curriculum.diagram_paras(render_file_format=''),
-                                use_container_width=True)
-                
+            
+            if aggrid_curriculum_outputs['selected_rows']:
+                # Get selected curriculum
+                selected_row = aggrid_curriculum_outputs['selected_rows'][0]
+                selected_curriculum = st.session_state.curriculum_manager.get_curriculum(
+                    curriculum_name=selected_row['curriculum_name'],
+                    curriculum_schema_version=selected_row['curriculum_schema_version'],
+                    curriculum_version=selected_row['curriculum_version'],
+                    )
+                curriculum = selected_curriculum['curriculum']
+            
+                # Show diagrams
+                cols = st.columns([1, 1.5])
+                with cols[0]:
+                    st.graphviz_chart(curriculum.diagram_rules(render_file_format=''),
+                                    use_container_width=True)
+                with cols[1]:
+                    st.graphviz_chart(curriculum.diagram_paras(render_file_format=''),
+                                    use_container_width=True)
+            else:
+                st.write('Select a curriculum above.') 
 
     # Add debug info
     if chosen_id != "tab5":
