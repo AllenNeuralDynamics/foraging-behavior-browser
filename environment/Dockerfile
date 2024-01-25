@@ -73,7 +73,7 @@ RUN pip install -U --no-cache-dir \
     toml==0.10.2 \
     toolz==0.12.0 \
     tornado==6.2 \
-    typing-extensions==4.4.0 \
+    typing-extensions==4.9.0 \
     tzdata==2022.6 \
     tzlocal==4.2 \
     urllib3==1.26.13 \
@@ -86,7 +86,8 @@ RUN pip install -U --no-cache-dir \
     statsmodels \
     statannotations \
     seaborn \
-    pynwb --ignore-installed ruamel.yaml
+    pynwb --ignore-installed ruamel.yaml\
+    git+https://github.com/AllenNeuralDynamics/aind-foraging-behavior-bonsai-automatic-training.git@main
 
 ADD "https://github.com/coder/code-server/releases/download/v4.9.0/code-server-4.9.0-linux-amd64.tar.gz" /.code-server/code-server.tar.gz
 	

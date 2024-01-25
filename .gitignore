@@ -3,6 +3,7 @@ __pycache__/
 .vscode
 .gitignore
 secrets*
+curriculum_manager
 
 .streamlit/secrets.toml
 *.pyc
