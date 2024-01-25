@@ -91,6 +91,37 @@ def aggrid_interactive_table_session(df: pd.DataFrame):
     
     return selection
 
+def aggrid_interactive_table_curriculum(df: pd.DataFrame):
+    """Creates an st-aggrid interactive table based on a dataframe.
+
+    Args:
+        df (pd.DataFrame]): Source dataframe
+
+    Returns:
+        dict: The selected row
+    """
+    options = GridOptionsBuilder.from_dataframe(
+        df, enableRowGroup=True, enableValue=True, enablePivot=True,
+    )
+
+    options.configure_side_bar()
+    
+    options.configure_selection(selection_mode="single")
+        
+    selection = AgGrid(
+        df,
+        enable_enterprise_modules=True,
+        gridOptions=options.build(),
+        theme="balham",
+        update_mode=GridUpdateMode.SELECTION_CHANGED,
+        allow_unsafe_jscode=True,
+        height=300,
+        columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
+        custom_css=custom_css,
+    )
+    
+    return selection
+
 def aggrid_interactive_table_units(df: pd.DataFrame):
     """Creates an st-aggrid interactive table based on a dataframe.
 
