@@ -653,8 +653,7 @@ def init():
 
     df = load_data(['sessions', 
                    ])
-    
-        
+                
     st.session_state.df = df
     st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
     st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
@@ -726,7 +725,7 @@ def init():
    
     # Some ad-hoc modifications on df_sessions
     st.session_state.df['sessions_bonsai'].columns = st.session_state.df['sessions_bonsai'].columns.get_level_values(1)
-    st.session_state.df['sessions_bonsai'] = st.session_state.df['sessions_bonsai'].reset_index()
+    st.session_state.df['sessions_bonsai'] = st.session_state.df['sessions_bonsai'].reset_index().query('subject_id != "0"')
     st.session_state.df['sessions_bonsai']['h2o'] = st.session_state.df['sessions_bonsai']['subject_id']
     st.session_state.df['sessions_bonsai'].dropna(subset=['session'], inplace=True) # Remove rows with no session number (only leave the nwb file with the largest finished_trials for now)
     
@@ -876,33 +875,45 @@ def app():
     elif chosen_id == "tab_auto_train_history":  # Automatic training history
         st.session_state.tab_id = chosen_id
         with placeholder:
+            
+            st.session_state.auto_train_manager.df_manager = st.session_state.auto_train_manager.df_manager[
+                st.session_state.auto_train_manager.df_manager.subject_id.astype(float) > 0]  # Remove dummy mouse 0
             df_training_manager = st.session_state.auto_train_manager.df_manager
+            
             # -- Show plotly chart --
-            cols = st.columns([1, 1, 1, 0.5, 3])
+            cols = st.columns([1, 1, 1, 0.7, 0.7, 3])
             x_axis = cols[0].selectbox('X axis', options=['session', 'date', 'relative_date'])
             sort_by = cols[1].selectbox('Sort by', options=['subject_id', 
                                                        'first_date',
                                                        'last_date',
                                                        'progress_to_graduated'])
-            sort_order = cols[2].selectbox('Sort order', options=['ascending', 'descending'])
-            marker_size = cols[3].number_input('Marker size', value=15)
+            sort_order = cols[2].selectbox('Sort order', options=['descending', 'ascending'])
+            marker_size = cols[3].number_input('Marker size', value=15, step=1)
+            marker_edge_width = cols[4].number_input('Marker edge width', value=3, step=1)
+            
+            # Get highlighted subjects
+            if ('select_subject_id_cache' in st.session_state and st.session_state.select_subject_id_cache) or \
+                'subject_id' in st.query_params:   # If subject_id is manually filtered or through URL query
+                highlight_subjects = list(st.session_state.df_session_filtered['subject_id'].unique())
+            else:
+                highlight_subjects = []
                                         
             fig_auto_train = st.session_state.auto_train_manager.plot_all_progress(
                 x_axis=x_axis,
                 sort_by=sort_by,
                 sort_order=sort_order,
+                marker_size=marker_size,
+                marker_edge_width=marker_edge_width,
+                highlight_subjects=highlight_subjects,
                 if_show_fig=False
             )
+            
             fig_auto_train.update_layout(
-                hovermode='closest',
                 hoverlabel=dict(
                     font_size=20,
                 ),
-                title='All training progress',
-                yaxis=dict(zeroline=False, title=''),
                 font=dict(size=18),
             )            
-            fig_auto_train.update_traces(marker=dict(size=marker_size))
             
             selected_ = plotly_events(fig_auto_train,
                                         override_height=fig_auto_train.layout.height * 1.1, 
