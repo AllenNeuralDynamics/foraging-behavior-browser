@@ -719,7 +719,15 @@ def app():
     st.markdown('##### (still using a temporary workaround until AIND behavior metadata and pipeline are set up)')
 
     with st.sidebar:
-        add_session_filter(if_bonsai=True)
+        
+        # === Get query from url ===
+        # example query:
+        # /?subject_id=699982   # only show one subject
+        # /?session=10&session=20  # show sessions between 10 and 20
+        url_query = st.query_params
+        
+        add_session_filter(if_bonsai=True,
+                           url_query=url_query)
         data_selector()
     
         st.markdown('---')
