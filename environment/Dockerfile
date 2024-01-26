@@ -65,7 +65,7 @@ RUN pip install -U --no-cache-dir \
     semver==2.13.0 \
     six==1.16.0 \
     smmap==5.0.0 \
-    streamlit==1.19.0 \
+    streamlit==1.30.0 \
     streamlit-aggrid==0.3.3 \
     streamlit-nested-layout==0.1.1 \
     streamlit-plotly-events==0.0.6 \
