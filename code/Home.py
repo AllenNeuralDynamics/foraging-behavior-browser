@@ -12,6 +12,28 @@ Example queries:
 
 """
 
+# Sync widgets with URL query params
+# https://blog.streamlit.io/how-streamlit-uses-streamlit-sharing-contextual-apps/
+# dict of "key": default pairs
+# Note: When creating the widget, add argument "value"/"index" as well as "key" for all widgets you want to sync with URL
+to_sync_with_url_query = {
+    'x_y_plot_xname': 'session',
+    'x_y_plot_yname': 'foraging_eff',
+    'x_y_plot_group_by': 'h2o',
+    'x_y_plot_if_show_dots': True,
+    'x_y_plot_if_aggr_each_group': True,
+    'x_y_plot_aggr_method_group': 'lowess',
+    'x_y_plot_if_aggr_all': True,
+    'x_y_plot_aggr_method_all': 'mean +/- sem',
+    'x_y_plot_smooth_factor': 5,
+    'x_y_plot_dot_size': 10,
+    'x_y_plot_dot_opacity': 0.5,
+    'auto_training_history_x_axis': 'date',
+    'auto_training_history_sort_by': 'subject_id',
+    'tab_id': 'tab_session_x_y'
+    }
+
+
 #%%
 import pandas as pd
 import streamlit as st
@@ -33,6 +55,10 @@ from PIL import Image, ImageColor
 import streamlit.components.v1 as components
 import streamlit_nested_layout
 from streamlit_plotly_events import plotly_events
+
+# To suppress the warning that I set the default value of a widget and also set it in the session state
+from streamlit.elements.utils import _shown_default_value_warning
+_shown_default_value_warning = True
 
 from util.streamlit import (filter_dataframe, aggrid_interactive_table_session,
                             aggrid_interactive_table_curriculum, add_session_filter, data_selector)
@@ -532,40 +558,55 @@ def plot_x_y_session():
         with st.expander('Plot settings', expanded=True):            
             s_cols = st.columns([1, 1, 1])
             # if_plot_only_selected_from_dataframe = s_cols[0].checkbox('Only selected', False)
-            if_show_dots = s_cols[0].checkbox('Show data points', True)
+            if_show_dots = s_cols[0].checkbox('Show data points', 
+                                              value=st.session_state['x_y_plot_if_show_dots'],
+                                              key='x_y_plot_if_show_dots')
             
-            aggr_methods =  ['mean', 'mean +/- sem', 'lowess', 'running average', 'linear fit']
 
             if_aggr_each_group = s_cols[1].checkbox('Aggr each group', 
-                                                    value=st.session_state.if_aggr_each_group_cache 
-                                                        if 'if_aggr_each_group_cache' in st.session_state
-                                                        else True, )
+                                                    value=st.session_state['x_y_plot_if_aggr_each_group'],
+                                                    key='x_y_plot_if_aggr_each_group')
             
-            st.session_state.if_aggr_each_group_cache = if_aggr_each_group  # Have to use another variable to store this explicitly (my cache_widget somehow doesn't work with checkbox)
-            aggr_method_group = s_cols[1].selectbox('aggr method group', aggr_methods, index=aggr_methods.index('lowess'), disabled=not if_aggr_each_group)
+            aggr_methods =  ['mean', 'mean +/- sem', 'lowess', 'running average', 'linear fit']
+            aggr_method_group = s_cols[1].selectbox('aggr method group', 
+                                                    options=aggr_methods, 
+                                                    index=aggr_methods.index(st.session_state['x_y_plot_aggr_method_group']),
+                                                    key='x_y_plot_aggr_method_group', 
+                                                    disabled=not if_aggr_each_group)
             
             if_use_x_quantile_group = s_cols[1].checkbox('Use quantiles of x ', False) if 'mean' in aggr_method_group else False
             q_quantiles_group = s_cols[1].slider('Number of quantiles ', 1, 100, 20, disabled=not if_use_x_quantile_group) if if_use_x_quantile_group else None
             
-            if_aggr_all = s_cols[2].checkbox('Aggr all', 
-                                            value=st.session_state.if_aggr_all_cache
-                                                  if 'if_aggr_all_cache' in st.session_state
-                                                  else st.query_params['if_aggr_all'].lower() == 'true' if 'if_aggr_all' in st.query_params
-                                                  else True,
+            if_aggr_all = s_cols[2].checkbox('Aggr all',
+                                             value=st.session_state['x_y_plot_if_aggr_all'],
+                                             key='x_y_plot_if_aggr_all',
                                             )
             
-            st.session_state.if_aggr_all_cache = if_aggr_all  # Have to use another variable to store this explicitly (my cache_widget somehow doesn't work with checkbox)
-            aggr_method_all = s_cols[2].selectbox('aggr method all', aggr_methods, index=aggr_methods.index('mean +/- sem'), disabled=not if_aggr_all)
+            # st.session_state.if_aggr_all_cache = if_aggr_all  # Have to use another variable to store this explicitly (my cache_widget somehow doesn't work with checkbox)
+            aggr_method_all = s_cols[2].selectbox('aggr method all', aggr_methods, 
+                                                  index=aggr_methods.index(st.session_state['x_y_plot_aggr_method_all']), 
+                                                  key='x_y_plot_aggr_method_all',
+                                                  disabled=not if_aggr_all)
 
             if_use_x_quantile_all = s_cols[2].checkbox('Use quantiles of x', False) if 'mean' in aggr_method_all else False
             q_quantiles_all = s_cols[2].slider('number of quantiles', 1, 100, 20, disabled=not if_use_x_quantile_all) if if_use_x_quantile_all else None
 
-            smooth_factor = s_cols[0].slider('smooth factor', 1, 20, 5) if ((if_aggr_each_group and aggr_method_group in ('running average', 'lowess'))
+            smooth_factor = s_cols[0].slider('smooth factor', 1, 20,
+                                             value=st.session_state['x_y_plot_smooth_factor'],
+                                             key='x_y_plot_smooth_factor',
+                                             ) if ((if_aggr_each_group and aggr_method_group in ('running average', 'lowess'))
                                                                         or (if_aggr_all and aggr_method_all in ('running average', 'lowess'))) else None
             
             c = st.columns([1, 1])
-            dot_size = c[0].slider('dot size', 1, 30, step=1, value=10)
-            dot_opacity = c[1].slider('opacity', 0.0, 1.0, step=0.05, value=0.5)
+            dot_size = c[0].slider('dot size', 1, 30, 
+                                   step=1,
+                                   value=st.session_state['x_y_plot_dot_size'],
+                                   key='x_y_plot_dot_size'
+                                   )
+            dot_opacity = c[1].slider('opacity', 0.0, 1.0, 
+                                      step=0.05, 
+                                      value=st.session_state['x_y_plot_dot_opacity'],
+                                      key='x_y_plot_dot_opacity')
 
     
     # If no sessions are selected, use all filtered entries
@@ -612,10 +653,22 @@ def add_xy_selector():
     with st.expander("Select axes", expanded=True):
         # with st.form("axis_selection"):
         cols = st.columns([1, 1, 1])
-        x_name = cols[0].selectbox("x axis", st.session_state.session_stats_names, index=st.session_state.session_stats_names.index('session'))
-        y_name = cols[1].selectbox("y axis", st.session_state.session_stats_names, index=st.session_state.session_stats_names.index('foraging_eff'))
-        group_by = cols[2].selectbox("grouped by", ['h2o', 'task',
-                                                    'user_name', 'rig'], index=['h2o', 'task'].index('h2o'))
+        x_name = cols[0].selectbox("x axis", 
+                                   st.session_state.session_stats_names, 
+                                   index=st.session_state.session_stats_names.index(st.session_state['x_y_plot_xname']),
+                                   key='x_y_plot_xname'
+                                   )
+        y_name = cols[1].selectbox("y axis", 
+                                   st.session_state.session_stats_names, 
+                                   index=st.session_state.session_stats_names.index(st.session_state['x_y_plot_xname']),
+                                   key='x_y_plot_yname')
+        
+        options = ['h2o', 'task', 'user_name', 'rig']
+        group_by = cols[2].selectbox("grouped by", 
+                                     options=options, 
+                                     index=options.index(st.session_state['x_y_plot_group_by']),
+                                     key='x_y_plot_group_by')
+        
             # st.form_submit_button("update axes")
     return x_name, y_name, group_by
 
@@ -637,15 +690,6 @@ def init():
     st.session_state.df = df
     st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
     st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
-    
-    # Init session states
-    to_init = [
-               ['tab_id', "tab_session_x_y"],
-               ]
-    
-    for name, default in to_init:
-        if name not in st.session_state:
-            st.session_state[name] = default
             
     # Init auto training database
     st.session_state.curriculum_manager = CurriculumManager(
@@ -725,12 +769,26 @@ def init():
 
     st.session_state.session_stats_names = [keys for keys in st.session_state.df['sessions_bonsai'].keys()]
    
-   
+def _sync_widget_with_query(key, default):
+    if key not in st.session_state:
+        if key in st.query_params:
+            if type(default) in [int, float]:
+                st.session_state[key] = type(default)(st.query_params[key])
+            elif type(default) == bool:
+                st.session_state[key] = st.query_params[key].lower() == 'true'
+            else:
+                st.session_state[key] = st.query_params[key]
+        else:
+            st.session_state[key] = default
     
 
 def app():
     st.markdown('## 🌳🪴 Foraging sessions from Bonsai 🌳🪴')
     st.markdown('##### (still using a temporary workaround until AIND behavior metadata and pipeline are set up)')
+        
+    # Set session state from URL
+    for key, default in to_sync_with_url_query.items():
+        _sync_widget_with_query(key, default)
 
     with st.sidebar:
         
@@ -793,9 +851,8 @@ def app():
         stx.TabBarItemData(id="tab_auto_train_history", title="🎓 Automatic Training History", description="Track progress"),
         stx.TabBarItemData(id="tab_auto_train_curriculum", title="📚 Automatic Training Curriculums", description="Collection of curriculums"),
         stx.TabBarItemData(id="tab_mouse_inspector", title="🐭 Mouse Inspector", description="Mouse-level summary"),
-        ], default="tab_session_x_y" if 'tab_id' not in st.session_state 
-                            else st.query_params['tab_id'] if 'tab_id' in st.query_params
-                            else st.session_state.tab_id)
+        ], default=st.query_params['tab_id'] if 'tab_id' in st.query_params
+                   else st.session_state.tab_id)
 
     placeholder = st.container()
 
@@ -857,12 +914,22 @@ def app():
             
             # -- Show plotly chart --
             cols = st.columns([1, 1, 1, 0.7, 0.7, 3])
-            x_axis = cols[0].selectbox('X axis', options=['session', 'date', 'relative_date'])
-            sort_by = cols[1].selectbox('Sort by', options=['subject_id', 
-                                                       'first_date',
-                                                       'last_date',
-                                                       'progress_to_graduated'])
+            options=['session', 'date', 'relative_date']
+            x_axis = cols[0].selectbox('X axis', options=options, 
+                                       index=options.index(st.session_state['auto_training_history_x_axis']),
+                                       key="auto_training_history_x_axis")
+            
+            options=['subject_id', 
+                    'first_date',
+                    'last_date',
+                    'progress_to_graduated']
+            sort_by = cols[1].selectbox('Sort by', 
+                                        options=options,
+                                        index=options.index(st.session_state['auto_training_history_sort_by']),
+                                        key="auto_training_history_sort_by")
+            
             sort_order = cols[2].selectbox('Sort order', options=['descending', 'ascending'])
+            
             marker_size = cols[3].number_input('Marker size', value=15, step=1)
             marker_edge_width = cols[4].number_input('Marker edge width', value=3, step=1)
             
@@ -963,6 +1030,9 @@ def app():
             log_content = log_content.replace('\\n', '\n')
             st.text(log_content)
     
+    # Update back to URL
+    for key in to_sync_with_url_query:
+        st.query_params.update({key: st.session_state[key]})
     
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
 

@@ -172,7 +172,7 @@ def cache_widget(field, clear=None):
 
 def filter_dataframe(df: pd.DataFrame, 
                      default_filters=['h2o', 'task', 'finished_trials', 'photostim_location'],
-                     url_query=None) -> pd.DataFrame:
+                     url_query={}) -> pd.DataFrame:
     """
     Adds a UI on top of a dataframe to let viewers filter columns
 
@@ -319,6 +319,12 @@ def filter_dataframe(df: pd.DataFrame,
                     default_value = st.session_state[f'select_{column}_cache']
                 elif column in url_query:
                     default_value = url_query[column]
+                    # If the query is subject_id, we ignore it if it is 0 or subject_id is not valid
+                    if column == 'subject_id' \
+                        and (float(url_query[column]) == 0
+                             or url_query[column] not in list(df[column])
+                        ):
+                        default_value = ''
                 else:
                     default_value = ''
                 
@@ -335,7 +341,7 @@ def filter_dataframe(df: pd.DataFrame,
 
     return df
 
-def add_session_filter(if_bonsai=False, url_query=None):
+def add_session_filter(if_bonsai=False, url_query={}):
     with st.expander("Behavioral session filter", expanded=True):   
         if not if_bonsai:
             st.session_state.df_session_filtered = filter_dataframe(df=st.session_state.df['sessions'],
