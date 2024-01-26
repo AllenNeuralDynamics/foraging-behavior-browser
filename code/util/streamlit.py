@@ -171,12 +171,14 @@ def cache_widget(field, clear=None):
 
 
 def filter_dataframe(df: pd.DataFrame, 
-                     default_filters=['h2o', 'task', 'finished_trials', 'photostim_location']) -> pd.DataFrame:
+                     default_filters=['h2o', 'task', 'finished_trials', 'photostim_location'],
+                     url_query=None) -> pd.DataFrame:
     """
     Adds a UI on top of a dataframe to let viewers filter columns
 
     Args:
         df (pd.DataFrame): Original dataframe
+        url_query: a dictionary of filters from the url query to apply to the dataframe
 
     Returns:
         pd.DataFrame: Filtered dataframe
@@ -258,14 +260,24 @@ def filter_dataframe(df: pd.DataFrame,
 
                     c_hist = st.container()  # Histogram
                     
+                    if f'select_{column}_cache' in st.session_state:
+                        default_value = st.session_state[f'select_{column}_cache']
+                    elif column in url_query:
+                        # For a numeric column, we must have exact two values from the url query, i.e., min and max
+                        _range = st.query_params.get_all(column)
+                        if len(_range) == 2:
+                            default_value = (float(_range[0]), float(_range[1]))
+                        else:
+                            default_value = (_min, _max)
+                    else:
+                        default_value = (_min, _max)
+                    
                     user_num_input = st.slider(
                         f"Values for {column}",
                         label_visibility='collapsed',
                         min_value=_min,
                         max_value=_max,
-                        value= st.session_state[f'select_{column}_cache']
-                                if f'select_{column}_cache' in st.session_state
-                                else (_min, _max),
+                        value=default_value,
                         step=step,
                         key=f'select_{column}',
                         on_change=cache_widget,
@@ -303,11 +315,16 @@ def filter_dataframe(df: pd.DataFrame,
                     start_date, end_date = user_date_input
                     df = df.loc[df[column].between(start_date, end_date)]
             else:
+                if f'select_{column}_cache' in st.session_state:
+                    default_value = st.session_state[f'select_{column}_cache']
+                elif column in url_query:
+                    default_value = url_query[column]
+                else:
+                    default_value = ''
+                
                 user_text_input = right.text_input(
                     f"Substring or regex in :red[**{column}**]",
-                    value=st.session_state[f'select_{column}_cache']
-                                if f'select_{column}_cache' in st.session_state
-                                else '',
+                    value=default_value,
                     key=f'select_{column}',
                     on_change=cache_widget,
                     args=[f'select_{column}']
@@ -318,13 +335,15 @@ def filter_dataframe(df: pd.DataFrame,
 
     return df
 
-def add_session_filter(if_bonsai=False):
+def add_session_filter(if_bonsai=False, url_query=None):
     with st.expander("Behavioral session filter", expanded=True):   
         if not if_bonsai:
-            st.session_state.df_session_filtered = filter_dataframe(df=st.session_state.df['sessions'])
+            st.session_state.df_session_filtered = filter_dataframe(df=st.session_state.df['sessions'],
+                                                                    url_query=url_query)
         else:
             st.session_state.df_session_filtered = filter_dataframe(df=st.session_state.df['sessions_bonsai'],
-                                                                    default_filters=['subject_id', 'task', 'session', 'finished_trials', 'foraging_eff'])
+                                                                    default_filters=['subject_id', 'task', 'session', 'finished_trials', 'foraging_eff'],
+                                                                    url_query=url_query)
             
     
     
