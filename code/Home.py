@@ -65,14 +65,12 @@ def _get_urls():
 
 def add_caution():
     behavior_url, ephys_url = _get_urls()
-    st.markdown('### ***:blue[❗️Caution: Due to bugs and resource limitations of the Streamlit public cloud, the app you are currently viewing may be unstable and buggy 🐞. '
+    st.markdown('##### ***:blue[❗️Caution: Due to bugs and resource limitations of the Streamlit public cloud, the app you are currently viewing may be unstable and buggy 🐞. '
                 f'It is recommended that you switch to [the one in Code Ocean]({behavior_url}) instead. '
                 'However, you will need to log in to Code Ocean first. Please contact David if you have any questions. '
                 f'See also [the ephys browser in Code Ocean]({ephys_url}) '
                 '(recommended) and [the one on the public cloud](https://foraging-ephys-browser.streamlit.app/)]***')
-                
-    st.markdown('---')
-    
+                    
 @st.cache_data(ttl=24*3600)
 def load_data(tables=['sessions']):
     df = {}
@@ -737,10 +735,13 @@ def init():
     
 
 def app():
-    add_caution()
     
-    st.markdown('## 🌳🪴 Foraging sessions from Bonsai 🌳🪴')
-    st.markdown('##### (still using a temporary workaround until AIND behavior metadata and pipeline are set up)')
+    cols = st.columns([1, 1.2])
+    with cols[0]:
+        st.markdown('## 🌳🪴 Foraging sessions from Bonsai 🌳🪴')
+        st.markdown('##### (still using a temporary workaround until AIND behavior metadata and pipeline are set up)')
+    with cols[1]:
+        add_caution()
 
     with st.sidebar:
         add_session_filter(if_bonsai=True)
