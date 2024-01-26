@@ -648,7 +648,7 @@ def init():
     # Init session states
     to_init = [
                ['model_id', 21],   # add some model fitting params to session
-               ['tab_id', "tab2"],
+               ['tab_id', "tab_session_inspector"],
                ]
     
     for name, default in to_init:
@@ -769,19 +769,19 @@ def app():
                                                         ) == set(st.session_state.df_selected_from_dataframe.set_index(['h2o', 'session']).index):
         st.session_state.df_selected_from_dataframe = pd.DataFrame(aggrid_outputs['selected_rows'])
         st.session_state.df_selected_from_plotly = st.session_state.df_selected_from_dataframe  # Sync selected on plotly
-        # if st.session_state.tab_id == "tab1":
+        # if st.session_state.tab_id == "tab_session_x_y":
         st.experimental_rerun()
             
     chosen_id = stx.tab_bar(data=[
-        stx.TabBarItemData(id="tab2", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
-        stx.TabBarItemData(id="tab1", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
-        stx.TabBarItemData(id="tab3", title="🐭 Mouse Model Fitting", description="Mouse-level model fitting results"),
-        ], default="tab2" if 'tab_id' not in st.session_state else st.session_state.tab_id)
-    # chosen_id = "tab1"
+        stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
+        stx.TabBarItemData(id="tab_session_x_y", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
+        stx.TabBarItemData(id="tab_mouse_inspector", title="🐭 Mouse Model Fitting", description="Mouse-level model fitting results"),
+        ], default="tab_session_inspector" if 'tab_id' not in st.session_state else st.session_state.tab_id)
+    # chosen_id = "tab_session_x_y"
 
     placeholder = st.container()
 
-    if chosen_id == "tab1":
+    if chosen_id == "tab_session_x_y":
         st.session_state.tab_id = chosen_id
         with placeholder:
             df_selected_from_plotly, x_y_cols = plot_x_y_session()
@@ -802,7 +802,7 @@ def app():
                 st.session_state.df_selected_from_dataframe = df_selected_from_plotly  # Sync selected on dataframe
                 st.experimental_rerun()
             
-    elif chosen_id == "tab2":
+    elif chosen_id == "tab_session_inspector":
         st.session_state.tab_id = chosen_id
         with placeholder:
             with st.columns([4, 10])[0]:
@@ -812,7 +812,7 @@ def app():
             if if_draw_all_sessions and len(df_to_draw_sessions):
                 draw_session_plots(df_to_draw_sessions)
                 
-    elif chosen_id == "tab3":
+    elif chosen_id == "tab_mouse_inspector":
         st.session_state.tab_id = chosen_id
         with placeholder:
             with st.columns([4, 10])[0]:
