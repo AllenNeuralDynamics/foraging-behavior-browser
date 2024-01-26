@@ -1,3 +1,17 @@
+"""
+Streamlit app for visualizing behavior data
+https://foraging-behavior-browser.streamlit.app/
+
+Note the url is now queryable, e.g. https://foraging-behavior-browser.streamlit.app/?subject_id=41392
+
+Example queries:
+ /?subject_id=699982   # only show one subject
+ /?session=10&session=20  # show sessions between 10 and 20
+ /?tab_id=tab_1  # Show specific tab
+ /?if_aggr_all=false
+
+"""
+
 #%%
 import pandas as pd
 import streamlit as st
@@ -535,8 +549,9 @@ def plot_x_y_session():
             
             if_aggr_all = s_cols[2].checkbox('Aggr all', 
                                             value=st.session_state.if_aggr_all_cache
-                                                if 'if_aggr_all_cache' in st.session_state
-                                                else True,
+                                                  if 'if_aggr_all_cache' in st.session_state
+                                                  else st.query_params['if_aggr_all'].lower() == 'true' if 'if_aggr_all' in st.query_params
+                                                  else True,
                                             )
             
             st.session_state.if_aggr_all_cache = if_aggr_all  # Have to use another variable to store this explicitly (my cache_widget somehow doesn't work with checkbox)
@@ -626,7 +641,7 @@ def init():
     
     # Init session states
     to_init = [
-               ['tab_id', "tab1"],
+               ['tab_id', "tab_session_x_y"],
                ]
     
     for name, default in to_init:
@@ -721,9 +736,6 @@ def app():
     with st.sidebar:
         
         # === Get query from url ===
-        # example query:
-        # /?subject_id=699982   # only show one subject
-        # /?session=10&session=20  # show sessions between 10 and 20
         url_query = st.query_params
         
         add_session_filter(if_bonsai=True,
@@ -773,20 +785,22 @@ def app():
                                                         ) == set(st.session_state.df_selected_from_dataframe.set_index(['h2o', 'session']).index):
         st.session_state.df_selected_from_dataframe = pd.DataFrame(aggrid_outputs['selected_rows'])
         st.session_state.df_selected_from_plotly = st.session_state.df_selected_from_dataframe  # Sync selected on plotly
-        # if st.session_state.tab_id == "tab1":
+        # if st.session_state.tab_id == "tab_session_x_y":
         st.experimental_rerun()
-            
+
     chosen_id = stx.tab_bar(data=[
-        stx.TabBarItemData(id="tab1", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
-        stx.TabBarItemData(id="tab2", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
-        stx.TabBarItemData(id="tab4", title="🎓 Automatic Training History", description="Track progress"),
-        stx.TabBarItemData(id="tab5", title="📚 Automatic Training Curriculums", description="Collection of curriculums"),
-        stx.TabBarItemData(id="tab3", title="🐭 Mouse Inspector", description="Mouse-level summary"),
-        ], default="tab1" if 'tab_id' not in st.session_state else st.session_state.tab_id)
+        stx.TabBarItemData(id="tab_session_x_y", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
+        stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
+        stx.TabBarItemData(id="tab_auto_train_history", title="🎓 Automatic Training History", description="Track progress"),
+        stx.TabBarItemData(id="tab_auto_train_curriculum", title="📚 Automatic Training Curriculums", description="Collection of curriculums"),
+        stx.TabBarItemData(id="tab_mouse_inspector", title="🐭 Mouse Inspector", description="Mouse-level summary"),
+        ], default="tab_session_x_y" if 'tab_id' not in st.session_state 
+                            else st.query_params['tab_id'] if 'tab_id' in st.query_params
+                            else st.session_state.tab_id)
 
     placeholder = st.container()
 
-    if chosen_id == "tab1":
+    if chosen_id == "tab_session_x_y":
         st.session_state.tab_id = chosen_id
         with placeholder:
             df_selected_from_plotly, x_y_cols = plot_x_y_session()
@@ -818,7 +832,7 @@ def app():
             log_content = log_content.replace('\\n', '\n')
             st.text(log_content)
         
-    elif chosen_id == "tab2":
+    elif chosen_id == "tab_session_inspector":
         st.session_state.tab_id = chosen_id
         with placeholder:
             with st.columns([4, 10])[0]:
@@ -828,13 +842,13 @@ def app():
             if if_draw_all_sessions and len(df_to_draw_sessions):
                 draw_session_plots(df_to_draw_sessions)
                 
-    elif chosen_id == "tab3":
+    elif chosen_id == "tab_mouse_inspector":
         st.session_state.tab_id = chosen_id
         with placeholder:
             selected_subject_id = st.columns([1, 3])[0].selectbox('Select a mouse', options=st.session_state.df_session_filtered['subject_id'].unique())
             st.markdown(f"### [Go to WaterLog](http://eng-tools:8004/water_weight_log/?external_donor_name={selected_subject_id})")
             
-    elif chosen_id == "tab4":  # Automatic training history
+    elif chosen_id == "tab_auto_train_history":  # Automatic training history
         st.session_state.tab_id = chosen_id
         with placeholder:
             df_training_manager = st.session_state.auto_train_manager.df_manager
@@ -891,7 +905,7 @@ def app():
             with st.expander('Automatic training manager', expanded=True):
                 st.write(df_training_manager)
 
-    elif chosen_id == "tab5":  # Automatic training curriculums
+    elif chosen_id == "tab_auto_train_curriculum":  # Automatic training curriculums
         st.session_state.tab_id = chosen_id
         df_curriculums = st.session_state.curriculum_manager.df_curriculums().sort_values(by='curriculum_name')     
         with placeholder:
@@ -923,7 +937,7 @@ def app():
                 st.write('Select a curriculum above.') 
 
     # Add debug info
-    if chosen_id != "tab5":
+    if chosen_id != "tab_auto_train_curriculum":
         with st.expander('NWB errors', expanded=False):
             error_file = cache_folder + 'error_files.json'
             if fs.exists(error_file):
