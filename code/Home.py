@@ -1,3 +1,17 @@
+"""
+Streamlit app for visualizing behavior data
+https://foraging-behavior-browser.streamlit.app/
+
+Note the url is now queryable, e.g. https://foraging-behavior-browser.streamlit.app/?subject_id=41392
+
+Example queries:
+ /?subject_id=699982   # only show one subject
+ /?session=10&session=20  # show sessions between 10 and 20
+ /?tab_id=tab_1  # Show specific tab
+ /?if_aggr_all=false
+
+"""
+
 #%%
 import pandas as pd
 import streamlit as st
@@ -555,8 +569,9 @@ def plot_x_y_session():
             
             if_aggr_all = s_cols[2].checkbox('Aggr all', 
                                             value=st.session_state.if_aggr_all_cache
-                                                if 'if_aggr_all_cache' in st.session_state
-                                                else True,
+                                                  if 'if_aggr_all_cache' in st.session_state
+                                                  else st.query_params['if_aggr_all'].lower() == 'true' if 'if_aggr_all' in st.query_params
+                                                  else True,
                                             )
             
             st.session_state.if_aggr_all_cache = if_aggr_all  # Have to use another variable to store this explicitly (my cache_widget somehow doesn't work with checkbox)
@@ -638,15 +653,14 @@ def init():
 
     df = load_data(['sessions', 
                    ])
-    
-        
+                
     st.session_state.df = df
     st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
     st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
     
     # Init session states
     to_init = [
-               ['tab_id', "tab1"],
+               ['tab_id', "tab_session_x_y"],
                ]
     
     for name, default in to_init:
@@ -711,7 +725,7 @@ def init():
    
     # Some ad-hoc modifications on df_sessions
     st.session_state.df['sessions_bonsai'].columns = st.session_state.df['sessions_bonsai'].columns.get_level_values(1)
-    st.session_state.df['sessions_bonsai'] = st.session_state.df['sessions_bonsai'].reset_index()
+    st.session_state.df['sessions_bonsai'] = st.session_state.df['sessions_bonsai'].reset_index().query('subject_id != "0"')
     st.session_state.df['sessions_bonsai']['h2o'] = st.session_state.df['sessions_bonsai']['subject_id']
     st.session_state.df['sessions_bonsai'].dropna(subset=['session'], inplace=True) # Remove rows with no session number (only leave the nwb file with the largest finished_trials for now)
     
@@ -744,7 +758,12 @@ def app():
         add_caution()
 
     with st.sidebar:
-        add_session_filter(if_bonsai=True)
+        
+        # === Get query from url ===
+        url_query = st.query_params
+        
+        add_session_filter(if_bonsai=True,
+                           url_query=url_query)
         data_selector()
     
         st.markdown('---')
@@ -790,20 +809,22 @@ def app():
                                                         ) == set(st.session_state.df_selected_from_dataframe.set_index(['h2o', 'session']).index):
         st.session_state.df_selected_from_dataframe = pd.DataFrame(aggrid_outputs['selected_rows'])
         st.session_state.df_selected_from_plotly = st.session_state.df_selected_from_dataframe  # Sync selected on plotly
-        # if st.session_state.tab_id == "tab1":
+        # if st.session_state.tab_id == "tab_session_x_y":
         st.experimental_rerun()
-            
+
     chosen_id = stx.tab_bar(data=[
-        stx.TabBarItemData(id="tab1", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
-        stx.TabBarItemData(id="tab2", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
-        stx.TabBarItemData(id="tab4", title="🎓 Automatic Training History", description="Track progress"),
-        stx.TabBarItemData(id="tab5", title="📚 Automatic Training Curriculums", description="Collection of curriculums"),
-        stx.TabBarItemData(id="tab3", title="🐭 Mouse Inspector", description="Mouse-level summary"),
-        ], default="tab1" if 'tab_id' not in st.session_state else st.session_state.tab_id)
+        stx.TabBarItemData(id="tab_session_x_y", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
+        stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
+        stx.TabBarItemData(id="tab_auto_train_history", title="🎓 Automatic Training History", description="Track progress"),
+        stx.TabBarItemData(id="tab_auto_train_curriculum", title="📚 Automatic Training Curriculums", description="Collection of curriculums"),
+        stx.TabBarItemData(id="tab_mouse_inspector", title="🐭 Mouse Inspector", description="Mouse-level summary"),
+        ], default="tab_session_x_y" if 'tab_id' not in st.session_state 
+                            else st.query_params['tab_id'] if 'tab_id' in st.query_params
+                            else st.session_state.tab_id)
 
     placeholder = st.container()
 
-    if chosen_id == "tab1":
+    if chosen_id == "tab_session_x_y":
         st.session_state.tab_id = chosen_id
         with placeholder:
             df_selected_from_plotly, x_y_cols = plot_x_y_session()
@@ -835,7 +856,7 @@ def app():
             log_content = log_content.replace('\\n', '\n')
             st.text(log_content)
         
-    elif chosen_id == "tab2":
+    elif chosen_id == "tab_session_inspector":
         st.session_state.tab_id = chosen_id
         with placeholder:
             with st.columns([4, 10])[0]:
@@ -845,42 +866,54 @@ def app():
             if if_draw_all_sessions and len(df_to_draw_sessions):
                 draw_session_plots(df_to_draw_sessions)
                 
-    elif chosen_id == "tab3":
+    elif chosen_id == "tab_mouse_inspector":
         st.session_state.tab_id = chosen_id
         with placeholder:
             selected_subject_id = st.columns([1, 3])[0].selectbox('Select a mouse', options=st.session_state.df_session_filtered['subject_id'].unique())
             st.markdown(f"### [Go to WaterLog](http://eng-tools:8004/water_weight_log/?external_donor_name={selected_subject_id})")
             
-    elif chosen_id == "tab4":  # Automatic training history
+    elif chosen_id == "tab_auto_train_history":  # Automatic training history
         st.session_state.tab_id = chosen_id
         with placeholder:
+            
+            st.session_state.auto_train_manager.df_manager = st.session_state.auto_train_manager.df_manager[
+                st.session_state.auto_train_manager.df_manager.subject_id.astype(float) > 0]  # Remove dummy mouse 0
             df_training_manager = st.session_state.auto_train_manager.df_manager
+            
             # -- Show plotly chart --
-            cols = st.columns([1, 1, 1, 0.5, 3])
+            cols = st.columns([1, 1, 1, 0.7, 0.7, 3])
             x_axis = cols[0].selectbox('X axis', options=['session', 'date', 'relative_date'])
             sort_by = cols[1].selectbox('Sort by', options=['subject_id', 
                                                        'first_date',
                                                        'last_date',
                                                        'progress_to_graduated'])
-            sort_order = cols[2].selectbox('Sort order', options=['ascending', 'descending'])
-            marker_size = cols[3].number_input('Marker size', value=15)
+            sort_order = cols[2].selectbox('Sort order', options=['descending', 'ascending'])
+            marker_size = cols[3].number_input('Marker size', value=15, step=1)
+            marker_edge_width = cols[4].number_input('Marker edge width', value=3, step=1)
+            
+            # Get highlighted subjects
+            if ('select_subject_id_cache' in st.session_state and st.session_state.select_subject_id_cache) or \
+                'subject_id' in st.query_params:   # If subject_id is manually filtered or through URL query
+                highlight_subjects = list(st.session_state.df_session_filtered['subject_id'].unique())
+            else:
+                highlight_subjects = []
                                         
             fig_auto_train = st.session_state.auto_train_manager.plot_all_progress(
                 x_axis=x_axis,
                 sort_by=sort_by,
                 sort_order=sort_order,
+                marker_size=marker_size,
+                marker_edge_width=marker_edge_width,
+                highlight_subjects=highlight_subjects,
                 if_show_fig=False
             )
+            
             fig_auto_train.update_layout(
-                hovermode='closest',
                 hoverlabel=dict(
                     font_size=20,
                 ),
-                title='All training progress',
-                yaxis=dict(zeroline=False, title=''),
                 font=dict(size=18),
             )            
-            fig_auto_train.update_traces(marker=dict(size=marker_size))
             
             selected_ = plotly_events(fig_auto_train,
                                         override_height=fig_auto_train.layout.height * 1.1, 
@@ -908,7 +941,7 @@ def app():
             with st.expander('Automatic training manager', expanded=True):
                 st.write(df_training_manager)
 
-    elif chosen_id == "tab5":  # Automatic training curriculums
+    elif chosen_id == "tab_auto_train_curriculum":  # Automatic training curriculums
         st.session_state.tab_id = chosen_id
         df_curriculums = st.session_state.curriculum_manager.df_curriculums().sort_values(by='curriculum_name')     
         with placeholder:
@@ -940,7 +973,7 @@ def app():
                 st.write('Select a curriculum above.') 
 
     # Add debug info
-    if chosen_id != "tab5":
+    if chosen_id != "tab_auto_train_curriculum":
         with st.expander('NWB errors', expanded=False):
             error_file = cache_folder + 'error_files.json'
             if fs.exists(error_file):
