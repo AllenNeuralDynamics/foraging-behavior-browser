@@ -13,9 +13,13 @@ import streamlit.components.v1 as components
 from streamlit_plotly_events import plotly_events
 
 import matplotlib.pyplot as plt
+import plotly
 import plotly.express as px
 import numpy as np
 import plotly.graph_objects as go
+import statsmodels.api as sm
+from scipy.stats import linregress
+
 
 custom_css = {
 ".ag-root.ag-unselectable.ag-layout-normal": {"font-size": "15px !important",
@@ -381,7 +385,7 @@ def add_xy_selector(if_bonsai):
                                    )
         y_name = cols[1].selectbox("y axis", 
                                    st.session_state.session_stats_names, 
-                                   index=st.session_state.session_stats_names.index(st.session_state['x_y_plot_xname']),
+                                   index=st.session_state.session_stats_names.index(st.session_state['x_y_plot_yname']),
                                    key='x_y_plot_yname')
         
         if if_bonsai:
@@ -459,7 +463,7 @@ def add_xy_setting():
                                                                     or (if_aggr_all and aggr_method_all in ('running average', 'lowess'))) 
         )
         
-        c = st.columns([1, 1])
+        c = st.columns([1, 1, 1])
         dot_size = c[0].slider('dot size', 1, 30, 
                                 step=1,
                                 value=st.session_state['x_y_plot_dot_size'],
@@ -470,9 +474,14 @@ def add_xy_setting():
                                     value=st.session_state['x_y_plot_dot_opacity'],
                                     key='x_y_plot_dot_opacity')
 
+        line_width = c[2].slider('line width', 0.0, 5.0, 
+                                    step=0.25, 
+                                    value=st.session_state['x_y_plot_line_width'],
+                                    key='x_y_plot_line_width')
+
     return  (if_show_dots, if_aggr_each_group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group,
         if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor,
-        dot_size, dot_opacity)
+        dot_size, dot_opacity, line_width)
 
 def data_selector():
             
@@ -588,6 +597,222 @@ def add_auto_train_manager():
     with st.expander('Automatic training manager', expanded=True):
         st.dataframe(df_training_manager, height=3000)
 
+@st.cache_data(ttl=3600*24)                
+def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='h2o',
+                         smooth_factor=5, 
+                         if_show_dots=True, 
+                         if_aggr_each_group=True,
+                         if_aggr_all=True, 
+                         aggr_method_group='smooth',
+                         aggr_method_all='mean +/ sem',
+                         if_use_x_quantile_group=False,
+                         q_quantiles_group=10,
+                         if_use_x_quantile_all=False,
+                         q_quantiles_all=20,
+                         title='',
+                         dot_size=10,
+                         dot_opacity=0.4,
+                         line_width=2,
+                         **kwarg):
+    
+    def _add_agg(df_this, x_name, y_name, group, aggr_method, if_use_x_quantile, q_quantiles, col, line_width):
+        x = df_this.sort_values(x_name)[x_name].astype(float)
+        y = df_this.sort_values(x_name)[y_name].astype(float)
+        
+        n_mice = len(df_this['h2o'].unique())
+        n_sessions = len(df_this.groupby(['h2o', 'session']).count())
+        n_str = f' ({n_mice} mice, {n_sessions} sessions)' if group_by !='h2o' else f' ({n_sessions} sessions)' 
+
+        if aggr_method == 'running average':
+            fig.add_trace(go.Scatter(    
+                        x=x, 
+                        y=y.rolling(window=smooth_factor, center=True, min_periods=1).mean(), 
+                        name=group + n_str,
+                        legendgroup=f'group_{group}',
+                        mode="lines",
+                        marker_color=col,
+                        line_width=line_width,
+                        opacity=1,
+                        hoveron='points+fills',   # Scattergl doesn't support this
+                        ))
+            
+        elif aggr_method == 'lowess':
+            x_new = np.linspace(x.min(), x.max(), 200)
+            lowess = sm.nonparametric.lowess(y, x, frac=smooth_factor/20)
+            
+            fig.add_trace(go.Scatter(    
+                        x=lowess[:, 0], 
+                        y=lowess[:, 1], 
+                        name=group + n_str,
+                        legendgroup=f'group_{group}',
+                        mode="lines",
+                        line_width=line_width,
+                        marker_color=col,
+                        opacity=1,
+                        hoveron='points+fills',   # Scattergl doesn't support this
+                        ))
+            
+        elif aggr_method in ('mean +/- sem', 'mean'):
+            
+            # Re-bin x if use quantiles of x
+            if if_use_x_quantile:
+                df_this[f'{x_name}_quantile'] = pd.qcut(df_this[x_name], q=q_quantiles, labels=False, duplicates='drop')
+ 
+                mean = df_this.groupby(f'{x_name}_quantile')[y_name].mean()
+                sem = df_this.groupby(f'{x_name}_quantile')[y_name].sem()
+                valid_y = mean.notna()
+                mean = mean[valid_y]
+                sem = sem[valid_y]
+                sem[~sem.notna()] = 0
+                
+                x = df_this.groupby(f'{x_name}_quantile')[x_name].median()  # Use median of x in each quantile as x
+                y_upper = mean + sem
+                y_lower = mean - sem
+                
+            else:    
+                # mean and sem groupby x_name
+                mean = df_this.groupby(x_name)[y_name].mean()
+                sem = df_this.groupby(x_name)[y_name].sem()
+                valid_y = mean.notna()
+                mean = mean[valid_y]
+                sem = sem[valid_y]
+                sem[~sem.notna()] = 0
+                
+                x = mean.index
+                y_upper = mean + sem
+                y_lower = mean - sem
+            
+            fig.add_trace(go.Scatter(    
+                        x=x, 
+                        y=mean, 
+                        # error_y=dict(type='data',
+                        #             symmetric=True,
+                        #             array=sem) if 'sem' in aggr_method else None,
+                        name=group + n_str,
+                        legendgroup=f'group_{group}',
+                        mode="lines",
+                        line_width=line_width,
+                        marker_color=col,
+                        opacity=1,
+                        hoveron='points+fills',   # Scattergl doesn't support this
+                        ))
+            
+            if 'sem' in aggr_method:
+                fig.add_trace(go.Scatter(
+                                # name='Upper Bound',
+                                x=x,
+                                y=y_upper,
+                                mode='lines',
+                                marker=dict(color=col),
+                                line=dict(width=0),
+                                legendgroup=f'group_{group}',
+                                showlegend=False,
+                                hoverinfo='skip',
+                            ))
+                fig.add_trace(go.Scatter(
+                                # name='Upper Bound',
+                                x=x,
+                                y=y_lower,
+                                mode='lines',
+                                marker=dict(color=col),
+                                line=dict(width=0),
+                                fill='tonexty',
+                                fillcolor=f'rgba({plotly.colors.convert_colors_to_same_type(col)[0][0].split("(")[-1][:-1]}, 0.2)',
+                                legendgroup=f'group_{group}',
+                                showlegend=False,
+                                hoverinfo='skip'
+                            ))                                            
+            
+
+        elif aggr_method == 'linear fit':
+            # perform linear regression
+            mask = ~np.isnan(x) & ~np.isnan(y)
+            try:
+                slope, intercept, r_value, p_value, std_err = linregress(x[mask], y[mask])
+                sig = lambda p: '***' if p < 0.001 else '**' if p < 0.01 else '*' if p < 0.05 else ''
+                fig.add_trace(go.Scatter(x=x, 
+                                        y=intercept + slope*x, 
+                                        mode='lines',
+                                        name=f"{group} {n_str}<br>  {sig(p_value):<5}p={p_value:.1e}, r={r_value:.3f}",
+                                        marker_color=col,
+                                        line=dict(dash='dot' if p_value > 0.05 else 'solid',
+                                                  width=line_width if p_value > 0.05 else line_width*1.5),
+                                        legendgroup=f'group_{group}',
+                                        # hoverinfo='skip'
+                                        )
+                )            
+            except:
+                pass
+                
+    fig = go.Figure()
+    col_map = px.colors.qualitative.Plotly
+    
+    for i, group in enumerate(df.sort_values(group_by)[group_by].unique()):
+        this_session = df.query(f'{group_by} == "{group}"').sort_values('session')
+        col = col_map[i%len(col_map)]
+        
+        if if_show_dots:
+            if not len(st.session_state.df_selected_from_plotly):   
+                this_session['colors'] = col  # all use normal colors
+            else:
+                merged = pd.merge(this_session, st.session_state.df_selected_from_plotly, on=['h2o', 'session'], how='left')
+                merged['colors'] = 'lightgrey'  # default, grey
+                merged.loc[merged.subject_id_y.notna(), 'colors'] = col   # only use normal colors for the selected dots 
+                this_session['colors'] = merged.colors.values
+                this_session = pd.concat([this_session.query('colors != "lightgrey"'), this_session.query('colors == "lightgrey"')])  # make sure the real color goes first
+                
+            fig.add_trace(go.Scattergl(
+                            x=this_session[x_name], 
+                            y=this_session[y_name], 
+                            name=group,
+                            legendgroup=f'group_{group}',
+                            showlegend=not if_aggr_each_group,
+                            mode="markers",
+                            line_width=line_width,
+                            marker_size=dot_size,
+                            marker_color=this_session['colors'],
+                            opacity=dot_opacity, # 0.5 if if_aggr_each_group else 0.8,
+                            text=this_session['session'],
+                            hovertemplate =   '<br>%{customdata[0]}, Session %{text}' +
+                                            '<br>%s = %%{x}' % (x_name) +
+                                            '<br>%s = %%{y}' % (y_name),
+                                            #   '<extra>%{name}</extra>',
+                            customdata=np.stack((this_session.h2o, this_session.session), axis=-1),
+                            unselected=dict(marker_color='lightgrey')
+                            ))
+            
+        if if_aggr_each_group:
+            _add_agg(this_session, x_name, y_name, group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group, col, line_width=line_width)
+        
+
+    if if_aggr_all:
+        _add_agg(df, x_name, y_name, 'all', aggr_method_all, if_use_x_quantile_all, q_quantiles_all, 'rgb(0, 0, 0)', line_width=line_width*1.5)
+        
+
+    n_mice = len(df['h2o'].unique())
+    n_sessions = len(df.groupby(['h2o', 'session']).count())
+    
+    fig.update_layout(
+                    width=1300, 
+                    height=900,
+                    xaxis_title=x_name,
+                    yaxis_title=y_name,
+                    font=dict(size=25),
+                    hovermode='closest',
+                    legend={'traceorder':'reversed'},
+                    legend_font_size=15,
+                    title=f'{title}, {n_mice} mice, {n_sessions} sessions',
+                    dragmode='zoom', # 'select',
+                    margin=dict(l=130, r=50, b=130, t=100),
+                    )
+    fig.update_xaxes(showline=True, linewidth=2, linecolor='black', 
+                    #  range=[1, min(100, df[x_name].max())],
+                     ticks = "outside", tickcolor='black', ticklen=10, tickwidth=2, ticksuffix=' ')
+    
+    fig.update_yaxes(showline=True, linewidth=2, linecolor='black',
+                     title_standoff=40,
+                     ticks = "outside", tickcolor='black', ticklen=10, tickwidth=2, ticksuffix=' ')
+    return fig
 
 def _sync_widget_with_query(key, default):
     if key in st.query_params:
