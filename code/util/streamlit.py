@@ -418,8 +418,16 @@ def add_xy_setting():
                                                 key='x_y_plot_aggr_method_group', 
                                                 disabled=not if_aggr_each_group)
         
-        if_use_x_quantile_group = s_cols[1].checkbox('Use quantiles of x ', False) if 'mean' in aggr_method_group else False
-        q_quantiles_group = s_cols[1].slider('Number of quantiles ', 1, 100, 20, disabled=not if_use_x_quantile_group) if if_use_x_quantile_group else None
+        if_use_x_quantile_group = s_cols[1].checkbox('Use quantiles of x ', 
+                                                     value=st.session_state['x_y_plot_if_use_x_quantile_group'],
+                                                     key='x_y_plot_if_use_x_quantile_group',
+                                                     disabled='mean' not in aggr_method_group) 
+            
+        q_quantiles_group = s_cols[1].slider('Number of quantiles ', 1, 100,
+                                             value=st.session_state['x_y_plot_q_quantiles_group'],
+                                             key='x_y_plot_q_quantiles_group',
+                                             disabled=not if_use_x_quantile_group
+                                             )
         
         if_aggr_all = s_cols[2].checkbox('Aggr all',
                                             value=st.session_state['x_y_plot_if_aggr_all'],
@@ -432,14 +440,23 @@ def add_xy_setting():
                                                 key='x_y_plot_aggr_method_all',
                                                 disabled=not if_aggr_all)
 
-        if_use_x_quantile_all = s_cols[2].checkbox('Use quantiles of x', False) if 'mean' in aggr_method_all else False
-        q_quantiles_all = s_cols[2].slider('number of quantiles', 1, 100, 20, disabled=not if_use_x_quantile_all) if if_use_x_quantile_all else None
+        if_use_x_quantile_all = s_cols[2].checkbox('Use quantiles of x', 
+                                                   value=st.session_state['x_y_plot_if_use_x_quantile_all'],
+                                                   key='x_y_plot_if_use_x_quantile_all',
+                                                   disabled='mean' not in aggr_method_all,
+                                                   )
+        q_quantiles_all = s_cols[2].slider('number of quantiles', 1, 100, 
+                                           value=st.session_state['x_y_plot_q_quantiles_all'],
+                                           key='x_y_plot_q_quantiles_all',
+                                           disabled=not if_use_x_quantile_all
+                                           )
 
         smooth_factor = s_cols[0].slider('smooth factor', 1, 20,
                                             value=st.session_state['x_y_plot_smooth_factor'],
                                             key='x_y_plot_smooth_factor',
-                                            ) if ((if_aggr_each_group and aggr_method_group in ('running average', 'lowess'))
-                                                                    or (if_aggr_all and aggr_method_all in ('running average', 'lowess'))) else None
+                                            disabled= not ((if_aggr_each_group and aggr_method_group in ('running average', 'lowess'))
+                                                                    or (if_aggr_all and aggr_method_all in ('running average', 'lowess'))) 
+        )
         
         c = st.columns([1, 1])
         dot_size = c[0].slider('dot size', 1, 30, 

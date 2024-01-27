@@ -46,6 +46,10 @@ to_sync_with_url_query = {
     'x_y_plot_if_aggr_all': True,
     'x_y_plot_aggr_method_all': 'mean +/- sem',
     'x_y_plot_smooth_factor': 5,
+    'x_y_plot_if_use_x_quantile_group': False,
+    'x_y_plot_q_quantiles_group': 20,
+    'x_y_plot_if_use_x_quantile_all': False,
+    'x_y_plot_q_quantiles_all': 20,
     'x_y_plot_dot_size': 10,
     'x_y_plot_dot_opacity': 0.5,
     'auto_training_history_x_axis': 'date',
@@ -709,11 +713,6 @@ def init():
 
 def app():
     st.markdown('## Foraging Behavior Browser')
-    
-    # Set session state from URL
-    for key, default in to_sync_with_url_query.items():
-        _sync_widget_with_query(key, default)
-
     
     with st.sidebar:
         add_session_filter()
