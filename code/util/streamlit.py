@@ -200,7 +200,9 @@ def filter_dataframe(df: pd.DataFrame,
     modification_container = st.container()
     
     with modification_container:
-        st.markdown(f"Add filters")
+        cols = st.columns([1, 1.5])
+        cols[0].markdown(f"Add filters")
+        if_reset_filters = cols[1].button(label="Reset filters")
         to_filter_columns = st.multiselect("Filter dataframe on", df.columns,
                                                             label_visibility='collapsed',
                                                             default=st.session_state.to_filter_columns_changed 
@@ -217,7 +219,10 @@ def filter_dataframe(df: pd.DataFrame,
             if is_categorical_dtype(df[column]) or df[column].nunique() < 10 and column not in ('finished', 'foraging_eff', 'session', 'finished_trials'):
                 right.markdown(f"Filter for :red[**{column}**]")
                 
-                if f'filter_{column}_changed' in st.session_state:
+                if if_reset_filters:
+                    default_value = list(df[column].unique())
+                    st.session_state[f'filter_{column}_changed'] = default_value
+                elif f'filter_{column}_changed' in st.session_state:
                     default_value = st.session_state[f'filter_{column}_changed']
                 elif f'filter_{column}' in st.session_state:  # Set by URL or default
                     if st.session_state[f'filter_{column}'] == ['all']:
@@ -278,7 +283,10 @@ def filter_dataframe(df: pd.DataFrame,
 
                     c_hist = st.container()  # Histogram
                     
-                    if f'filter_{column}_changed' in st.session_state:
+                    if if_reset_filters:
+                        default_value = (_min, _max)
+                        st.session_state[f'filter_{column}_changed'] = default_value
+                    elif f'filter_{column}_changed' in st.session_state:
                         default_value = st.session_state[f'filter_{column}_changed']
                     elif f'filter_{column}' in st.session_state and st.session_state[f'filter_{column}'] != []:
                         # If session_state was preset by a query, use that
@@ -335,7 +343,10 @@ def filter_dataframe(df: pd.DataFrame,
                     df = df.loc[df[column].between(start_date, end_date)]
             else:  # Regular string
                     
-                if f'filter_{column}_changed' in st.session_state:
+                if if_reset_filters:
+                    default_value = ''
+                    st.session_state[f'filter_{column}_changed'] = default_value
+                elif f'filter_{column}_changed' in st.session_state:
                     default_value = st.session_state[f'filter_{column}_changed']
                 elif f'filter_{column}' in st.session_state:
                     default_value = st.session_state[f'filter_{column}']
