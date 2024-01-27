@@ -20,6 +20,9 @@ to_sync_with_url_query = {
     'filter_subject_id': '',
     'filter_session': [0.0, None],
     'filter_finished_trials': [0.0, None],
+    'filter_foraging_eff': [0.0, None],
+    'filter_task': ['Coupled Baiting', 'Coupled Without Baiting', 'Uncoupled Baiting', 'Uncoupled Without Baiting'],
+    
     'tab_id': 'tab_session_x_y',
     'x_y_plot_xname': 'session',
     'x_y_plot_yname': 'foraging_eff',
@@ -62,7 +65,7 @@ from streamlit_plotly_events import plotly_events
 
 # To suppress the warning that I set the default value of a widget and also set it in the session state
 from streamlit.elements.utils import _shown_default_value_warning
-_shown_default_value_warning = True
+_shown_default_value_warning = False
 
 from util.streamlit import (filter_dataframe, aggrid_interactive_table_session,
                             aggrid_interactive_table_curriculum, add_session_filter, data_selector)

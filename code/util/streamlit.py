@@ -209,13 +209,17 @@ def filter_dataframe(df: pd.DataFrame,
             # Treat columns with < 10 unique values as categorical
             if is_categorical_dtype(df[column]) or df[column].nunique() < 10 and column not in ('finished', 'foraging_eff'):
                 right.markdown(f"Filter for :red[**{column}**]")
+                
+                if f'filter_{column}' in st.session_state:
+                    default_value = [i for i in st.session_state[f'filter_{column}'] if i in list(df[column].unique())]
+                else:
+                    default_value = list(df[column].unique())             
+                
                 selected = right.multiselect(
                     f"Values for {column}",
                     df[column].unique(),
                     label_visibility='collapsed',
-                    default=[i for i in st.session_state[f'filter_{column}_cache'] if i in list(df[column].unique())]
-                            if f'filter_{column}_cache' in st.session_state
-                            else list(df[column].unique()),
+                    default=default_value,
                     key=f'filter_{column}',
                     on_change=cache_widget,
                     args=[f'filter_{column}']
@@ -260,17 +264,15 @@ def filter_dataframe(df: pd.DataFrame,
 
                     c_hist = st.container()  # Histogram
                     
-                    if f'filter_{column}_cache' in st.session_state:
-                        default_value = st.session_state[f'filter_{column}_cache']
-                    elif column in url_query:
-                        # For a numeric column, we must have exact two values from the url query, i.e., min and max
-                        _range = st.query_params.get_all(column)
-                        if len(_range) == 2:
-                            default_value = (float(_range[0]), float(_range[1]))
-                        else:
-                            default_value = (_min, _max)
+                    if f'filter_{column}' in st.session_state and st.session_state[f'filter_{column}'] != []:
+                        # If session_state was preset by a query, use that
+                        # Handle None value 
+                        st.session_state[f'filter_{column}'] = [a or b for a, b in 
+                                                                zip(st.session_state[f'filter_{column}'], (_min, _max))]
+                        default_value = st.session_state[f'filter_{column}']
                     else:
                         default_value = (_min, _max)
+                        
                     
                     user_num_input = st.slider(
                         f"Values for {column}",
