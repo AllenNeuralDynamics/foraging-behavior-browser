@@ -20,8 +20,10 @@ import streamlit_nested_layout
 from streamlit_plotly_events import plotly_events
 
 from util.streamlit import (filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector, 
-                            add_xy_selector, _sync_widget_with_query, add_xy_setting)
+                            add_xy_selector, _sync_widget_with_query, add_xy_setting, add_auto_train_manager)
 import extra_streamlit_components as stx
+
+from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
 
 
 # Sync widgets with URL query params
@@ -52,8 +54,8 @@ to_sync_with_url_query = {
     'x_y_plot_q_quantiles_all': 20,
     'x_y_plot_dot_size': 10,
     'x_y_plot_dot_opacity': 0.5,
-    'auto_training_history_x_axis': 'date',
-    'auto_training_history_sort_by': 'subject_id',
+    'auto_training_history_x_axis': 'session',
+    'auto_training_history_sort_by': 'progress_to_graduated',
     'auto_training_history_sort_order': 'descending',
     }
 
@@ -639,10 +641,19 @@ def init():
     st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
     st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
     
+    # Init auto training database
+    st.session_state.auto_train_manager = DynamicForagingAutoTrainManager(
+        manager_name='Janelia_demo',
+        df_behavior_on_s3=dict(bucket='aind-behavior-data',
+                                root='Han/ephys/report/all_sessions/export_all_nwb/',
+                                file_name='df_sessions.pkl'),
+        df_manager_root_on_s3=dict(bucket='aind-behavior-data',
+                                root='foraging_auto_training/')
+    )
+    
     # Init session states
     to_init = [
                ['model_id', 21],   # add some model fitting params to session
-               ['tab_id', "tab_session_inspector"],
                ]
     
     for name, default in to_init:
@@ -766,10 +777,10 @@ def app():
         st.experimental_rerun()
             
     chosen_id = stx.tab_bar(data=[
-        stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
         stx.TabBarItemData(id="tab_session_x_y", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
-        stx.TabBarItemData(id="tab_mouse_inspector", title="🐭 Mouse Model Fitting", description="Mouse-level model fitting results"),
+        stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
         stx.TabBarItemData(id="tab_auto_train_history", title="🎓 Automatic Training History", description="Track progress"),
+        stx.TabBarItemData(id="tab_mouse_inspector", title="🐭 Mouse Model Fitting", description="Mouse-level model fitting results"),
         ], default="tab_session_inspector" if 'tab_id' not in st.session_state else st.session_state.tab_id)
     # chosen_id = "tab_session_x_y"
 
@@ -806,6 +817,11 @@ def app():
             if if_draw_all_sessions and len(df_to_draw_sessions):
                 draw_session_plots(df_to_draw_sessions)
                 
+    elif chosen_id == "tab_auto_train_history":  # Automatic training history
+        st.session_state.tab_id = chosen_id
+        with placeholder:
+            add_auto_train_manager()
+                
     elif chosen_id == "tab_mouse_inspector":
         st.session_state.tab_id = chosen_id
         with placeholder:
@@ -823,7 +839,10 @@ def app():
 
     # Update back to URL
     for key in to_sync_with_url_query:
-        st.query_params.update({key: st.session_state[key]})
+        try:
+            st.query_params.update({key: st.session_state[key]})
+        except:
+            print(f'Failed to update {key} to URL query')
 
 
 if 'df' not in st.session_state or 'sessions' not in st.session_state.df.keys(): 

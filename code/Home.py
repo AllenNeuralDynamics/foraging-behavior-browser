@@ -40,12 +40,11 @@ _shown_default_value_warning = False
 
 from util.streamlit import (filter_dataframe, aggrid_interactive_table_session,
                             aggrid_interactive_table_curriculum, add_session_filter, data_selector,
-                            _sync_widget_with_query, add_xy_selector, add_xy_setting)
+                            _sync_widget_with_query, add_xy_selector, add_xy_setting, add_auto_train_manager)
 import extra_streamlit_components as stx
 
 from aind_auto_train.curriculum_manager import CurriculumManager
 from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
-from aind_auto_train.schema.task import TrainingStage
 
 
 # Sync widgets with URL query params
@@ -782,7 +781,7 @@ def app():
         stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
         stx.TabBarItemData(id="tab_auto_train_history", title="🎓 Automatic Training History", description="Track progress"),
         stx.TabBarItemData(id="tab_auto_train_curriculum", title="📚 Automatic Training Curriculums", description="Collection of curriculums"),
-        stx.TabBarItemData(id="tab_mouse_inspector", title="🐭 Mouse Inspector", description="Mouse-level summary"),
+        # stx.TabBarItemData(id="tab_mouse_inspector", title="🐭 Mouse Inspector", description="Mouse-level summary"),
         ], default=st.query_params['tab_id'] if 'tab_id' in st.query_params
                    else st.session_state.tab_id)
 
@@ -839,85 +838,7 @@ def app():
     elif chosen_id == "tab_auto_train_history":  # Automatic training history
         st.session_state.tab_id = chosen_id
         with placeholder:
-            
-            st.session_state.auto_train_manager.df_manager = st.session_state.auto_train_manager.df_manager[
-                st.session_state.auto_train_manager.df_manager.subject_id.astype(float) > 0]  # Remove dummy mouse 0
-            df_training_manager = st.session_state.auto_train_manager.df_manager
-            
-            # -- Show plotly chart --
-            cols = st.columns([1, 1, 1, 0.7, 0.7, 3])
-            options=['session', 'date', 'relative_date']
-            x_axis = cols[0].selectbox('X axis', options=options, 
-                                       index=options.index(st.session_state['auto_training_history_x_axis']),
-                                       key="auto_training_history_x_axis")
-            
-            options=['subject_id', 
-                    'first_date',
-                    'last_date',
-                    'progress_to_graduated']
-            sort_by = cols[1].selectbox('Sort by', 
-                                        options=options,
-                                        index=options.index(st.session_state['auto_training_history_sort_by']),
-                                        key="auto_training_history_sort_by")
-            
-            options=['descending', 'ascending']
-            sort_order = cols[2].selectbox('Sort order', 
-                                           options=options,
-                                           index=options.index(st.session_state['auto_training_history_sort_order']),
-                                           key='auto_training_history_sort_order'
-                                           )
-            
-            marker_size = cols[3].number_input('Marker size', value=15, step=1)
-            marker_edge_width = cols[4].number_input('Marker edge width', value=3, step=1)
-            
-            # Get highlighted subjects
-            if ('filter_subject_id_changed' in st.session_state and st.session_state.filter_subject_id_cache) or \
-                'subject_id' in st.query_params:   # If subject_id is manually filtered or through URL query
-                highlight_subjects = list(st.session_state.df_session_filtered['subject_id'].unique())
-            else:
-                highlight_subjects = []
-                                        
-            fig_auto_train = st.session_state.auto_train_manager.plot_all_progress(
-                x_axis=x_axis,
-                sort_by=sort_by,
-                sort_order=sort_order,
-                marker_size=marker_size,
-                marker_edge_width=marker_edge_width,
-                highlight_subjects=highlight_subjects,
-                if_show_fig=False
-            )
-            
-            fig_auto_train.update_layout(
-                hoverlabel=dict(
-                    font_size=20,
-                ),
-                font=dict(size=18),
-            )            
-            
-            selected_ = plotly_events(fig_auto_train,
-                                        override_height=fig_auto_train.layout.height * 1.1, 
-                                        override_width=fig_auto_train.layout.width,
-                                        click_event=False,
-                                        select_event=False,
-                                        )
-            
-            # -- Show dataframe --
-            # only show filtered subject
-            df_training_manager = df_training_manager[df_training_manager['subject_id'].isin(
-                st.session_state.df_session_filtered['subject_id'].unique())]
-            
-            # reorder columns
-            df_training_manager = df_training_manager[['subject_id', 'session_date', 'session', 
-                                                       'curriculum_name', 'curriculum_version', 'curriculum_schema_version',
-                                                       'current_stage_suggested', 'current_stage_actual',
-                                                       'session_at_current_stage',
-                                                       'if_closed_loop', 'if_overriden_by_trainer',
-                                                       'foraging_efficiency', 'finished_trials', 
-                                                       'decision', 'next_stage_suggested'
-                                                       ]]
-            
-            with st.expander('Automatic training manager', expanded=True):
-                st.write(df_training_manager)
+            add_auto_train_manager()
 
     elif chosen_id == "tab_auto_train_curriculum":  # Automatic training curriculums
         st.session_state.tab_id = chosen_id
@@ -968,7 +889,10 @@ def app():
     
     # Update back to URL
     for key in to_sync_with_url_query:
-        st.query_params.update({key: st.session_state[key]})
+        try:
+            st.query_params.update({key: st.session_state[key]})
+        except:
+            print(f'Failed to update {key} to URL query')
     
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
 
