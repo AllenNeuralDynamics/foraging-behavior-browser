@@ -213,12 +213,12 @@ def filter_dataframe(df: pd.DataFrame,
                     f"Values for {column}",
                     df[column].unique(),
                     label_visibility='collapsed',
-                    default=[i for i in st.session_state[f'select_{column}_cache'] if i in list(df[column].unique())]
-                            if f'select_{column}_cache' in st.session_state
+                    default=[i for i in st.session_state[f'filter_{column}_cache'] if i in list(df[column].unique())]
+                            if f'filter_{column}_cache' in st.session_state
                             else list(df[column].unique()),
-                    key=f'select_{column}',
+                    key=f'filter_{column}',
                     on_change=cache_widget,
-                    args=[f'select_{column}']
+                    args=[f'filter_{column}']
                 )
                 df = df[df[column].isin(selected)]
                 
@@ -244,7 +244,7 @@ def filter_dataframe(df: pd.DataFrame,
                                                  key=f'if_log_{column}',
                                                  on_change=cache_widget,
                                                  args=[f'if_log_{column}'],
-                                                 kwargs={'clear': f'select_{column}_cache'}  # If show_log is changed, clear select cache
+                                                 kwargs={'clear': f'filter_{column}_cache'}  # If show_log is changed, clear select cache
                                                  )
                     else:
                         show_log = 0
@@ -260,8 +260,8 @@ def filter_dataframe(df: pd.DataFrame,
 
                     c_hist = st.container()  # Histogram
                     
-                    if f'select_{column}_cache' in st.session_state:
-                        default_value = st.session_state[f'select_{column}_cache']
+                    if f'filter_{column}_cache' in st.session_state:
+                        default_value = st.session_state[f'filter_{column}_cache']
                     elif column in url_query:
                         # For a numeric column, we must have exact two values from the url query, i.e., min and max
                         _range = st.query_params.get_all(column)
@@ -279,9 +279,9 @@ def filter_dataframe(df: pd.DataFrame,
                         max_value=_max,
                         value=default_value,
                         step=step,
-                        key=f'select_{column}',
+                        key=f'filter_{column}',
                         on_change=cache_widget,
-                        args=[f'select_{column}']
+                        args=[f'filter_{column}']
                     )
                     
                     with c_hist:
@@ -302,12 +302,12 @@ def filter_dataframe(df: pd.DataFrame,
             elif is_datetime64_any_dtype(df[column]):
                 user_date_input = right.date_input(
                     f"Values for :red[**{column}**]",
-                    value=st.session_state[f'select_{column}_cache']
-                                if f'select_{column}_cache' in st.session_state
+                    value=st.session_state[f'filter_{column}_cache']
+                                if f'filter_{column}_cache' in st.session_state
                                 else (df[column].min(), df[column].max()),
-                    key=f'select_{column}',
+                    key=f'filter_{column}',
                     on_change=cache_widget,
-                    args=[f'select_{column}']
+                    args=[f'filter_{column}']
                 )
                 
                 if len(user_date_input) == 2:
@@ -315,8 +315,8 @@ def filter_dataframe(df: pd.DataFrame,
                     start_date, end_date = user_date_input
                     df = df.loc[df[column].between(start_date, end_date)]
             else:
-                if f'select_{column}_cache' in st.session_state:
-                    default_value = st.session_state[f'select_{column}_cache']
+                if f'filter_{column}_cache' in st.session_state:
+                    default_value = st.session_state[f'filter_{column}_cache']
                 elif column in url_query:
                     default_value = url_query[column]
                     # If the query is subject_id, we ignore it if it is 0 or subject_id is not valid
@@ -331,9 +331,9 @@ def filter_dataframe(df: pd.DataFrame,
                 user_text_input = right.text_input(
                     f"Substring or regex in :red[**{column}**]",
                     value=default_value,
-                    key=f'select_{column}',
+                    key=f'filter_{column}',
                     on_change=cache_widget,
-                    args=[f'select_{column}']
+                    args=[f'filter_{column}']
                     )
                 
                 if user_text_input:

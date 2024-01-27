@@ -17,6 +17,10 @@ Example queries:
 # dict of "key": default pairs
 # Note: When creating the widget, add argument "value"/"index" as well as "key" for all widgets you want to sync with URL
 to_sync_with_url_query = {
+    'filter_subject_id': '',
+    'filter_session': [0.0, None],
+    'filter_finished_trials': [0.0, None],
+    'tab_id': 'tab_session_x_y',
     'x_y_plot_xname': 'session',
     'x_y_plot_yname': 'foraging_eff',
     'x_y_plot_group_by': 'h2o',
@@ -30,7 +34,7 @@ to_sync_with_url_query = {
     'x_y_plot_dot_opacity': 0.5,
     'auto_training_history_x_axis': 'date',
     'auto_training_history_sort_by': 'subject_id',
-    'tab_id': 'tab_session_x_y'
+    'auto_training_history_sort_order': 'descending',
     }
 
 
@@ -772,12 +776,25 @@ def init():
 def _sync_widget_with_query(key, default):
     if key not in st.session_state:
         if key in st.query_params:
-            if type(default) in [int, float]:
-                st.session_state[key] = type(default)(st.query_params[key])
-            elif type(default) == bool:
-                st.session_state[key] = st.query_params[key].lower() == 'true'
+            # always get all query params as a list
+            q_all = st.query_params.get_all(key)
+            
+            # convert type according to default
+            list_default = default if isinstance(default, list) else [default]
+            for d in list_default:
+                _type = type(d)
+                if _type: break  # The first non-None type
+                
+            if _type == bool:
+                q_all_correct_type = [q.lower() == 'true' for q in q_all]
             else:
-                st.session_state[key] = st.query_params[key]
+                q_all_correct_type = [_type(q) for q in q_all]
+            
+            # flatten list if only one element
+            if not isinstance(default, list):
+                q_all_correct_type = q_all_correct_type[0]
+                
+            st.session_state[key] = q_all_correct_type
         else:
             st.session_state[key] = default
     
@@ -928,13 +945,18 @@ def app():
                                         index=options.index(st.session_state['auto_training_history_sort_by']),
                                         key="auto_training_history_sort_by")
             
-            sort_order = cols[2].selectbox('Sort order', options=['descending', 'ascending'])
+            options=['descending', 'ascending']
+            sort_order = cols[2].selectbox('Sort order', 
+                                           options=options,
+                                           index=options.index(st.session_state['auto_training_history_sort_order']),
+                                           key='auto_training_history_sort_order'
+                                           )
             
             marker_size = cols[3].number_input('Marker size', value=15, step=1)
             marker_edge_width = cols[4].number_input('Marker edge width', value=3, step=1)
             
             # Get highlighted subjects
-            if ('select_subject_id_cache' in st.session_state and st.session_state.select_subject_id_cache) or \
+            if ('filter_subject_id_cache' in st.session_state and st.session_state.filter_subject_id_cache) or \
                 'subject_id' in st.query_params:   # If subject_id is manually filtered or through URL query
                 highlight_subjects = list(st.session_state.df_session_filtered['subject_id'].unique())
             else:
