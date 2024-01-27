@@ -19,8 +19,40 @@ import streamlit.components.v1 as components
 import streamlit_nested_layout
 from streamlit_plotly_events import plotly_events
 
-from util.streamlit import filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector
+from util.streamlit import (filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector, 
+                            add_xy_selector, _sync_widget_with_query, add_xy_setting)
 import extra_streamlit_components as stx
+
+
+# Sync widgets with URL query params
+# https://blog.streamlit.io/how-streamlit-uses-streamlit-sharing-contextual-apps/
+# dict of "key": default pairs
+# Note: When creating the widget, add argument "value"/"index" as well as "key" for all widgets you want to sync with URL
+to_sync_with_url_query = {
+    'filter_h2o': '',
+    'filter_session': [0.0, None],
+    'filter_finished_trials': [0.0, None],
+    'filter_foraging_eff': [0.0, None],
+    'filter_task': ['all'],
+    'filter_photostim_location': ['all'],
+    
+    'tab_id': 'tab_session_x_y',
+    'x_y_plot_xname': 'session',
+    'x_y_plot_yname': 'foraging_eff',
+    'x_y_plot_group_by': 'h2o',
+    'x_y_plot_if_show_dots': True,
+    'x_y_plot_if_aggr_each_group': True,
+    'x_y_plot_aggr_method_group': 'lowess',
+    'x_y_plot_if_aggr_all': True,
+    'x_y_plot_aggr_method_all': 'mean +/- sem',
+    'x_y_plot_smooth_factor': 5,
+    'x_y_plot_dot_size': 10,
+    'x_y_plot_dot_opacity': 0.5,
+    'auto_training_history_x_axis': 'date',
+    'auto_training_history_sort_by': 'subject_id',
+    'auto_training_history_sort_order': 'descending',
+    }
+
 
 if_profile = False
 
@@ -527,44 +559,11 @@ def plot_x_y_session():
     cols = st.columns([4, 10])
     
     with cols[0]:
-        x_name, y_name, group_by = add_xy_selector()
+        x_name, y_name, group_by = add_xy_selector(if_bonsai=False)
         
-        with st.expander('Plot settings', expanded=True):    
-            s_cols = st.columns([1, 1, 1])
-            # if_plot_only_selected_from_dataframe = s_cols[0].checkbox('Only selected', False)
-            if_show_dots = s_cols[0].checkbox('Show data points', True)
-            
-            aggr_methods =  ['mean', 'mean +/- sem', 'lowess', 'running average', 'linear fit']
-
-            if_aggr_each_group = s_cols[1].checkbox('Aggr each group', 
-                                                    value=st.session_state.if_aggr_each_group_cache 
-                                                        if 'if_aggr_each_group_cache' in st.session_state
-                                                        else True, )
-            
-            st.session_state.if_aggr_each_group_cache = if_aggr_each_group  # Have to use another variable to store this explicitly (my cache_widget somehow doesn't work with checkbox)
-            aggr_method_group = s_cols[1].selectbox('aggr method group', aggr_methods, index=aggr_methods.index('lowess'), disabled=not if_aggr_each_group)
-            
-            if_use_x_quantile_group = s_cols[1].checkbox('Use quantiles of x ', False) if 'mean' in aggr_method_group else False
-            q_quantiles_group = s_cols[1].slider('Number of quantiles ', 1, 100, 20, disabled=not if_use_x_quantile_group) if if_use_x_quantile_group else None
-            
-            if_aggr_all = s_cols[2].checkbox('Aggr all', 
-                                            value=st.session_state.if_aggr_all_cache
-                                                if 'if_aggr_all_cache' in st.session_state
-                                                else True,
-                                            )
-            
-            st.session_state.if_aggr_all_cache = if_aggr_all  # Have to use another variable to store this explicitly (my cache_widget somehow doesn't work with checkbox)
-            aggr_method_all = s_cols[2].selectbox('aggr method all', aggr_methods, index=aggr_methods.index('mean +/- sem'), disabled=not if_aggr_all)
-
-            if_use_x_quantile_all = s_cols[2].checkbox('Use quantiles of x', False) if 'mean' in aggr_method_all else False
-            q_quantiles_all = s_cols[2].slider('Number of quantiles', 1, 100, 20, disabled=not if_use_x_quantile_all) if if_use_x_quantile_all else None
-
-            smooth_factor = s_cols[0].slider('Smooth factor', 1, 20, 5) if ((if_aggr_each_group and aggr_method_group in ('running average', 'lowess'))
-                                                                        or (if_aggr_all and aggr_method_all in ('running average', 'lowess'))) else None
-        
-            c = st.columns([1, 1])
-            dot_size = c[0].slider('dot size', 1, 30, step=1, value=10)
-            dot_opacity = c[1].slider('opacity', 0.0, 1.0, step=0.05, value=0.5)
+        (if_show_dots, if_aggr_each_group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group,
+        if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor,
+        dot_size, dot_opacity) = add_xy_setting()
 
     
     # If no sessions are selected, use all filtered entries
@@ -607,27 +606,19 @@ def plot_x_y_session():
 
     return df_selected_from_plotly, cols
 
-def add_xy_selector():
-    with st.expander("Select axes", expanded=True):
-        # with st.form("axis_selection"):
-        cols = st.columns([1, 1, 1])
-        x_name = cols[0].selectbox("x axis", st.session_state.session_stats_names, index=st.session_state.session_stats_names.index('session'))
-        y_name = cols[1].selectbox("y axis", st.session_state.session_stats_names, index=st.session_state.session_stats_names.index('foraging_eff'))
-        group_by = cols[2].selectbox("grouped by", ['h2o', 'task', 'photostim_location', 'weekday',
-                                                    'headbar', 'user_name', 'sex', 'rig'], index=['h2o', 'task'].index('h2o'))
-            # st.form_submit_button("update axes")
-    return x_name, y_name, group_by
-
 
 # ------- Layout starts here -------- #    
 def init():
     
-    # Clear Session state
-    for key in ['selected_draw_types']:
-        if key in st.session_state:
+    # Clear specific session state and all filters
+    for key in st.session_state:
+        if key in ['selected_draw_types'] or '_changed' in key:
             del st.session_state[key]
 
-    
+    # Set session state from URL
+    for key, default in to_sync_with_url_query.items():
+        _sync_widget_with_query(key, default)
+
     df = load_data(['sessions', 
                     'logistic_regression_hattori', 
                     'logistic_regression_su',
@@ -638,6 +629,7 @@ def init():
     df['sessions']['session_date'] = pd.to_datetime(df['sessions']['session_date'])
     # if is_datetime64_any_dtype(df[col]):
     df['sessions']['session_date'] = df['sessions']['session_date'].dt.tz_localize(None)
+    df['sessions']['photostim_location'].fillna('None', inplace=True)
     
     st.session_state.df = df
     st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
@@ -718,6 +710,11 @@ def init():
 def app():
     st.markdown('## Foraging Behavior Browser')
     
+    # Set session state from URL
+    for key, default in to_sync_with_url_query.items():
+        _sync_widget_with_query(key, default)
+
+    
     with st.sidebar:
         add_session_filter()
         data_selector()
@@ -773,6 +770,7 @@ def app():
         stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
         stx.TabBarItemData(id="tab_session_x_y", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
         stx.TabBarItemData(id="tab_mouse_inspector", title="🐭 Mouse Model Fitting", description="Mouse-level model fitting results"),
+        stx.TabBarItemData(id="tab_auto_train_history", title="🎓 Automatic Training History", description="Track progress"),
         ], default="tab_session_inspector" if 'tab_id' not in st.session_state else st.session_state.tab_id)
     # chosen_id = "tab_session_x_y"
 
@@ -823,6 +821,10 @@ def app():
     
 
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
+
+    # Update back to URL
+    for key in to_sync_with_url_query:
+        st.query_params.update({key: st.session_state[key]})
 
 
 if 'df' not in st.session_state or 'sessions' not in st.session_state.df.keys(): 

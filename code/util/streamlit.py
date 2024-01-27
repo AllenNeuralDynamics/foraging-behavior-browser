@@ -161,7 +161,7 @@ def aggrid_interactive_table_units(df: pd.DataFrame):
     return selection
 
 def cache_widget(field, clear=None):
-    st.session_state[f'{field}_cache'] = st.session_state[field]
+    st.session_state[f'{field}_changed'] = st.session_state[field]
     
     # Clear cache if needed
     if clear:
@@ -198,22 +198,31 @@ def filter_dataframe(df: pd.DataFrame,
         st.markdown(f"Add filters")
         to_filter_columns = st.multiselect("Filter dataframe on", df.columns,
                                                             label_visibility='collapsed',
-                                                            default=st.session_state.to_filter_columns_cache 
-                                                                    if 'to_filter_columns_cache' in st.session_state
+                                                            default=st.session_state.to_filter_columns_changed 
+                                                                    if 'to_filter_columns_changed' in st.session_state
                                                                     else default_filters,
                                                             key='to_filter_columns',
                                                             on_change=cache_widget,
                                                             args=['to_filter_columns'])
         for column in to_filter_columns:
+            if not len(df): break
+            
             left, right = st.columns((1, 20))
             # Treat columns with < 10 unique values as categorical
-            if is_categorical_dtype(df[column]) or df[column].nunique() < 10 and column not in ('finished', 'foraging_eff'):
+            if is_categorical_dtype(df[column]) or df[column].nunique() < 10 and column not in ('finished', 'foraging_eff', 'session', 'finished_trials'):
                 right.markdown(f"Filter for :red[**{column}**]")
                 
-                if f'filter_{column}' in st.session_state:
-                    default_value = [i for i in st.session_state[f'filter_{column}'] if i in list(df[column].unique())]
+                if f'filter_{column}_changed' in st.session_state:
+                    default_value = st.session_state[f'filter_{column}_changed']
+                elif f'filter_{column}' in st.session_state:  # Set by URL or default
+                    if st.session_state[f'filter_{column}'] == ['all']:
+                        default_value = list(df[column].unique())
+                    else:
+                        default_value = [i for i in st.session_state[f'filter_{column}'] if i in list(df[column].unique())]
                 else:
-                    default_value = list(df[column].unique())             
+                    default_value = list(df[column].unique())  
+                
+                st.session_state[f'filter_{column}'] = default_value           
                 
                 selected = right.multiselect(
                     f"Values for {column}",
@@ -242,13 +251,13 @@ def filter_dataframe(df: pd.DataFrame,
                     col1.markdown(f"Filter for :red[**{column}**]")
                     if float(df[column].min()) >= 0: 
                         show_log = col2.checkbox('log 10', 
-                                                 value=st.session_state[f'if_log_{column}_cache']
-                                                       if f'if_log_{column}_cache' in st.session_state
+                                                 value=st.session_state[f'if_log_{column}_changed']
+                                                       if f'if_log_{column}_changed' in st.session_state
                                                        else False,
                                                  key=f'if_log_{column}',
                                                  on_change=cache_widget,
                                                  args=[f'if_log_{column}'],
-                                                 kwargs={'clear': f'filter_{column}_cache'}  # If show_log is changed, clear select cache
+                                                 kwargs={'clear': f'filter_{column}_changed'}  # If show_log is changed, clear select cache
                                                  )
                     else:
                         show_log = 0
@@ -264,15 +273,18 @@ def filter_dataframe(df: pd.DataFrame,
 
                     c_hist = st.container()  # Histogram
                     
-                    if f'filter_{column}' in st.session_state and st.session_state[f'filter_{column}'] != []:
+                    if f'filter_{column}_changed' in st.session_state:
+                        default_value = st.session_state[f'filter_{column}_changed']
+                    elif f'filter_{column}' in st.session_state and st.session_state[f'filter_{column}'] != []:
                         # If session_state was preset by a query, use that
                         # Handle None value 
-                        st.session_state[f'filter_{column}'] = [a or b for a, b in 
-                                                                zip(st.session_state[f'filter_{column}'], (_min, _max))]
-                        default_value = st.session_state[f'filter_{column}']
+                        default_value = [a or b for a, b in 
+                                        zip(st.session_state[f'filter_{column}'], (_min, _max))]
                     else:
                         default_value = (_min, _max)
                         
+                    st.session_state[f'filter_{column}'] = default_value
+
                     
                     user_num_input = st.slider(
                         f"Values for {column}",
@@ -304,8 +316,8 @@ def filter_dataframe(df: pd.DataFrame,
             elif is_datetime64_any_dtype(df[column]):
                 user_date_input = right.date_input(
                     f"Values for :red[**{column}**]",
-                    value=st.session_state[f'filter_{column}_cache']
-                                if f'filter_{column}_cache' in st.session_state
+                    value=st.session_state[f'filter_{column}_changed']
+                                if f'filter_{column}_changed' in st.session_state
                                 else (df[column].min(), df[column].max()),
                     key=f'filter_{column}',
                     on_change=cache_widget,
@@ -316,19 +328,22 @@ def filter_dataframe(df: pd.DataFrame,
                     user_date_input = tuple(map(pd.to_datetime, user_date_input))
                     start_date, end_date = user_date_input
                     df = df.loc[df[column].between(start_date, end_date)]
-            else:
-                if f'filter_{column}_cache' in st.session_state:
-                    default_value = st.session_state[f'filter_{column}_cache']
-                elif column in url_query:
-                    default_value = url_query[column]
-                    # If the query is subject_id, we ignore it if it is 0 or subject_id is not valid
+            else:  # Regular string
+                    
+                if f'filter_{column}_changed' in st.session_state:
+                    default_value = st.session_state[f'filter_{column}_changed']
+                elif f'filter_{column}' in st.session_state:
+                    default_value = st.session_state[f'filter_{column}']
                     if column == 'subject_id' \
-                        and (float(url_query[column]) == 0
-                             or url_query[column] not in list(df[column])
+                        and default_value != ''\
+                        and (float(default_value) == 0
+                             or default_value not in list(df[column])
                         ):
                         default_value = ''
                 else:
                     default_value = ''
+                
+                st.session_state[f'filter_{column}'] = default_value
                 
                 user_text_input = right.text_input(
                     f"Substring or regex in :red[**{column}**]",
@@ -347,14 +362,100 @@ def add_session_filter(if_bonsai=False, url_query={}):
     with st.expander("Behavioral session filter", expanded=True):   
         if not if_bonsai:
             st.session_state.df_session_filtered = filter_dataframe(df=st.session_state.df['sessions'],
+                                                                    default_filters=['h2o', 'task', 'session', 'finished_trials', 'foraging_eff', 'photostim_location'],
                                                                     url_query=url_query)
         else:
             st.session_state.df_session_filtered = filter_dataframe(df=st.session_state.df['sessions_bonsai'],
                                                                     default_filters=['subject_id', 'task', 'session', 'finished_trials', 'foraging_eff'],
                                                                     url_query=url_query)
-            
+
+def add_xy_selector(if_bonsai):
+    with st.expander("Select axes", expanded=True):
+        # with st.form("axis_selection"):
+        cols = st.columns([1, 1, 1])
+        x_name = cols[0].selectbox("x axis", 
+                                   st.session_state.session_stats_names, 
+                                   index=st.session_state.session_stats_names.index(st.session_state['x_y_plot_xname']),
+                                   key='x_y_plot_xname'
+                                   )
+        y_name = cols[1].selectbox("y axis", 
+                                   st.session_state.session_stats_names, 
+                                   index=st.session_state.session_stats_names.index(st.session_state['x_y_plot_xname']),
+                                   key='x_y_plot_yname')
+        
+        if if_bonsai:
+            options = ['h2o', 'task', 'user_name', 'rig']
+        else:
+            options = ['h2o', 'task', 'photostim_location', 'weekday',
+                       'headbar', 'user_name', 'sex', 'rig']
+        
+        group_by = cols[2].selectbox("grouped by", 
+                                     options=options, 
+                                     index=options.index(st.session_state['x_y_plot_group_by']),
+                                     key='x_y_plot_group_by')
+        
+            # st.form_submit_button("update axes")
+    return x_name, y_name, group_by
     
-    
+
+def add_xy_setting():
+    with st.expander('Plot settings', expanded=True):            
+        s_cols = st.columns([1, 1, 1])
+        # if_plot_only_selected_from_dataframe = s_cols[0].checkbox('Only selected', False)
+        if_show_dots = s_cols[0].checkbox('Show data points', 
+                                            value=st.session_state['x_y_plot_if_show_dots'],
+                                            key='x_y_plot_if_show_dots')
+        
+
+        if_aggr_each_group = s_cols[1].checkbox('Aggr each group', 
+                                                value=st.session_state['x_y_plot_if_aggr_each_group'],
+                                                key='x_y_plot_if_aggr_each_group')
+        
+        aggr_methods =  ['mean', 'mean +/- sem', 'lowess', 'running average', 'linear fit']
+        aggr_method_group = s_cols[1].selectbox('aggr method group', 
+                                                options=aggr_methods, 
+                                                index=aggr_methods.index(st.session_state['x_y_plot_aggr_method_group']),
+                                                key='x_y_plot_aggr_method_group', 
+                                                disabled=not if_aggr_each_group)
+        
+        if_use_x_quantile_group = s_cols[1].checkbox('Use quantiles of x ', False) if 'mean' in aggr_method_group else False
+        q_quantiles_group = s_cols[1].slider('Number of quantiles ', 1, 100, 20, disabled=not if_use_x_quantile_group) if if_use_x_quantile_group else None
+        
+        if_aggr_all = s_cols[2].checkbox('Aggr all',
+                                            value=st.session_state['x_y_plot_if_aggr_all'],
+                                            key='x_y_plot_if_aggr_all',
+                                        )
+        
+        # st.session_state.if_aggr_all_cache = if_aggr_all  # Have to use another variable to store this explicitly (my cache_widget somehow doesn't work with checkbox)
+        aggr_method_all = s_cols[2].selectbox('aggr method all', aggr_methods, 
+                                                index=aggr_methods.index(st.session_state['x_y_plot_aggr_method_all']), 
+                                                key='x_y_plot_aggr_method_all',
+                                                disabled=not if_aggr_all)
+
+        if_use_x_quantile_all = s_cols[2].checkbox('Use quantiles of x', False) if 'mean' in aggr_method_all else False
+        q_quantiles_all = s_cols[2].slider('number of quantiles', 1, 100, 20, disabled=not if_use_x_quantile_all) if if_use_x_quantile_all else None
+
+        smooth_factor = s_cols[0].slider('smooth factor', 1, 20,
+                                            value=st.session_state['x_y_plot_smooth_factor'],
+                                            key='x_y_plot_smooth_factor',
+                                            ) if ((if_aggr_each_group and aggr_method_group in ('running average', 'lowess'))
+                                                                    or (if_aggr_all and aggr_method_all in ('running average', 'lowess'))) else None
+        
+        c = st.columns([1, 1])
+        dot_size = c[0].slider('dot size', 1, 30, 
+                                step=1,
+                                value=st.session_state['x_y_plot_dot_size'],
+                                key='x_y_plot_dot_size'
+                                )
+        dot_opacity = c[1].slider('opacity', 0.0, 1.0, 
+                                    step=0.05, 
+                                    value=st.session_state['x_y_plot_dot_opacity'],
+                                    key='x_y_plot_dot_opacity')
+
+    return  (if_show_dots, if_aggr_each_group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group,
+        if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor,
+        dot_size, dot_opacity)
+
 def data_selector():
             
     with st.expander(f'Session selector', expanded=True):
@@ -385,3 +486,33 @@ def data_selector():
             st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
             st.experimental_rerun()
         
+
+def _sync_widget_with_query(key, default):
+    if key in st.query_params:
+        # always get all query params as a list
+        q_all = st.query_params.get_all(key)
+        
+        # convert type according to default
+        list_default = default if isinstance(default, list) else [default]
+        for d in list_default:
+            _type = type(d)
+            if _type: break  # The first non-None type
+            
+        if _type == bool:
+            q_all_correct_type = [q.lower() == 'true' for q in q_all]
+        else:
+            q_all_correct_type = [_type(q) for q in q_all]
+        
+        # flatten list if only one element
+        if not isinstance(default, list):
+            q_all_correct_type = q_all_correct_type[0]
+        
+        try:
+            st.session_state[key] = q_all_correct_type
+        except:
+            print(f'Failed to set {key} to {q_all_correct_type}')
+    else:
+        try:
+            st.session_state[key] = default
+        except:
+            print(f'Failed to set {key} to {default}')
