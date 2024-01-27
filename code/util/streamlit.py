@@ -334,12 +334,12 @@ def filter_dataframe(df: pd.DataFrame,
                     default_value = st.session_state[f'filter_{column}_changed']
                 elif f'filter_{column}' in st.session_state:
                     default_value = st.session_state[f'filter_{column}']
-                    if column == 'subject_id' \
-                        and default_value != ''\
-                        and (float(default_value) == 0
-                             or default_value not in list(df[column])
-                        ):
-                        default_value = ''
+                    if column == 'subject_id' and default_value != '':
+                        try:
+                            if float(default_value) == 0:
+                                default_value = ''
+                        except:
+                            pass
                 else:
                     default_value = ''
                 
