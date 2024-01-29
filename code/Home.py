@@ -80,7 +80,7 @@ to_sync_with_url_query = {
     'auto_training_history_sort_by': 'subject_id',
     'auto_training_history_sort_order': 'descending',
     'auto_training_curriculum_name': 'Coupled Baiting',
-    'auto_training_curriculum_version': '1.0',
+    'auto_training_curriculum_version': '0.1',
     'auto_training_curriculum_schema_version': '0.3',
     }
 
@@ -638,7 +638,7 @@ def app():
 
     elif chosen_id == "tab_auto_train_curriculum":  # Automatic training curriculums
         st.session_state.tab_id = chosen_id
-        df_curriculums = st.session_state.curriculum_manager.df_curriculums().sort_values(by='curriculum_name')     
+        df_curriculums = st.session_state.curriculum_manager.df_curriculums().sort_values(by='curriculum_name').reset_index().drop(columns='index')
         with placeholder:
             # Show curriculum manager dataframe
             st.markdown("#### Available auto training curriculums")
@@ -662,7 +662,7 @@ def app():
                                                                                 pre_selected_rows=pre_selected_rows)
             
             # Overriding the selected curriculum if the user selects a different one
-            if aggrid_curriculum_outputs['selected_rows']:
+            if aggrid_curriculum_outputs['selected_rows']:                
                 # Get selected curriculum
                 selected_row = aggrid_curriculum_outputs['selected_rows'][0]
                                     
@@ -670,7 +670,7 @@ def app():
                 st.session_state['auto_training_curriculum_name'] = selected_row['curriculum_name']
                 st.session_state['auto_training_curriculum_schema_version'] = selected_row['curriculum_schema_version']
                 st.session_state['auto_training_curriculum_version'] = selected_row['curriculum_version']
-            
+                        
             if selected_row:
                 selected_curriculum = st.session_state.curriculum_manager.get_curriculum(
                     curriculum_name=selected_row['curriculum_name'],
