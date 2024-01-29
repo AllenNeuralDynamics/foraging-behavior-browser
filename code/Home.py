@@ -79,6 +79,9 @@ to_sync_with_url_query = {
     'auto_training_history_x_axis': 'date',
     'auto_training_history_sort_by': 'subject_id',
     'auto_training_history_sort_order': 'descending',
+    'auto_training_curriculum_name': 'Coupled Baiting',
+    'auto_training_curriculum_version': '1.0',
+    'auto_training_curriculum_schema_version': '0.3',
     }
 
 
@@ -665,12 +668,35 @@ def app():
             # Show curriculum manager dataframe
             st.markdown("#### Available auto training curriculums")
             cols = st.columns([1, 1])
-            with cols[0]:
-                aggrid_curriculum_outputs = aggrid_interactive_table_curriculum(df=df_curriculums)
             
+            # Get curriculum from previous selected or the URL
+            if 'auto_training_curriculum_name' in st.session_state:
+                selected_row = {'curriculum_name': st.session_state['auto_training_curriculum_name'],
+                                'curriculum_schema_version': st.session_state['auto_training_curriculum_schema_version'],
+                                'curriculum_version': st.session_state['auto_training_curriculum_version']}
+                matched_curriculum = df_curriculums[(df_curriculums[list(selected_row)] == pd.Series(selected_row)).all(axis=1)]
+                
+                if len(matched_curriculum):
+                    pre_selected_rows = matched_curriculum.index.to_list() 
+                else:
+                    selected_row = None # Clear selected row if not found
+                    pre_selected_rows = None
+            
+            with cols[0]:
+                aggrid_curriculum_outputs = aggrid_interactive_table_curriculum(df=df_curriculums,
+                                                                                pre_selected_rows=pre_selected_rows)
+            
+            # Overriding the selected curriculum if the user selects a different one
             if aggrid_curriculum_outputs['selected_rows']:
                 # Get selected curriculum
                 selected_row = aggrid_curriculum_outputs['selected_rows'][0]
+                                    
+                # Update session_state
+                st.session_state['auto_training_curriculum_name'] = selected_row['curriculum_name']
+                st.session_state['auto_training_curriculum_schema_version'] = selected_row['curriculum_schema_version']
+                st.session_state['auto_training_curriculum_version'] = selected_row['curriculum_version']
+            
+            if selected_row:
                 selected_curriculum = st.session_state.curriculum_manager.get_curriculum(
                     curriculum_name=selected_row['curriculum_name'],
                     curriculum_schema_version=selected_row['curriculum_schema_version'],
