@@ -79,9 +79,9 @@ to_sync_with_url_query = {
     'auto_training_history_x_axis': 'date',
     'auto_training_history_sort_by': 'subject_id',
     'auto_training_history_sort_order': 'descending',
-    'auto_training_curriculum_name': 'Coupled Baiting',
-    'auto_training_curriculum_version': '0.1',
-    'auto_training_curriculum_schema_version': '0.3',
+    'auto_training_curriculum_name': '',
+    'auto_training_curriculum_version': '',
+    'auto_training_curriculum_schema_version': '',
     }
 
 
@@ -692,10 +692,6 @@ def app():
                 # Get selected curriculum
                 selected_row = aggrid_curriculum_outputs['selected_rows'][0]
                                     
-                # Update session_state
-                st.session_state['auto_training_curriculum_name'] = selected_row['curriculum_name']
-                st.session_state['auto_training_curriculum_schema_version'] = selected_row['curriculum_schema_version']
-                st.session_state['auto_training_curriculum_version'] = selected_row['curriculum_version']
                         
             if selected_row:
                 selected_curriculum = st.session_state.curriculum_manager.get_curriculum(
