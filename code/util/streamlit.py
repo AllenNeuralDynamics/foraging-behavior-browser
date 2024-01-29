@@ -96,7 +96,8 @@ def aggrid_interactive_table_session(df: pd.DataFrame):
     
     return selection
 
-def aggrid_interactive_table_curriculum(df: pd.DataFrame):
+def aggrid_interactive_table_curriculum(df: pd.DataFrame,
+                                        pre_selected_rows: list = None):
     """Creates an st-aggrid interactive table based on a dataframe.
 
     Args:
@@ -111,7 +112,8 @@ def aggrid_interactive_table_curriculum(df: pd.DataFrame):
 
     options.configure_side_bar()
     
-    options.configure_selection(selection_mode="single")
+    options.configure_selection(selection_mode="single",
+                                pre_selected_rows=pre_selected_rows)
         
     selection = AgGrid(
         df,
