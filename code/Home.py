@@ -638,7 +638,8 @@ def app():
 
     elif chosen_id == "tab_auto_train_curriculum":  # Automatic training curriculums
         st.session_state.tab_id = chosen_id
-        df_curriculums = st.session_state.curriculum_manager.df_curriculums().sort_values(by='curriculum_name').reset_index().drop(columns='index')
+        df_curriculums = st.session_state.curriculum_manager.df_curriculums().sort_values(
+            by=['curriculum_schema_version', 'curriculum_name', 'curriculum_version']).reset_index().drop(columns='index')
         with placeholder:
             # Show curriculum manager dataframe
             st.markdown("#### Available auto training curriculums")
