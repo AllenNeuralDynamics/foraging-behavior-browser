@@ -393,12 +393,20 @@ def add_xy_selector(if_bonsai):
         cols = st.columns([1, 1, 1])
         x_name = cols[0].selectbox("x axis", 
                                    st.session_state.session_stats_names, 
-                                   index=st.session_state.session_stats_names.index(st.session_state['x_y_plot_xname']),
+                                   index=st.session_state.session_stats_names.index(st.session_state['x_y_plot_xname'])
+                                         if 'x_y_plot_xname' in st.session_state else 
+                                         st.session_state.session_stats_names.index(st.query_params['x_y_plot_xname'])
+                                         if 'x_y_plot_xname' in st.query_params 
+                                         else st.session_state.session_stats_names.index('session'), 
                                    key='x_y_plot_xname'
                                    )
         y_name = cols[1].selectbox("y axis", 
                                    st.session_state.session_stats_names, 
-                                   index=st.session_state.session_stats_names.index(st.session_state['x_y_plot_yname']),
+                                   index=st.session_state.session_stats_names.index(st.session_state['x_y_plot_yname'])
+                                         if 'x_y_plot_yname' in st.session_state else 
+                                         st.session_state.session_stats_names.index(st.query_params['x_y_plot_yname'])
+                                         if 'x_y_plot_yname' in st.query_params
+                                         else st.session_state.session_stats_names.index('foraging_eff'),
                                    key='x_y_plot_yname')
         
         if if_bonsai:
@@ -409,7 +417,11 @@ def add_xy_selector(if_bonsai):
         
         group_by = cols[2].selectbox("grouped by", 
                                      options=options, 
-                                     index=options.index(st.session_state['x_y_plot_group_by']),
+                                     index=options.index(st.session_state['x_y_plot_group_by'])
+                                           if 'x_y_plot_group_by' in st.session_state else 
+                                           options.index(st.query_params['x_y_plot_group_by'])
+                                           if 'x_y_plot_group_by' in st.query_params 
+                                           else 0,
                                      key='x_y_plot_group_by')
         
             # st.form_submit_button("update axes")
@@ -421,56 +433,96 @@ def add_xy_setting():
         s_cols = st.columns([1, 1, 1])
         # if_plot_only_selected_from_dataframe = s_cols[0].checkbox('Only selected', False)
         if_show_dots = s_cols[0].checkbox('Show data points', 
-                                            value=st.session_state['x_y_plot_if_show_dots'],
+                                            value=st.session_state['x_y_plot_if_show_dots']
+                                                  if 'x_y_plot_if_show_dots' in st.session_state else 
+                                                  st.query_params['x_y_plot_if_show_dots'].lower()=='true' 
+                                                  if 'x_y_plot_if_show_dots' in st.query_params 
+                                                  else True,
                                             key='x_y_plot_if_show_dots')
         
 
         if_aggr_each_group = s_cols[1].checkbox('Aggr each group', 
-                                                value=st.session_state['x_y_plot_if_aggr_each_group'],
+                                                value=st.session_state['x_y_plot_if_aggr_each_group']
+                                                      if 'x_y_plot_if_aggr_each_group' in st.session_state else
+                                                      st.query_params['x_y_plot_if_aggr_each_group'].lower()=='true'
+                                                      if 'x_y_plot_if_aggr_each_group' in st.query_params
+                                                      else True,
                                                 key='x_y_plot_if_aggr_each_group')
         
         aggr_methods =  ['mean', 'mean +/- sem', 'lowess', 'running average', 'linear fit']
         aggr_method_group = s_cols[1].selectbox('aggr method group', 
                                                 options=aggr_methods, 
-                                                index=aggr_methods.index(st.session_state['x_y_plot_aggr_method_group']),
+                                                index=aggr_methods.index(st.session_state['x_y_plot_aggr_method_group'])
+                                                      if 'x_y_plot_aggr_method_group' in st.session_state else
+                                                      aggr_methods.index(st.query_params['x_y_plot_aggr_method_group'])
+                                                      if 'x_y_plot_aggr_method_group' in st.query_params
+                                                      else 2,
                                                 key='x_y_plot_aggr_method_group', 
                                                 disabled=not if_aggr_each_group)
         
         if_use_x_quantile_group = s_cols[1].checkbox('Use quantiles of x ', 
-                                                     value=st.session_state['x_y_plot_if_use_x_quantile_group'],
+                                                     value=st.session_state['x_y_plot_if_use_x_quantile_group']
+                                                           if 'x_y_plot_if_use_x_quantile_group' in st.session_state else
+                                                           st.query_params['x_y_plot_if_use_x_quantile_group'].lower()=='true'
+                                                           if 'x_y_plot_if_use_x_quantile_group' in st.query_params
+                                                           else False,
                                                      key='x_y_plot_if_use_x_quantile_group',
                                                      disabled='mean' not in aggr_method_group) 
             
         q_quantiles_group = s_cols[1].slider('Number of quantiles ', 1, 100,
-                                             value=st.session_state['x_y_plot_q_quantiles_group'],
+                                             value=st.session_state['x_y_plot_q_quantiles_group']
+                                                   if 'x_y_plot_q_quantiles_group' in st.session_state else
+                                                   int(st.query_params['x_y_plot_q_quantiles_group'])
+                                                   if 'x_y_plot_q_quantiles_group' in st.query_params
+                                                   else 20,
                                              key='x_y_plot_q_quantiles_group',
                                              disabled=not if_use_x_quantile_group
                                              )
         
         if_aggr_all = s_cols[2].checkbox('Aggr all',
-                                            value=st.session_state['x_y_plot_if_aggr_all'],
+                                            value=st.session_state['x_y_plot_if_aggr_all']
+                                                  if 'x_y_plot_if_aggr_all' in st.session_state else
+                                                  st.query_params['x_y_plot_if_aggr_all'].lower()=='true'
+                                                  if 'x_y_plot_if_aggr_all' in st.query_params
+                                                  else True,
                                             key='x_y_plot_if_aggr_all',
                                         )
         
         # st.session_state.if_aggr_all_cache = if_aggr_all  # Have to use another variable to store this explicitly (my cache_widget somehow doesn't work with checkbox)
         aggr_method_all = s_cols[2].selectbox('aggr method all', aggr_methods, 
-                                                index=aggr_methods.index(st.session_state['x_y_plot_aggr_method_all']), 
+                                                index=aggr_methods.index(st.session_state['x_y_plot_aggr_method_all'])
+                                                      if 'x_y_plot_aggr_method_all' in st.session_state else
+                                                      aggr_methods.index(st.query_params['x_y_plot_aggr_method_all'])
+                                                      if 'x_y_plot_aggr_method_all' in st.query_params
+                                                      else 1, 
                                                 key='x_y_plot_aggr_method_all',
                                                 disabled=not if_aggr_all)
 
         if_use_x_quantile_all = s_cols[2].checkbox('Use quantiles of x', 
-                                                   value=st.session_state['x_y_plot_if_use_x_quantile_all'],
+                                                   value=st.session_state['x_y_plot_if_use_x_quantile_all']
+                                                         if 'x_y_plot_if_use_x_quantile_all' in st.session_state else
+                                                         st.query_params['x_y_plot_if_use_x_quantile_all'].lower()=='true'
+                                                         if 'x_y_plot_if_use_x_quantile_all' in st.query_params
+                                                         else False,
                                                    key='x_y_plot_if_use_x_quantile_all',
                                                    disabled='mean' not in aggr_method_all,
                                                    )
         q_quantiles_all = s_cols[2].slider('number of quantiles', 1, 100, 
-                                           value=st.session_state['x_y_plot_q_quantiles_all'],
+                                           value=st.session_state['x_y_plot_q_quantiles_all']
+                                                 if 'x_y_plot_q_quantiles_all' in st.session_state else
+                                                 int(st.query_params['x_y_plot_q_quantiles_all'])
+                                                 if 'x_y_plot_q_quantiles_all' in st.query_params
+                                                 else 20,
                                            key='x_y_plot_q_quantiles_all',
                                            disabled=not if_use_x_quantile_all
                                            )
 
         smooth_factor = s_cols[0].slider('smooth factor', 1, 20,
-                                            value=st.session_state['x_y_plot_smooth_factor'],
+                                            value=st.session_state['x_y_plot_smooth_factor']
+                                                  if 'x_y_plot_smooth_factor' in st.session_state else
+                                                  int(st.query_params['x_y_plot_smooth_factor'])
+                                                  if 'x_y_plot_smooth_factor' in st.query_params
+                                                  else 5,
                                             key='x_y_plot_smooth_factor',
                                             disabled= not ((if_aggr_each_group and aggr_method_group in ('running average', 'lowess'))
                                                                     or (if_aggr_all and aggr_method_all in ('running average', 'lowess'))) 
@@ -479,17 +531,29 @@ def add_xy_setting():
         c = st.columns([1, 1, 1])
         dot_size = c[0].slider('dot size', 1, 30, 
                                 step=1,
-                                value=st.session_state['x_y_plot_dot_size'],
+                                value=st.session_state['x_y_plot_dot_size']
+                                      if 'x_y_plot_dot_size' in st.session_state else
+                                      int(st.query_params['x_y_plot_dot_size'])
+                                      if 'x_y_plot_dot_size' in st.query_params
+                                      else 10,
                                 key='x_y_plot_dot_size'
                                 )
         dot_opacity = c[1].slider('opacity', 0.0, 1.0, 
                                     step=0.05, 
-                                    value=st.session_state['x_y_plot_dot_opacity'],
+                                    value=st.session_state['x_y_plot_dot_opacity']
+                                          if 'x_y_plot_dot_opacity' in st.session_state else
+                                          float(st.query_params['x_y_plot_dot_opacity'])
+                                          if 'x_y_plot_dot_opacity' in st.query_params
+                                          else 0.5,
                                     key='x_y_plot_dot_opacity')
 
         line_width = c[2].slider('line width', 0.0, 5.0, 
                                     step=0.25, 
-                                    value=st.session_state['x_y_plot_line_width'],
+                                    value=st.session_state['x_y_plot_line_width']
+                                          if 'x_y_plot_line_width' in st.session_state else
+                                          float(st.query_params['x_y_plot_line_width'])
+                                          if 'x_y_plot_line_width' in st.query_params
+                                          else 2.0,
                                     key='x_y_plot_line_width')
 
     return  (if_show_dots, if_aggr_each_group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group,
