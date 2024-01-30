@@ -108,6 +108,27 @@ if 'selected_points' not in st.session_state:
     st.session_state['selected_points'] = []
 
     
+
+def _get_urls():
+    cache_folder = 'aind-behavior-data/Han/ephys/report/st_cache/'
+    cache_session_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_sessions/'
+    cache_mouse_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_subjects/'
+    
+    fs = s3fs.S3FileSystem(anon=False)
+   
+    with fs.open('aind-behavior-data/Han/streamlit_CO_url.json', 'r') as f:
+        data = json.load(f)
+    
+    return data['behavior'], data['ephys']
+
+def add_caution():
+    behavior_url, ephys_url = _get_urls()
+    st.markdown('##### ***:blue[❗️Caution: Due to bugs and resource limitations of the Streamlit public cloud, the app you are currently viewing may be unstable and buggy 🐞. '
+                f'It is recommended that you switch to [the one in Code Ocean]({behavior_url}) instead. '
+                'However, you will need to log in to Code Ocean first. Please contact David if you have any questions. '
+                f'See also [the ephys browser in Code Ocean]({ephys_url}) '
+                '(recommended) and [the one on the public cloud](https://foraging-ephys-browser.streamlit.app/)]***')
+                    
 @st.cache_data(ttl=24*3600)
 def load_data(tables=['sessions']):
     df = {}
@@ -513,9 +534,13 @@ def init():
        
 
 def app():
-    st.markdown('## 🌳🪴 Foraging sessions from Bonsai 🌳🪴')
-    st.markdown('##### (still using a temporary workaround until AIND behavior metadata and pipeline are set up)')
-        
+    
+    cols = st.columns([1, 1.2])
+    with cols[0]:
+        st.markdown('## 🌳🪴 Foraging sessions from Bonsai 🌳🪴')
+        st.markdown('##### (still using a temporary workaround until AIND behavior metadata and pipeline are set up)')
+    with cols[1]:
+        add_caution()
 
     with st.sidebar:
         
