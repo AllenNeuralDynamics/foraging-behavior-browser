@@ -1,15 +1,15 @@
 # Foraging behavior browser
 
-A streamlit app for browsing foraging behavior sessions.
+A streamlit app for browsing foraging behavior sessions in AIND.
 
 ## The app
 - The one running on Streamlit Community Cloud: https://foraging-behavior-browser.streamlit.app/
-- For a better experience, click the Code Ocean link shown in the app
+- For a better experience, click the Code Ocean link shown at the top of the app
   <img width="729" alt="image" src="https://github.com/AllenNeuralDynamics/foraging-behavior-browser/assets/24734299/01dfe9d2-a98f-46a2-a436-982d087d6b0d">
 - See also a streamlit app for ephys sessions https://github.com/AllenNeuralDynamics/foraging-ephys-browser/
 
 ## Sharing a contextual app
-Starting from this [PR](https://github.com/AllenNeuralDynamics/foraging-behavior-browser/pull/25), the URL contains (part of) the session state of the app. Meaning that the user "query" pre-set filters and plot settings in the URL. On the other hand, after interacting with the app, the URL is automatically updated to reflect the user interactions. This becomes a novel way of sharing a data analysis.
+Starting from this [PR](https://github.com/AllenNeuralDynamics/foraging-behavior-browser/pull/25), the URL contains (part of) the session state of the app. Meaning that the user can "query" pre-set filters and plot settings in the URL. On the other hand, after interacting with the app, the URL is automatically updated to reflect the user interactions, and the user can then copy and paste the URL to share/save the new context. Essentially, this becomes a cool way of sharing a data analysis.
 
 For example, this URL will show exactly the plot below. Note the filters and plot settings are preserved.
 
