@@ -642,12 +642,10 @@ def app():
             by=['curriculum_schema_version', 'curriculum_name', 'curriculum_version']).reset_index().drop(columns='index')
         with placeholder:
             # Show curriculum manager dataframe
-            st.markdown("#### Available auto training curriculums")
-            
-            aggrid_interactive_table_curriculum(df=df_curriculums)        
-            
+            st.markdown("#### Select auto training curriculums")
+
             # Curriculum drop down selector
-            cols = st.columns([1, 1, 1, 4])
+            cols = st.columns([0.8, 0.5, 0.8, 4])
             options = list(df_curriculums['curriculum_name'].unique())
             selected_curriculum_name = cols[0].selectbox(
                 'Curriculum name', 
@@ -698,6 +696,24 @@ def app():
                 curriculum_schema_version=selected_curriculum_schema_version,
                 curriculum_version=selected_curriculum_version,
                 )
+            
+            # Get selected curriculum from previous selected or the URL
+            if 'auto_training_curriculum_name' in st.session_state:
+                selected_row = {'curriculum_name': st.session_state['auto_training_curriculum_name'],
+                                'curriculum_schema_version': st.session_state['auto_training_curriculum_schema_version'],
+                                'curriculum_version': st.session_state['auto_training_curriculum_version']}
+                matched_curriculum = df_curriculums[(df_curriculums[list(selected_row)] == pd.Series(selected_row)).all(axis=1)]
+                
+                if len(matched_curriculum):
+                    pre_selected_rows = matched_curriculum.index.to_list() 
+                else:
+                    selected_row = None # Clear selected row if not found
+                    pre_selected_rows = None
+            
+            # Show df_curriculum       
+            aggrid_interactive_table_curriculum(df=df_curriculums,
+                                                pre_selected_rows=pre_selected_rows)        
+
             
             if selected_curriculum is not None:
                 curriculum = selected_curriculum['curriculum']
