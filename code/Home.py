@@ -79,9 +79,9 @@ to_sync_with_url_query = {
     'auto_training_history_x_axis': 'date',
     'auto_training_history_sort_by': 'subject_id',
     'auto_training_history_sort_order': 'descending',
-    'auto_training_curriculum_name': '',
-    'auto_training_curriculum_version': '',
-    'auto_training_curriculum_schema_version': '',
+    'auto_training_curriculum_name': 'Uncoupled Baiting',
+    'auto_training_curriculum_version': '1.0',
+    'auto_training_curriculum_schema_version': '1.0',
     }
 
 
@@ -642,10 +642,62 @@ def app():
             by=['curriculum_schema_version', 'curriculum_name', 'curriculum_version']).reset_index().drop(columns='index')
         with placeholder:
             # Show curriculum manager dataframe
-            st.markdown("#### Available auto training curriculums")
-            cols = st.columns([1, 1])
+            st.markdown("#### Select auto training curriculums")
+
+            # Curriculum drop down selector
+            cols = st.columns([0.8, 0.5, 0.8, 4])
+            options = list(df_curriculums['curriculum_name'].unique())
+            selected_curriculum_name = cols[0].selectbox(
+                'Curriculum name', 
+                options=options,
+                index=options.index(st.session_state['auto_training_curriculum_name'])
+                    if ('auto_training_curriculum_name' in st.session_state) and (st.session_state['auto_training_curriculum_name'] != '') else 
+                    options.index(st.query_params['auto_training_curriculum_name'])
+                    if 'auto_training_curriculum_name' in st.query_params and st.query_params['auto_training_curriculum_name'] != ''
+                    else 0, 
+                key='auto_training_curriculum_name'
+                )
             
-            # Get curriculum from previous selected or the URL
+            options = list(df_curriculums[
+                df_curriculums['curriculum_name'] == selected_curriculum_name
+                ]['curriculum_version'].unique())
+            if ('auto_training_curriculum_version' in st.session_state) and (st.session_state['auto_training_curriculum_version'] in options):
+                default = options.index(st.session_state['auto_training_curriculum_version'])
+            elif 'auto_training_curriculum_version' in st.query_params and st.query_params['auto_training_curriculum_version'] in options:
+                default = options.index(st.query_params['auto_training_curriculum_version'])
+            else:
+                default = 0
+            selected_curriculum_version = cols[1].selectbox(
+                'Curriculum version', 
+                options=options, 
+                index=default, 
+                key='auto_training_curriculum_version'
+            )
+            
+            options = list(df_curriculums[
+                (df_curriculums['curriculum_name'] == selected_curriculum_name) 
+                & (df_curriculums['curriculum_version'] == selected_curriculum_version)
+                ]['curriculum_schema_version'].unique())
+            if ('auto_training_curriculum_schema_version' in st.session_state) and (st.session_state['auto_training_curriculum_schema_version'] in options):
+                default = options.index(st.session_state['auto_training_curriculum_schema_version'])
+            elif 'auto_training_curriculum_schema_version' in st.query_params and st.query_params['auto_training_curriculum_schema_version'] in options:
+                default = options.index(st.query_params['auto_training_curriculum_schema_version'])
+            else:
+                default = 0
+            selected_curriculum_schema_version = cols[2].selectbox(
+                'Curriculum schema version', 
+                options=options,
+                index=default,
+                key='auto_training_curriculum_schema_version'
+                )
+                        
+            selected_curriculum = st.session_state.curriculum_manager.get_curriculum(
+                curriculum_name=selected_curriculum_name,
+                curriculum_schema_version=selected_curriculum_schema_version,
+                curriculum_version=selected_curriculum_version,
+                )
+            
+            # Get selected curriculum from previous selected or the URL
             if 'auto_training_curriculum_name' in st.session_state:
                 selected_row = {'curriculum_name': st.session_state['auto_training_curriculum_name'],
                                 'curriculum_schema_version': st.session_state['auto_training_curriculum_schema_version'],
@@ -658,34 +710,23 @@ def app():
                     selected_row = None # Clear selected row if not found
                     pre_selected_rows = None
             
-            with cols[0]:
-                aggrid_curriculum_outputs = aggrid_interactive_table_curriculum(df=df_curriculums,
-                                                                                pre_selected_rows=pre_selected_rows)
+            # Show df_curriculum       
+            aggrid_interactive_table_curriculum(df=df_curriculums,
+                                                pre_selected_rows=pre_selected_rows)        
+
             
-            # Overriding the selected curriculum if the user selects a different one
-            if aggrid_curriculum_outputs['selected_rows']:                
-                # Get selected curriculum
-                selected_row = aggrid_curriculum_outputs['selected_rows'][0]
-                                    
-                        
-            if selected_row:
-                selected_curriculum = st.session_state.curriculum_manager.get_curriculum(
-                    curriculum_name=selected_row['curriculum_name'],
-                    curriculum_schema_version=selected_row['curriculum_schema_version'],
-                    curriculum_version=selected_row['curriculum_version'],
-                    )
+            if selected_curriculum is not None:
                 curriculum = selected_curriculum['curriculum']
-            
                 # Show diagrams
-                cols = st.columns([1, 1.5])
+                cols = st.columns([1.3, 1.5, 1])
                 with cols[0]:
                     st.graphviz_chart(curriculum.diagram_rules(render_file_format=''),
-                                    use_container_width=True)
+                                      use_container_width=True)
                 with cols[1]:
                     st.graphviz_chart(curriculum.diagram_paras(render_file_format=''),
                                     use_container_width=True)
             else:
-                st.write('Select a curriculum above.') 
+                st.write('load curriculum failed')
 
     # Add debug info
     if chosen_id != "tab_auto_train_curriculum":
