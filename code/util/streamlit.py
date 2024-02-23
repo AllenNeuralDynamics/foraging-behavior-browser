@@ -112,7 +112,7 @@ def aggrid_interactive_table_curriculum(df: pd.DataFrame,
 
     options.configure_side_bar()
     
-    options.configure_selection(selection_mode="single",
+    options.configure_selection(selection_mode=None,
                                 pre_selected_rows=pre_selected_rows)
         
     selection = AgGrid(
@@ -120,9 +120,9 @@ def aggrid_interactive_table_curriculum(df: pd.DataFrame,
         enable_enterprise_modules=True,
         gridOptions=options.build(),
         theme="balham",
-        update_mode=GridUpdateMode.SELECTION_CHANGED,
+        update_mode=GridUpdateMode.NO_UPDATE,
         allow_unsafe_jscode=True,
-        height=300,
+        height=200,
         columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
         custom_css=custom_css,
     )
