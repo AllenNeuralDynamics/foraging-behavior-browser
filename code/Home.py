@@ -85,6 +85,7 @@ to_sync_with_url_query = {
     }
 
 
+raw_nwb_folder = 'aind-behavior-data/foraging_nwb_bonsai/'
 cache_folder = 'aind-behavior-data/foraging_nwb_bonsai_processed/'
 # cache_session_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_sessions/'
 # cache_mouse_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_subjects/'
@@ -628,17 +629,6 @@ def app():
                 st.session_state.df_selected_from_plotly = df_selected_from_plotly
                 st.session_state.df_selected_from_dataframe = df_selected_from_plotly  # Sync selected on dataframe
                 st.experimental_rerun()
-            
-        # Add debug info
-        with st.expander('NWB errors', expanded=False):
-            with fs.open(cache_folder + 'error_files.json') as file:
-                st.json(json.load(file))
-                
-        with st.expander('Pipeline log', expanded=False):
-            with fs.open(cache_folder + 'pipeline.log') as file:
-                log_content = file.read().decode('utf-8')
-            log_content = log_content.replace('\\n', '\n')
-            st.text(log_content)
         
     elif chosen_id == "tab_session_inspector":
         st.session_state.tab_id = chosen_id
@@ -755,7 +745,7 @@ def app():
 
     # Add debug info
     if chosen_id != "tab_auto_train_curriculum":
-        with st.expander('NWB errors', expanded=False):
+        with st.expander('CO processing NWB errors', expanded=False):
             error_file = cache_folder + 'error_files.json'
             if fs.exists(error_file):
                 with fs.open(error_file) as file:
@@ -763,11 +753,18 @@ def app():
             else:
                 st.write('No NWB error files')
                 
-        with st.expander('Pipeline log', expanded=False):
+        with st.expander('CO Pipeline log', expanded=False):
             with fs.open(cache_folder + 'pipeline.log') as file:
                 log_content = file.read().decode('utf-8')
             log_content = log_content.replace('\\n', '\n')
             st.text(log_content)
+            
+        with st.expander('NWB convertion and upload log', expanded=False):
+            with fs.open(raw_nwb_folder + 'bonsai_pipeline.log') as file:
+                log_content = file.read().decode('utf-8')
+            log_content = log_content.replace('\\n', '\n')
+            st.text(log_content)
+
     
     # Update back to URL
     for key in to_sync_with_url_query:
