@@ -737,7 +737,6 @@ def app():
         with st.expander('NWB convertion and upload log', expanded=False):
             with fs.open(raw_nwb_folder + 'bonsai_pipeline.log') as file:
                 log_content = file.read().decode('utf-8')
-            log_content = log_content.replace('\\n', '\n')
             st.text(log_content)
 
     
