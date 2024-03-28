@@ -3,9 +3,18 @@
 A streamlit app for browsing foraging behavior sessions in AIND.
 
 ## The app
-- The one running on Streamlit Community Cloud: https://foraging-behavior-browser.streamlit.app/
-- For a better experience, click the Code Ocean link shown at the top of the app
-  <img width="729" alt="image" src="https://github.com/AllenNeuralDynamics/foraging-behavior-browser/assets/24734299/01dfe9d2-a98f-46a2-a436-982d087d6b0d">
+- The one running on ECS: https://aindephysforagingapplb-23793000.us-west-2.elb.amazonaws.com/
+- 
+  If you see this, click "Advanced"
+  
+  <img src="https://github.com/hanhou/foraging-behavior-browser/assets/24734299/4431c438-438c-4591-a62e-15526615d5b0" width=500>
+  
+  and then click "Continue to..."
+  
+  <img src="https://github.com/hanhou/foraging-behavior-browser/assets/24734299/0799dc32-8bc5-4c53-a85a-58c50f57f33e" width=500>
+
+- ~~The one running on Streamlit Community Cloud: https://foraging-behavior-browser.streamlit.app/~~
+- To debug, use this [Code Ocean capsule](https://codeocean.allenneuraldynamics.org/capsule/3373065/tree?cw=true)
 - See also a streamlit app for ephys sessions https://github.com/AllenNeuralDynamics/foraging-ephys-browser/
 
 ## Sharing a contextual app
