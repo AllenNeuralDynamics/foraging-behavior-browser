@@ -1,17 +1,3 @@
-"""
-Streamlit app for visualizing behavior data
-https://foraging-behavior-browser.streamlit.app/
-
-Note the url is now queryable, e.g. https://foraging-behavior-browser.streamlit.app/?subject_id=41392
-
-Example queries:
- /?subject_id=699982   # only show one subject
- /?session=10&session=20  # show sessions between 10 and 20
- /?tab_id=tab_1  # Show specific tab
- /?if_aggr_all=false
-
-"""
-
 #%%
 import pandas as pd
 import streamlit as st
@@ -26,24 +12,17 @@ import plotly.express as px
 import plotly
 import plotly.graph_objects as go
 import statsmodels.api as sm
-import json
 
 from PIL import Image, ImageColor
 import streamlit.components.v1 as components
 import streamlit_nested_layout
 from streamlit_plotly_events import plotly_events
 
-# To suppress the warning that I set the default value of a widget and also set it in the session state
-from streamlit.elements.utils import _shown_default_value_warning
-_shown_default_value_warning = False
-
-from util.streamlit import (filter_dataframe, aggrid_interactive_table_session,
-                            aggrid_interactive_table_curriculum, add_session_filter, data_selector,
-                            _sync_widget_with_query, add_xy_selector, add_xy_setting, add_auto_train_manager,
+from util.streamlit import (filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector, 
+                            add_xy_selector, _sync_widget_with_query, add_xy_setting, add_auto_train_manager,
                             _plot_population_x_y)
 import extra_streamlit_components as stx
 
-from aind_auto_train.curriculum_manager import CurriculumManager
 from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
 
 
@@ -52,11 +31,12 @@ from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
 # dict of "key": default pairs
 # Note: When creating the widget, add argument "value"/"index" as well as "key" for all widgets you want to sync with URL
 to_sync_with_url_query = {
-    'filter_subject_id': '',
+    'filter_h2o': '',
     'filter_session': [0.0, None],
     'filter_finished_trials': [0.0, None],
     'filter_foraging_eff': [0.0, None],
     'filter_task': ['all'],
+    'filter_photostim_location': ['all'],
     
     'tab_id': 'tab_session_x_y',
     'x_y_plot_xname': 'session',
@@ -72,26 +52,39 @@ to_sync_with_url_query = {
     'x_y_plot_q_quantiles_group': 20,
     'x_y_plot_if_use_x_quantile_all': False,
     'x_y_plot_q_quantiles_all': 20,
-    'x_y_plot_dot_size': 10,
-    'x_y_plot_dot_opacity': 0.5,
+    'x_y_plot_dot_size': 7,
+    'x_y_plot_dot_opacity': 0.2,
     'x_y_plot_line_width': 2.0,
-
-    'auto_training_history_x_axis': 'date',
-    'auto_training_history_sort_by': 'subject_id',
+    
+    'auto_training_history_x_axis': 'session',
+    'auto_training_history_sort_by': 'progress_to_graduated',
     'auto_training_history_sort_order': 'descending',
-    'auto_training_curriculum_name': 'Uncoupled Baiting',
-    'auto_training_curriculum_version': '1.0',
-    'auto_training_curriculum_schema_version': '1.0',
     }
 
 
-raw_nwb_folder = 'aind-behavior-data/foraging_nwb_bonsai/'
-cache_folder = 'aind-behavior-data/foraging_nwb_bonsai_processed/'
-# cache_session_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_sessions/'
-# cache_mouse_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_subjects/'
+if_profile = False
 
-fs = s3fs.S3FileSystem(anon=False)
-st.session_state.use_s3 = True
+if if_profile:
+    from streamlit_profiler import Profiler
+    p = Profiler()
+    p.start()
+
+
+# from pipeline import experiment, ephys, lab, psth_foraging, report, foraging_analysis
+# from pipeline.plot import foraging_model_plot
+
+cache_folder = 'xxx'  #'/root/capsule/data/s3/report/st_cache/'
+cache_session_level_fig_folder = 'xxx' #'/root/capsule/data/s3/report/all_units/'  # 
+
+if os.path.exists(cache_folder):
+    st.session_state.st.session_state.use_s3 = False
+else:
+    cache_folder = 'aind-behavior-data/Han/ephys/report/st_cache/'
+    cache_session_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_sessions/'
+    cache_mouse_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_subjects/'
+    
+    fs = s3fs.S3FileSystem(anon=False)
+    st.session_state.use_s3 = True
 
 try:
     st.set_page_config(layout="wide", 
@@ -109,27 +102,6 @@ if 'selected_points' not in st.session_state:
     st.session_state['selected_points'] = []
 
     
-
-def _get_urls():
-    cache_folder = 'aind-behavior-data/Han/ephys/report/st_cache/'
-    cache_session_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_sessions/'
-    cache_mouse_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_subjects/'
-    
-    fs = s3fs.S3FileSystem(anon=False)
-   
-    with fs.open('aind-behavior-data/Han/streamlit_CO_url.json', 'r') as f:
-        data = json.load(f)
-    
-    return data['behavior'], data['ephys']
-
-def add_caution():
-    behavior_url, ephys_url = _get_urls()
-    st.markdown('##### ***:blue[❗️Caution: Due to bugs and resource limitations of the Streamlit public cloud, the app you are currently viewing may be unstable and buggy 🐞. '
-                f'It is recommended that you switch to [the one in Code Ocean]({behavior_url}) instead. '
-                'However, you will need to log in to Code Ocean first. Please contact David if you have any questions. '
-                f'See also [the ephys browser in Code Ocean]({ephys_url}) '
-                '(recommended) and [the one on the public cloud](https://foraging-ephys-browser.streamlit.app/)]***')
-                    
 @st.cache_data(ttl=24*3600)
 def load_data(tables=['sessions']):
     df = {}
@@ -137,9 +109,9 @@ def load_data(tables=['sessions']):
         file_name = cache_folder + f'df_{table}.pkl'
         if st.session_state.use_s3:
             with fs.open(file_name) as f:
-                df[table + '_bonsai'] = pd.read_pickle(f)
+                df[table] = pd.read_pickle(f)
         else:
-            df[table + '_bonsai'] = pd.read_pickle(file_name)
+            df[table] = pd.read_pickle(file_name)
     return df
 
 def _fetch_img(glob_patterns, crop=None):
@@ -168,9 +140,13 @@ def _fetch_img(glob_patterns, crop=None):
 
 # @st.cache_data(ttl=24*3600, max_entries=20)
 def show_session_level_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], crop=None, caption=True, **kwargs):
-    
-    subject_session_date_str = f"{key['subject_id']}_{key['session_date']}_{key['nwb_suffix']}".split('_0')[0]
-    glob_patterns = [cache_folder + f"{subject_session_date_str}/{subject_session_date_str}_{prefix}*"]
+    try:
+        sess_date_str = datetime.strftime(datetime.strptime(key['session_date'], '%Y-%m-%dT%H:%M:%S'), '%Y%m%d')
+    except:
+        sess_date_str = datetime.strftime(key['session_date'], '%Y%m%d')
+     
+    fns = [f'/{key["h2o"]}_{sess_date_str}_*{other_pattern}*' for other_pattern in other_patterns]
+    glob_patterns = [cache_session_level_fig_folder + f'{prefix}/' + key["h2o"] + fn for fn in fns]
     
     img, f_name = _fetch_img(glob_patterns, crop)
 
@@ -206,7 +182,7 @@ def show_mouse_level_img_by_key_and_prefix(key, prefix, column=None, other_patte
     return img
 
 # table_mapping = {
-#     'sessions_bonsai': fetch_sessions,
+#     'sessions': fetch_sessions,
 #     'ephys_units': fetch_ephys_units,
 # }
 
@@ -305,14 +281,7 @@ def draw_mice_plots(df_to_draw_mice):
                     show_mouse_level_img_by_key_and_prefix(key, 
                                                         column=this_col,
                                                         prefix=prefix, 
-                                                        **setting)
-                    
-                my_bar.progress(int((i + 1) / len(df_to_draw_mice) * 100))
-                
-
-
-
-  
+                                                        **setting)  
 
 def session_plot_settings(need_click=True):
     st.markdown('##### Show plots for individual sessions ')
@@ -381,13 +350,11 @@ def plot_x_y_session():
     cols = st.columns([4, 10])
     
     with cols[0]:
-
-        x_name, y_name, group_by = add_xy_selector(if_bonsai=True)
-
+        x_name, y_name, group_by = add_xy_selector(if_bonsai=False)
+        
         (if_show_dots, if_aggr_each_group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group,
         if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor,
         dot_size, dot_opacity, line_width) = add_xy_setting()
-        
 
     
     # If no sessions are selected, use all filtered entries
@@ -432,10 +399,6 @@ def plot_x_y_session():
     return df_selected_from_plotly, cols
 
 
-
-def show_curriculums():
-    pass
-
 # ------- Layout starts here -------- #    
 def init():
     
@@ -443,113 +406,113 @@ def init():
     for key in st.session_state:
         if key in ['selected_draw_types'] or '_changed' in key:
             del st.session_state[key]
-            
+
     # Set session state from URL
     for key, default in to_sync_with_url_query.items():
         _sync_widget_with_query(key, default)
 
     df = load_data(['sessions', 
-                   ])
-                
+                    'logistic_regression_hattori', 
+                    'logistic_regression_su',
+                    'linear_regression_rt',
+                    'model_fitting_params'])
+    
+    # Try to convert datetimes into a standard format (datetime, no timezone)
+    df['sessions']['session_date'] = pd.to_datetime(df['sessions']['session_date'])
+    # if is_datetime64_any_dtype(df[col]):
+    df['sessions']['session_date'] = df['sessions']['session_date'].dt.tz_localize(None)
+    df['sessions']['photostim_location'].fillna('None', inplace=True)
+    
     st.session_state.df = df
     st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
     st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
-            
+    
     # Init auto training database
-    st.session_state.curriculum_manager = CurriculumManager(
-        saved_curriculums_on_s3=dict(
-            bucket='aind-behavior-data',
-            root='foraging_auto_training/saved_curriculums/'
-        ),
-        saved_curriculums_local=os.path.expanduser('~/curriculum_manager/'),
-    )
     st.session_state.auto_train_manager = DynamicForagingAutoTrainManager(
-        manager_name='447_demo',
+        manager_name='Janelia_demo',
         df_behavior_on_s3=dict(bucket='aind-behavior-data',
-                                root='foraging_nwb_bonsai_processed/',
+                                root='Han/ephys/report/all_sessions/export_all_nwb/',
                                 file_name='df_sessions.pkl'),
         df_manager_root_on_s3=dict(bucket='aind-behavior-data',
                                 root='foraging_auto_training/')
     )
     
+    # Init session states
+    to_init = [
+               ['model_id', 21],   # add some model fitting params to session
+               ]
     
-    st.session_state.draw_type_mapper_session_level = {'1. Choice history': ('choice_history',   # prefix
-                                                            (0, 0),     # location (row_idx, column_idx)
-                                                            dict()),
+    for name, default in to_init:
+        if name not in st.session_state:
+            st.session_state[name] = default
         
-                                        # '1. Choice history': ('fitted_choice',   # prefix
-                                        #                     (0, 0),     # location (row_idx, column_idx)
-                                        #                     dict(other_patterns=['model_best', 'model_None'])),
-                                        # '2. Lick times': ('lick_psth',  
-                                        #                 (1, 0), 
-                                        #                 {}),            
-                                        # '3. Win-stay-lose-shift prob.': ('wsls', 
-                                        #                                 (1, 1), 
-                                        #                                 dict(crop=(0, 0, 1200, 600))),
-                                        # '4. Linear regression on RT': ('linear_regression_rt', 
-                                        #                                 (1, 1), 
-                                        #                                 dict()),
-                                        # '5. Logistic regression on choice (Hattori)': ('logistic_regression_hattori', 
-                                        #                                                 (2, 0), 
-                                        #                                                 dict(crop=(0, 0, 1200, 2000))),
-                                        # '6. Logistic regression on choice (Su)': ('logistic_regression_su', 
-                                        #                                                 (2, 1), 
-                                        #                                                 dict(crop=(0, 0, 1200, 2000))),
+    selected_id = st.session_state.model_id 
+    
+    st.session_state.draw_type_mapper_session_level = {'1. Choice history': ('fitted_choice',   # prefix
+                                                            (0, 0),     # location (row_idx, column_idx)
+                                                            dict(other_patterns=['model_best', 'model_None'])),
+                                        '2. Lick times': ('lick_psth', 
+                                                        (1, 0), 
+                                                        {}),            
+                                        '3. Win-stay-lose-shift prob.': ('wsls', 
+                                                                        (1, 1), 
+                                                                        dict(crop=(0, 0, 1200, 600))),
+                                        '4. Linear regression on RT': ('linear_regression_rt', 
+                                                                        (1, 1), 
+                                                                        dict()),
+                                        '5. Logistic regression on choice (Hattori)': ('logistic_regression_hattori', 
+                                                                                        (2, 0), 
+                                                                                        dict(crop=(0, 0, 1200, 2000))),
+                                        '6. Logistic regression on choice (Su)': ('logistic_regression_su', 
+                                                                                        (2, 1), 
+                                                                                        dict(crop=(0, 0, 1200, 2000))),
                     }
     
-    # st.session_state.draw_type_mapper_mouse_level = {'1. Model comparison': ('model_all_sessions',   # prefix
-    #                                                                          (0, 0),     # location (row_idx, column_idx)
-    #                                                                          dict(other_patterns=['comparison'], 
-    #                                                                               crop=(0, #900, 
-    #                                                                                     100, 2800, 2200))),
-    #                                                 '2. Model prediction accuracy': ('model_all_sessions',
-    #                                                                                  (0, 0), 
-    #                                                                                  dict(other_patterns=['pred_acc'])),            
-    #                                                 '3. Model fitted parameters': ('model_all_sessions', 
-    #                                                                                (0, 0), 
-    #                                                                                dict(other_patterns=['fitted_para'])),
-    #                 }
+    st.session_state.draw_type_mapper_mouse_level = {'1. Model comparison': ('model_all_sessions',   # prefix
+                                                                             (0, 0),     # location (row_idx, column_idx)
+                                                                             dict(other_patterns=['comparison'], 
+                                                                                  crop=(0, #900, 
+                                                                                        100, 2800, 2200))),
+                                                    '2. Model prediction accuracy': ('model_all_sessions',
+                                                                                     (0, 0), 
+                                                                                     dict(other_patterns=['pred_acc'])),            
+                                                    '3. Model fitted parameters': ('model_all_sessions', 
+                                                                                   (0, 0), 
+                                                                                   dict(other_patterns=['fitted_para'])),
+                    }
    
-   
-    # Some ad-hoc modifications on df_sessions
-    st.session_state.df['sessions_bonsai'].columns = st.session_state.df['sessions_bonsai'].columns.get_level_values(1)
-    st.session_state.df['sessions_bonsai'] = st.session_state.df['sessions_bonsai'].reset_index().query('subject_id != "0"')
-    st.session_state.df['sessions_bonsai']['h2o'] = st.session_state.df['sessions_bonsai']['subject_id']
-    st.session_state.df['sessions_bonsai'].dropna(subset=['session'], inplace=True) # Remove rows with no session number (only leave the nwb file with the largest finished_trials for now)
     
-    # # add something else
-    # st.session_state.df['sessions_bonsai']['abs(bias)'] = np.abs(st.session_state.df['sessions_bonsai'].biasL)
+    # process dfs
+    df_this_model = st.session_state.df['model_fitting_params'].query(f'model_id == {selected_id}')
+    valid_field = df_this_model.columns[~np.all(~df_this_model.notna(), axis=0)]
+    to_add_model = st.session_state.df['model_fitting_params'].query(f'model_id == {selected_id}')[valid_field]
     
-    # # delta weight
-    # diff_relative_weight_next_day = st.session_state.df['sessions_bonsai'].set_index(
-    #     ['session']).sort_values('session', ascending=True).groupby('h2o').apply(
-    #         lambda x: - x.relative_weight.diff(periods=-1)).rename("diff_relative_weight_next_day")
+    st.session_state.df['sessions'] = st.session_state.df['sessions'].merge(to_add_model, on=('subject_id', 'session'), how='left')
+
+    # add something else
+    st.session_state.df['sessions']['abs(bias)'] = np.abs(st.session_state.df['sessions'].biasL)
+    
+    # delta weight
+    diff_relative_weight_next_day = st.session_state.df['sessions'].set_index(
+        ['session']).sort_values('session', ascending=True).groupby('h2o').apply(
+            lambda x: - x.relative_weight.diff(periods=-1)).rename("diff_relative_weight_next_day")
         
     # weekday
-    # st.session_state.df['sessions_bonsai']['weekday'] =  st.session_state.df['sessions_bonsai'].session_date.dt.dayofweek + 1
+    st.session_state.df['sessions']['weekday'] =  st.session_state.df['sessions'].session_date.dt.dayofweek + 1
 
-    # st.session_state.df['sessions_bonsai'] = st.session_state.df['sessions_bonsai'].merge(
-    #     diff_relative_weight_next_day, how='left', on=['h2o', 'session'])
+    st.session_state.df['sessions'] = st.session_state.df['sessions'].merge(
+        diff_relative_weight_next_day, how='left', on=['h2o', 'session'])
 
-    st.session_state.session_stats_names = [keys for keys in st.session_state.df['sessions_bonsai'].keys()]
-       
+    st.session_state.session_stats_names = [keys for keys in st.session_state.df['sessions'].keys()]
+   
+   
+    
 
 def app():
+    st.markdown('## Foraging Behavior Browser')
     
-    cols = st.columns([1, 1.2])
-    with cols[0]:
-        st.markdown('## 🌳🪴 Foraging sessions from Bonsai 🌳🪴')
-        st.markdown('##### (still using a temporary workaround until AIND behavior metadata and pipeline are set up)')
-    with cols[1]:
-        add_caution()
-
     with st.sidebar:
-        
-        # === Get query from url ===
-        url_query = st.query_params
-        
-        add_session_filter(if_bonsai=True,
-                           url_query=url_query)
+        add_session_filter()
         data_selector()
     
         st.markdown('---')
@@ -557,6 +520,7 @@ def app():
         st.markdown('[bug report / feature request](https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues)')
         
         with st.expander('Debug', expanded=False):
+            st.session_state.model_id = st.selectbox('model_id', st.session_state.df['model_fitting_params'].model_id.unique())
             if st.button('Reload data from AWS S3'):
                 st.cache_data.clear()
                 init()
@@ -597,15 +561,14 @@ def app():
         st.session_state.df_selected_from_plotly = st.session_state.df_selected_from_dataframe  # Sync selected on plotly
         # if st.session_state.tab_id == "tab_session_x_y":
         st.experimental_rerun()
-
+            
     chosen_id = stx.tab_bar(data=[
         stx.TabBarItemData(id="tab_session_x_y", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
         stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
         stx.TabBarItemData(id="tab_auto_train_history", title="🎓 Automatic Training History", description="Track progress"),
-        stx.TabBarItemData(id="tab_auto_train_curriculum", title="📚 Automatic Training Curriculums", description="Collection of curriculums"),
-        # stx.TabBarItemData(id="tab_mouse_inspector", title="🐭 Mouse Inspector", description="Mouse-level summary"),
-        ], default=st.query_params['tab_id'] if 'tab_id' in st.query_params
-                   else st.session_state.tab_id)
+        stx.TabBarItemData(id="tab_mouse_inspector", title="🐭 Mouse Model Fitting", description="Mouse-level model fitting results"),
+        ], default="tab_session_inspector" if 'tab_id' not in st.session_state else st.session_state.tab_id)
+    # chosen_id = "tab_session_x_y"
 
     placeholder = st.container()
 
@@ -629,7 +592,7 @@ def app():
                 st.session_state.df_selected_from_plotly = df_selected_from_plotly
                 st.session_state.df_selected_from_dataframe = df_selected_from_plotly  # Sync selected on dataframe
                 st.experimental_rerun()
-        
+            
     elif chosen_id == "tab_session_inspector":
         st.session_state.tab_id = chosen_id
         with placeholder:
@@ -640,143 +603,39 @@ def app():
             if if_draw_all_sessions and len(df_to_draw_sessions):
                 draw_session_plots(df_to_draw_sessions)
                 
-    elif chosen_id == "tab_mouse_inspector":
-        st.session_state.tab_id = chosen_id
-        with placeholder:
-            selected_subject_id = st.columns([1, 3])[0].selectbox('Select a mouse', options=st.session_state.df_session_filtered['subject_id'].unique())
-            st.markdown(f"### [Go to WaterLog](http://eng-tools:8004/water_weight_log/?external_donor_name={selected_subject_id})")
-            
     elif chosen_id == "tab_auto_train_history":  # Automatic training history
         st.session_state.tab_id = chosen_id
         with placeholder:
             add_auto_train_manager()
-
-    elif chosen_id == "tab_auto_train_curriculum":  # Automatic training curriculums
+                
+    elif chosen_id == "tab_mouse_inspector":
         st.session_state.tab_id = chosen_id
-        df_curriculums = st.session_state.curriculum_manager.df_curriculums().sort_values(
-            by=['curriculum_schema_version', 'curriculum_name', 'curriculum_version']).reset_index().drop(columns='index')
         with placeholder:
-            # Show curriculum manager dataframe
-            st.markdown("#### Select auto training curriculums")
-
-            # Curriculum drop down selector
-            cols = st.columns([0.8, 0.5, 0.8, 4])
-            options = list(df_curriculums['curriculum_name'].unique())
-            selected_curriculum_name = cols[0].selectbox(
-                'Curriculum name', 
-                options=options,
-                index=options.index(st.session_state['auto_training_curriculum_name'])
-                    if ('auto_training_curriculum_name' in st.session_state) and (st.session_state['auto_training_curriculum_name'] != '') else 
-                    options.index(st.query_params['auto_training_curriculum_name'])
-                    if 'auto_training_curriculum_name' in st.query_params and st.query_params['auto_training_curriculum_name'] != ''
-                    else 0, 
-                key='auto_training_curriculum_name'
-                )
-            
-            options = list(df_curriculums[
-                df_curriculums['curriculum_name'] == selected_curriculum_name
-                ]['curriculum_version'].unique())
-            if ('auto_training_curriculum_version' in st.session_state) and (st.session_state['auto_training_curriculum_version'] in options):
-                default = options.index(st.session_state['auto_training_curriculum_version'])
-            elif 'auto_training_curriculum_version' in st.query_params and st.query_params['auto_training_curriculum_version'] in options:
-                default = options.index(st.query_params['auto_training_curriculum_version'])
-            else:
-                default = 0
-            selected_curriculum_version = cols[1].selectbox(
-                'Curriculum version', 
-                options=options, 
-                index=default, 
-                key='auto_training_curriculum_version'
-            )
-            
-            options = list(df_curriculums[
-                (df_curriculums['curriculum_name'] == selected_curriculum_name) 
-                & (df_curriculums['curriculum_version'] == selected_curriculum_version)
-                ]['curriculum_schema_version'].unique())
-            if ('auto_training_curriculum_schema_version' in st.session_state) and (st.session_state['auto_training_curriculum_schema_version'] in options):
-                default = options.index(st.session_state['auto_training_curriculum_schema_version'])
-            elif 'auto_training_curriculum_schema_version' in st.query_params and st.query_params['auto_training_curriculum_schema_version'] in options:
-                default = options.index(st.query_params['auto_training_curriculum_schema_version'])
-            else:
-                default = 0
-            selected_curriculum_schema_version = cols[2].selectbox(
-                'Curriculum schema version', 
-                options=options,
-                index=default,
-                key='auto_training_curriculum_schema_version'
-                )
-                        
-            selected_curriculum = st.session_state.curriculum_manager.get_curriculum(
-                curriculum_name=selected_curriculum_name,
-                curriculum_schema_version=selected_curriculum_schema_version,
-                curriculum_version=selected_curriculum_version,
-                )
-            
-            # Get selected curriculum from previous selected or the URL
-            if 'auto_training_curriculum_name' in st.session_state:
-                selected_row = {'curriculum_name': st.session_state['auto_training_curriculum_name'],
-                                'curriculum_schema_version': st.session_state['auto_training_curriculum_schema_version'],
-                                'curriculum_version': st.session_state['auto_training_curriculum_version']}
-                matched_curriculum = df_curriculums[(df_curriculums[list(selected_row)] == pd.Series(selected_row)).all(axis=1)]
+            with st.columns([4, 10])[0]:
+                if_draw_all_mice = mouse_plot_settings(need_click=False)
+                df_selected = st.session_state.df_selected_from_plotly if 'selected' in st.session_state.selected_draw_mice else st.session_state.df_session_filtered
+                df_to_draw_mice = df_selected.groupby('h2o').count().reset_index()
                 
-                if len(matched_curriculum):
-                    pre_selected_rows = matched_curriculum.index.to_list() 
-                else:
-                    selected_row = None # Clear selected row if not found
-                    pre_selected_rows = None
-            
-            # Show df_curriculum       
-            aggrid_interactive_table_curriculum(df=df_curriculums,
-                                                pre_selected_rows=pre_selected_rows)        
-
-            
-            if selected_curriculum is not None:
-                curriculum = selected_curriculum['curriculum']
-                # Show diagrams
-                cols = st.columns([1.3, 1.5, 1])
-                with cols[0]:
-                    st.graphviz_chart(curriculum.diagram_rules(render_file_format=''),
-                                      use_container_width=True)
-                with cols[1]:
-                    st.graphviz_chart(curriculum.diagram_paras(render_file_format=''),
-                                    use_container_width=True)
-            else:
-                st.write('load curriculum failed')
-
-    # Add debug info
-    if chosen_id != "tab_auto_train_curriculum":
-        with st.expander('CO processing NWB errors', expanded=False):
-            error_file = cache_folder + 'error_files.json'
-            if fs.exists(error_file):
-                with fs.open(error_file) as file:
-                    st.json(json.load(file))
-            else:
-                st.write('No NWB error files')
-                
-        with st.expander('CO Pipeline log', expanded=False):
-            with fs.open(cache_folder + 'pipeline.log') as file:
-                log_content = file.read().decode('utf-8')
-            log_content = log_content.replace('\\n', '\n')
-            st.text(log_content)
-            
-        with st.expander('NWB convertion and upload log', expanded=False):
-            with fs.open(raw_nwb_folder + 'bonsai_pipeline.log') as file:
-                log_content = file.read().decode('utf-8')
-            st.text(log_content)
-
+            if if_draw_all_mice and len(df_to_draw_mice):
+                draw_mice_plots(df_to_draw_mice)
+        
     
+
+    # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
+
     # Update back to URL
     for key in to_sync_with_url_query:
         try:
             st.query_params.update({key: st.session_state[key]})
         except:
             print(f'Failed to update {key} to URL query')
-    
-    # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
 
 
-if 'df' not in st.session_state or 'sessions_bonsai' not in st.session_state.df.keys(): 
+if 'df' not in st.session_state or 'sessions' not in st.session_state.df.keys(): 
     init()
     
 app()
 
+            
+if if_profile:    
+    p.stop()
