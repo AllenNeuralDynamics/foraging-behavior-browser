@@ -524,7 +524,7 @@ def app():
             if st.button('Reload data from AWS S3'):
                 st.cache_data.clear()
                 init()
-                st.experimental_rerun()
+                st.rerun()
         
     
 
@@ -536,11 +536,11 @@ def app():
         cols = st.columns([2, 2, 2])
         cols[0].markdown(f'### Filter the sessions on the sidebar ({len(st.session_state.df_session_filtered)} filtered)')
         # if cols[1].button('Press this and then Ctrl + R to reload from S3'):
-        #     st.experimental_rerun()
+        #     st.rerun()
         if cols[1].button('Reload data '):
             st.cache_data.clear()
             init()
-            st.experimental_rerun()
+            st.rerun()
     
         # aggrid_outputs = aggrid_interactive_table_units(df=df['ephys_units'])
         # st.session_state.df_session_filtered = aggrid_outputs['data']
@@ -560,7 +560,7 @@ def app():
         st.session_state.df_selected_from_dataframe = pd.DataFrame(aggrid_outputs['selected_rows'])
         st.session_state.df_selected_from_plotly = st.session_state.df_selected_from_dataframe  # Sync selected on plotly
         # if st.session_state.tab_id == "tab_session_x_y":
-        st.experimental_rerun()
+        st.rerun()
             
     chosen_id = stx.tab_bar(data=[
         stx.TabBarItemData(id="tab_session_x_y", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
@@ -591,7 +591,7 @@ def app():
                                                 st.session_state.df_selected_from_plotly.set_index(['h2o', 'session']).index):
                 st.session_state.df_selected_from_plotly = df_selected_from_plotly
                 st.session_state.df_selected_from_dataframe = df_selected_from_plotly  # Sync selected on dataframe
-                st.experimental_rerun()
+                st.rerun()
             
     elif chosen_id == "tab_session_inspector":
         st.session_state.tab_id = chosen_id

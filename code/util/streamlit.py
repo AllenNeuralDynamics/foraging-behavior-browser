@@ -574,7 +574,7 @@ def data_selector():
         
         # if cols[1].button('❌'):
         #     st.session_state.df_selected_from_dataframe = pd.DataFrame()
-        #     st.experimental_rerun()
+        #     st.rerun()
 
         cols = st.columns([5, 1, 1])
         with cols[0].expander(f"Selected: {len(st.session_state.df_selected_from_plotly)} sessions, "
@@ -582,13 +582,13 @@ def data_selector():
             st.dataframe(st.session_state.df_selected_from_plotly)
         if cols[1].button('all'):
             st.session_state.df_selected_from_plotly = st.session_state.df_session_filtered
-            st.experimental_rerun()
+            st.rerun()
             
         
         if cols[2].button('❌ '):
             st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
             st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
-            st.experimental_rerun()
+            st.rerun()
 
 def add_auto_train_manager():
     
