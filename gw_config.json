@@ -1,0 +1,2516 @@
+[
+    {
+      "config": {
+        "defaultAggregated": false,
+        "geoms": [
+          "boxplot"
+        ],
+        "coordSystem": "generic",
+        "limit": -1,
+        "timezoneDisplayOffset": 0
+      },
+      "encodings": {
+        "dimensions": [
+          {
+            "dragId": "gw_B7je",
+            "fid": "subject_id",
+            "name": "subject_id",
+            "basename": "subject_id",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_wBHX",
+            "fid": "session_date",
+            "name": "session_date",
+            "basename": "session_date",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_072H",
+            "fid": "rig",
+            "name": "rig",
+            "basename": "rig",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_U_P7",
+            "fid": "user_name",
+            "name": "user_name",
+            "basename": "user_name",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_DyWa",
+            "fid": "experiment_description",
+            "name": "experiment_description",
+            "basename": "experiment_description",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_N68N",
+            "fid": "task",
+            "name": "task",
+            "basename": "task",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_Oy2n",
+            "fid": "notes",
+            "name": "notes",
+            "basename": "notes",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_-NZT",
+            "fid": "session_start_time",
+            "name": "session_start_time",
+            "basename": "session_start_time",
+            "semanticType": "temporal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_VTi3",
+            "fid": "session_end_time",
+            "name": "session_end_time",
+            "basename": "session_end_time",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_zOyN",
+            "fid": "effective_block_length_min",
+            "name": "effective_block_length_min",
+            "basename": "effective_block_length_min",
+            "semanticType": "quantitative",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_cirJ",
+            "fid": "curriculum_name",
+            "name": "curriculum_name",
+            "basename": "curriculum_name",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_WdiB",
+            "fid": "curriculum_version",
+            "name": "curriculum_version",
+            "basename": "curriculum_version",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_Xy_O",
+            "fid": "curriculum_schema_version",
+            "name": "curriculum_schema_version",
+            "basename": "curriculum_schema_version",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_9Zh9",
+            "fid": "current_stage_actual",
+            "name": "current_stage_actual",
+            "basename": "current_stage_actual",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_cthf",
+            "fid": "if_overriden_by_trainer",
+            "name": "if_overriden_by_trainer",
+            "basename": "if_overriden_by_trainer",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_sYGz",
+            "fid": "if_consistent_within_session",
+            "name": "if_consistent_within_session",
+            "basename": "if_consistent_within_session",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_NBzM",
+            "fid": "autowater_collected",
+            "name": "autowater_collected",
+            "basename": "autowater_collected",
+            "semanticType": "quantitative",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_MSRr",
+            "fid": "autowater_ignored",
+            "name": "autowater_ignored",
+            "basename": "autowater_ignored",
+            "semanticType": "quantitative",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_YB7Q",
+            "fid": "h2o",
+            "name": "h2o",
+            "basename": "h2o",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_mea_key_fid",
+            "fid": "gw_mea_key_fid",
+            "name": "Measure names",
+            "analyticType": "dimension",
+            "semanticType": "nominal"
+          }
+        ],
+        "measures": [
+          {
+            "dragId": "gw_GQUV",
+            "fid": "session",
+            "name": "session",
+            "basename": "session",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_tCYr",
+            "fid": "nwb_suffix",
+            "name": "nwb_suffix",
+            "basename": "nwb_suffix",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_WWj_",
+            "fid": "session_run_time_in_min",
+            "name": "session_run_time_in_min",
+            "basename": "session_run_time_in_min",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_mQ7J",
+            "fid": "water_in_session_foraging",
+            "name": "water_in_session_foraging",
+            "basename": "water_in_session_foraging",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_5gky",
+            "fid": "water_in_session_manual",
+            "name": "water_in_session_manual",
+            "basename": "water_in_session_manual",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_gLos",
+            "fid": "water_in_session_total",
+            "name": "water_in_session_total",
+            "basename": "water_in_session_total",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw__gKq",
+            "fid": "water_after_session",
+            "name": "water_after_session",
+            "basename": "water_after_session",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_l0Iy",
+            "fid": "water_day_total",
+            "name": "water_day_total",
+            "basename": "water_day_total",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_vhYU",
+            "fid": "base_weight",
+            "name": "base_weight",
+            "basename": "base_weight",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_5dXl",
+            "fid": "target_weight",
+            "name": "target_weight",
+            "basename": "target_weight",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_PCeG",
+            "fid": "target_weight_ratio",
+            "name": "target_weight_ratio",
+            "basename": "target_weight_ratio",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_pMQU",
+            "fid": "weight_after",
+            "name": "weight_after",
+            "basename": "weight_after",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_2TBj",
+            "fid": "p_reward_sum_mean",
+            "name": "p_reward_sum_mean",
+            "basename": "p_reward_sum_mean",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_4e1p",
+            "fid": "p_reward_sum_std",
+            "name": "p_reward_sum_std",
+            "basename": "p_reward_sum_std",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_E6g_",
+            "fid": "p_reward_sum_median",
+            "name": "p_reward_sum_median",
+            "basename": "p_reward_sum_median",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_Gkty",
+            "fid": "p_reward_contrast_mean",
+            "name": "p_reward_contrast_mean",
+            "basename": "p_reward_contrast_mean",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_vK1m",
+            "fid": "p_reware_contrast_median",
+            "name": "p_reware_contrast_median",
+            "basename": "p_reware_contrast_median",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_OLWN",
+            "fid": "effective_block_length_mean",
+            "name": "effective_block_length_mean",
+            "basename": "effective_block_length_mean",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_FitX",
+            "fid": "effective_block_length_std",
+            "name": "effective_block_length_std",
+            "basename": "effective_block_length_std",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_EGgd",
+            "fid": "effective_block_length_median",
+            "name": "effective_block_length_median",
+            "basename": "effective_block_length_median",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_H6dB",
+            "fid": "effective_block_length_max",
+            "name": "effective_block_length_max",
+            "basename": "effective_block_length_max",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_7yeC",
+            "fid": "duration_gocue_stop_mean",
+            "name": "duration_gocue_stop_mean",
+            "basename": "duration_gocue_stop_mean",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_xZtI",
+            "fid": "duration_gocue_stop_std",
+            "name": "duration_gocue_stop_std",
+            "basename": "duration_gocue_stop_std",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_YqFY",
+            "fid": "duration_gocue_stop_median",
+            "name": "duration_gocue_stop_median",
+            "basename": "duration_gocue_stop_median",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_6X1d",
+            "fid": "duration_gocue_stop_min",
+            "name": "duration_gocue_stop_min",
+            "basename": "duration_gocue_stop_min",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_YIpa",
+            "fid": "duration_gocue_stop_max",
+            "name": "duration_gocue_stop_max",
+            "basename": "duration_gocue_stop_max",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_Mj6_",
+            "fid": "duration_delay_period_mean",
+            "name": "duration_delay_period_mean",
+            "basename": "duration_delay_period_mean",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_8nq6",
+            "fid": "duration_delay_period_std",
+            "name": "duration_delay_period_std",
+            "basename": "duration_delay_period_std",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_CQ5Y",
+            "fid": "duration_delay_period_median",
+            "name": "duration_delay_period_median",
+            "basename": "duration_delay_period_median",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_TSeW",
+            "fid": "duration_delay_period_min",
+            "name": "duration_delay_period_min",
+            "basename": "duration_delay_period_min",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_dDCS",
+            "fid": "duration_delay_period_max",
+            "name": "duration_delay_period_max",
+            "basename": "duration_delay_period_max",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_qJM0",
+            "fid": "duration_iti_mean",
+            "name": "duration_iti_mean",
+            "basename": "duration_iti_mean",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_wKhE",
+            "fid": "duration_iti_std",
+            "name": "duration_iti_std",
+            "basename": "duration_iti_std",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_aYXH",
+            "fid": "duration_iti_median",
+            "name": "duration_iti_median",
+            "basename": "duration_iti_median",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_sY10",
+            "fid": "duration_iti_min",
+            "name": "duration_iti_min",
+            "basename": "duration_iti_min",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_SIw6",
+            "fid": "duration_iti_max",
+            "name": "duration_iti_max",
+            "basename": "duration_iti_max",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_DSS_",
+            "fid": "reward_volume_left_mean",
+            "name": "reward_volume_left_mean",
+            "basename": "reward_volume_left_mean",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_gOvP",
+            "fid": "reward_volume_right_mean",
+            "name": "reward_volume_right_mean",
+            "basename": "reward_volume_right_mean",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_ApZ7",
+            "fid": "lickspout_movement_range_x",
+            "name": "lickspout_movement_range_x",
+            "basename": "lickspout_movement_range_x",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_sgZT",
+            "fid": "lickspout_movement_range_y",
+            "name": "lickspout_movement_range_y",
+            "basename": "lickspout_movement_range_y",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_IVi-",
+            "fid": "lickspout_movement_range_z",
+            "name": "lickspout_movement_range_z",
+            "basename": "lickspout_movement_range_z",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_7nH4",
+            "fid": "lickspout_initial_pos_x",
+            "name": "lickspout_initial_pos_x",
+            "basename": "lickspout_initial_pos_x",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_hv-t",
+            "fid": "lickspout_initial_pos_y",
+            "name": "lickspout_initial_pos_y",
+            "basename": "lickspout_initial_pos_y",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_bhgS",
+            "fid": "lickspout_initial_pos_z",
+            "name": "lickspout_initial_pos_z",
+            "basename": "lickspout_initial_pos_z",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_ZXKh",
+            "fid": "lickspout_median_pos_x",
+            "name": "lickspout_median_pos_x",
+            "basename": "lickspout_median_pos_x",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_1dRe",
+            "fid": "lickspout_median_pos_y",
+            "name": "lickspout_median_pos_y",
+            "basename": "lickspout_median_pos_y",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_Fj8n",
+            "fid": "lickspout_median_pos_z",
+            "name": "lickspout_median_pos_z",
+            "basename": "lickspout_median_pos_z",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_lBGB",
+            "fid": "total_trials_with_autowater",
+            "name": "total_trials_with_autowater",
+            "basename": "total_trials_with_autowater",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_NI22",
+            "fid": "finished_trials_with_autowater",
+            "name": "finished_trials_with_autowater",
+            "basename": "finished_trials_with_autowater",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_yw89",
+            "fid": "finished_rate_with_autowater",
+            "name": "finished_rate_with_autowater",
+            "basename": "finished_rate_with_autowater",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_-8lo",
+            "fid": "ignore_rate_with_autowater",
+            "name": "ignore_rate_with_autowater",
+            "basename": "ignore_rate_with_autowater",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_CYP2",
+            "fid": "total_trials",
+            "name": "total_trials",
+            "basename": "total_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_zCO2",
+            "fid": "finished_trials",
+            "name": "finished_trials",
+            "basename": "finished_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_bSky",
+            "fid": "ignored_trials",
+            "name": "ignored_trials",
+            "basename": "ignored_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_SXpK",
+            "fid": "finished_rate",
+            "name": "finished_rate",
+            "basename": "finished_rate",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_ctox",
+            "fid": "ignore_rate",
+            "name": "ignore_rate",
+            "basename": "ignore_rate",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_vdpB",
+            "fid": "reward_trials",
+            "name": "reward_trials",
+            "basename": "reward_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_whH0",
+            "fid": "reward_rate",
+            "name": "reward_rate",
+            "basename": "reward_rate",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_GnpJ",
+            "fid": "foraging_eff",
+            "name": "foraging_eff",
+            "basename": "foraging_eff",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_NNMa",
+            "fid": "foraging_eff_random_seed",
+            "name": "foraging_eff_random_seed",
+            "basename": "foraging_eff_random_seed",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_6qBV",
+            "fid": "bias_naive",
+            "name": "bias_naive",
+            "basename": "bias_naive",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_mOxo",
+            "fid": "reaction_time_median",
+            "name": "reaction_time_median",
+            "basename": "reaction_time_median",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_Qyoj",
+            "fid": "reaction_time_mean",
+            "name": "reaction_time_mean",
+            "basename": "reaction_time_mean",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_ke1X",
+            "fid": "early_lick_rate",
+            "name": "early_lick_rate",
+            "basename": "early_lick_rate",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_9oZT",
+            "fid": "invalid_lick_ratio",
+            "name": "invalid_lick_ratio",
+            "basename": "invalid_lick_ratio",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_sYdB",
+            "fid": "double_dipping_rate_finished_trials",
+            "name": "double_dipping_rate_finished_trials",
+            "basename": "double_dipping_rate_finished_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_SU5n",
+            "fid": "double_dipping_rate_finished_reward_trials",
+            "name": "double_dipping_rate_finished_reward_trials",
+            "basename": "double_dipping_rate_finished_reward_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_3Df2",
+            "fid": "double_dipping_rate_finished_noreward_trials",
+            "name": "double_dipping_rate_finished_noreward_trials",
+            "basename": "double_dipping_rate_finished_noreward_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_l3Bk",
+            "fid": "lick_consistency_mean_finished_trials",
+            "name": "lick_consistency_mean_finished_trials",
+            "basename": "lick_consistency_mean_finished_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_DYZQ",
+            "fid": "lick_consistency_mean_finished_reward_trials",
+            "name": "lick_consistency_mean_finished_reward_trials",
+            "basename": "lick_consistency_mean_finished_reward_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_pyXq",
+            "fid": "lick_consistency_mean_finished_noreward_trials",
+            "name": "lick_consistency_mean_finished_noreward_trials",
+            "basename": "lick_consistency_mean_finished_noreward_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_1Yrz",
+            "fid": "Su2022_RewC_tau",
+            "name": "Su2022_RewC_tau",
+            "basename": "Su2022_RewC_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_2PrC",
+            "fid": "Su2022_RewC_amp",
+            "name": "Su2022_RewC_amp",
+            "basename": "Su2022_RewC_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_hcnx",
+            "fid": "Su2022_UnrC_tau",
+            "name": "Su2022_UnrC_tau",
+            "basename": "Su2022_UnrC_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_4jja",
+            "fid": "Su2022_UnrC_amp",
+            "name": "Su2022_UnrC_amp",
+            "basename": "Su2022_UnrC_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_RYT-",
+            "fid": "Bari2019_RewC_tau",
+            "name": "Bari2019_RewC_tau",
+            "basename": "Bari2019_RewC_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_wpzx",
+            "fid": "Bari2019_RewC_amp",
+            "name": "Bari2019_RewC_amp",
+            "basename": "Bari2019_RewC_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_SFI6",
+            "fid": "Bari2019_Choice_tau",
+            "name": "Bari2019_Choice_tau",
+            "basename": "Bari2019_Choice_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_VrDA",
+            "fid": "Bari2019_Choice_amp",
+            "name": "Bari2019_Choice_amp",
+            "basename": "Bari2019_Choice_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_BpD8",
+            "fid": "Hattori2019_RewC_tau",
+            "name": "Hattori2019_RewC_tau",
+            "basename": "Hattori2019_RewC_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_RO7I",
+            "fid": "Hattori2019_RewC_amp",
+            "name": "Hattori2019_RewC_amp",
+            "basename": "Hattori2019_RewC_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_oU5g",
+            "fid": "Hattori2019_UnrC_tau",
+            "name": "Hattori2019_UnrC_tau",
+            "basename": "Hattori2019_UnrC_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_lue8",
+            "fid": "Hattori2019_UnrC_amp",
+            "name": "Hattori2019_UnrC_amp",
+            "basename": "Hattori2019_UnrC_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_sHhf",
+            "fid": "Hattori2019_Choice_tau",
+            "name": "Hattori2019_Choice_tau",
+            "basename": "Hattori2019_Choice_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_pCah",
+            "fid": "Hattori2019_Choice_amp",
+            "name": "Hattori2019_Choice_amp",
+            "basename": "Hattori2019_Choice_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_ppQ1",
+            "fid": "Miller2021_Choice_tau",
+            "name": "Miller2021_Choice_tau",
+            "basename": "Miller2021_Choice_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_PZnG",
+            "fid": "Miller2021_Choice_amp",
+            "name": "Miller2021_Choice_amp",
+            "basename": "Miller2021_Choice_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_xk_r",
+            "fid": "Miller2021_Reward_tau",
+            "name": "Miller2021_Reward_tau",
+            "basename": "Miller2021_Reward_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_6BaG",
+            "fid": "Miller2021_Reward_amp",
+            "name": "Miller2021_Reward_amp",
+            "basename": "Miller2021_Reward_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_mT6H",
+            "fid": "Miller2021_Choice_x_Reward_tau",
+            "name": "Miller2021_Choice_x_Reward_tau",
+            "basename": "Miller2021_Choice_x_Reward_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw__NJR",
+            "fid": "Miller2021_Choice_x_Reward_amp",
+            "name": "Miller2021_Choice_x_Reward_amp",
+            "basename": "Miller2021_Choice_x_Reward_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "analyticType": "measure",
+            "dragId": "gw_q6KE",
+            "fid": "gw_q6KE",
+            "name": "foraging_efficiency * finished_rate",
+            "semanticType": "quantitative",
+            "computed": true,
+            "aggName": "sum",
+            "expression": {
+              "as": "gw_q6KE",
+              "op": "expr",
+              "params": [
+                {
+                  "type": "sql",
+                  "value": "foraging_eff_random_seed * finished_rate"
+                }
+              ]
+            }
+          },
+          {
+            "analyticType": "measure",
+            "dragId": "gw_X3nQ",
+            "fid": "gw_X3nQ",
+            "name": "relative weight",
+            "semanticType": "quantitative",
+            "computed": true,
+            "aggName": "sum",
+            "expression": {
+              "op": "expr",
+              "as": "gw_X3nQ",
+              "params": [
+                {
+                  "type": "sql",
+                  "value": "weight_after / base_weight"
+                }
+              ]
+            }
+          },
+          {
+            "analyticType": "measure",
+            "dragId": "gw_xRGH",
+            "fid": "gw_xRGH",
+            "name": "abs(bias)",
+            "semanticType": "quantitative",
+            "computed": true,
+            "aggName": "sum",
+            "expression": {
+              "op": "expr",
+              "as": "gw_xRGH",
+              "params": [
+                {
+                  "type": "sql",
+                  "value": "abs(bias_naive)"
+                }
+              ]
+            }
+          },
+          {
+            "dragId": "gw_count_fid",
+            "fid": "gw_count_fid",
+            "name": "Row count",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "computed": true,
+            "expression": {
+              "op": "one",
+              "params": [],
+              "as": "gw_count_fid"
+            }
+          },
+          {
+            "dragId": "gw_mea_val_fid",
+            "fid": "gw_mea_val_fid",
+            "name": "Measure values",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum"
+          }
+        ],
+        "rows": [
+          {
+            "analyticType": "measure",
+            "dragId": "gw_cd4x",
+            "fid": "gw_q6KE",
+            "name": "foraging_efficiency * finished_rate",
+            "semanticType": "quantitative",
+            "computed": true,
+            "aggName": "sum",
+            "expression": {
+              "as": "gw_q6KE",
+              "op": "expr",
+              "params": [
+                {
+                  "type": "sql",
+                  "value": "foraging_eff_random_seed * finished_rate"
+                }
+              ]
+            }
+          },
+          {
+            "analyticType": "measure",
+            "dragId": "gw_jFiA",
+            "fid": "gw_xRGH",
+            "name": "abs(bias)",
+            "semanticType": "quantitative",
+            "computed": true,
+            "aggName": "sum",
+            "expression": {
+              "op": "expr",
+              "as": "gw_xRGH",
+              "params": [
+                {
+                  "type": "sql",
+                  "value": "abs(bias_naive)"
+                }
+              ]
+            }
+          },
+          {
+            "dragId": "gw_NmHq",
+            "fid": "early_lick_rate",
+            "name": "early_lick_rate",
+            "basename": "early_lick_rate",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_6s6i",
+            "fid": "double_dipping_rate_finished_trials",
+            "name": "double_dipping_rate_finished_trials",
+            "basename": "double_dipping_rate_finished_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          }
+        ],
+        "columns": [
+          {
+            "dragId": "gw_ifBz",
+            "fid": "session",
+            "name": "session",
+            "basename": "session",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          }
+        ],
+        "color": [],
+        "opacity": [],
+        "size": [],
+        "shape": [],
+        "radius": [],
+        "theta": [],
+        "longitude": [],
+        "latitude": [],
+        "geoId": [],
+        "details": [],
+        "filters": [],
+        "text": []
+      },
+      "layout": {
+        "showActions": false,
+        "showTableSummary": false,
+        "stack": "stack",
+        "interactiveScale": true,
+        "zeroScale": true,
+        "size": {
+          "mode": "fixed",
+          "width": 844,
+          "height": 1010
+        },
+        "format": {},
+        "geoKey": "name",
+        "resolve": {
+          "x": false,
+          "y": false,
+          "color": false,
+          "opacity": false,
+          "shape": false,
+          "size": false
+        }
+      },
+      "visId": "gw_SENU",
+      "name": "Overall foraging performance"
+    },
+    {
+      "config": {
+        "defaultAggregated": false,
+        "geoms": [
+          "boxplot"
+        ],
+        "coordSystem": "generic",
+        "limit": -1,
+        "timezoneDisplayOffset": 0
+      },
+      "encodings": {
+        "dimensions": [
+          {
+            "dragId": "gw_STM_",
+            "fid": "subject_id",
+            "name": "subject_id",
+            "basename": "subject_id",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_lXtv",
+            "fid": "session_date",
+            "name": "session_date",
+            "basename": "session_date",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_OYB3",
+            "fid": "rig",
+            "name": "rig",
+            "basename": "rig",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_rzi9",
+            "fid": "user_name",
+            "name": "user_name",
+            "basename": "user_name",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_WXSc",
+            "fid": "experiment_description",
+            "name": "experiment_description",
+            "basename": "experiment_description",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_YcjE",
+            "fid": "task",
+            "name": "task",
+            "basename": "task",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_X3Bc",
+            "fid": "notes",
+            "name": "notes",
+            "basename": "notes",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_0Upa",
+            "fid": "session_start_time",
+            "name": "session_start_time",
+            "basename": "session_start_time",
+            "semanticType": "temporal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_gRJh",
+            "fid": "session_end_time",
+            "name": "session_end_time",
+            "basename": "session_end_time",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_a-_Q",
+            "fid": "effective_block_length_min",
+            "name": "effective_block_length_min",
+            "basename": "effective_block_length_min",
+            "semanticType": "quantitative",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_Q0n0",
+            "fid": "curriculum_name",
+            "name": "curriculum_name",
+            "basename": "curriculum_name",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_R7_-",
+            "fid": "curriculum_version",
+            "name": "curriculum_version",
+            "basename": "curriculum_version",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_21TN",
+            "fid": "curriculum_schema_version",
+            "name": "curriculum_schema_version",
+            "basename": "curriculum_schema_version",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_taSA",
+            "fid": "current_stage_actual",
+            "name": "current_stage_actual",
+            "basename": "current_stage_actual",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_VRAt",
+            "fid": "if_overriden_by_trainer",
+            "name": "if_overriden_by_trainer",
+            "basename": "if_overriden_by_trainer",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_ex-a",
+            "fid": "if_consistent_within_session",
+            "name": "if_consistent_within_session",
+            "basename": "if_consistent_within_session",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_-89p",
+            "fid": "autowater_collected",
+            "name": "autowater_collected",
+            "basename": "autowater_collected",
+            "semanticType": "quantitative",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_oOJM",
+            "fid": "autowater_ignored",
+            "name": "autowater_ignored",
+            "basename": "autowater_ignored",
+            "semanticType": "quantitative",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_QoCv",
+            "fid": "h2o",
+            "name": "h2o",
+            "basename": "h2o",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_mea_key_fid",
+            "fid": "gw_mea_key_fid",
+            "name": "Measure names",
+            "analyticType": "dimension",
+            "semanticType": "nominal"
+          }
+        ],
+        "measures": [
+          {
+            "dragId": "gw_ZcGv",
+            "fid": "session",
+            "name": "session",
+            "basename": "session",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_b9_g",
+            "fid": "nwb_suffix",
+            "name": "nwb_suffix",
+            "basename": "nwb_suffix",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_OMy7",
+            "fid": "session_run_time_in_min",
+            "name": "session_run_time_in_min",
+            "basename": "session_run_time_in_min",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_pHKP",
+            "fid": "water_in_session_foraging",
+            "name": "water_in_session_foraging",
+            "basename": "water_in_session_foraging",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_QqL0",
+            "fid": "water_in_session_manual",
+            "name": "water_in_session_manual",
+            "basename": "water_in_session_manual",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_-6N2",
+            "fid": "water_in_session_total",
+            "name": "water_in_session_total",
+            "basename": "water_in_session_total",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_4igS",
+            "fid": "water_after_session",
+            "name": "water_after_session",
+            "basename": "water_after_session",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_VZRn",
+            "fid": "water_day_total",
+            "name": "water_day_total",
+            "basename": "water_day_total",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_tNug",
+            "fid": "base_weight",
+            "name": "base_weight",
+            "basename": "base_weight",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_6pL8",
+            "fid": "target_weight",
+            "name": "target_weight",
+            "basename": "target_weight",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_widK",
+            "fid": "target_weight_ratio",
+            "name": "target_weight_ratio",
+            "basename": "target_weight_ratio",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_AK38",
+            "fid": "weight_after",
+            "name": "weight_after",
+            "basename": "weight_after",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_LxWK",
+            "fid": "p_reward_sum_mean",
+            "name": "p_reward_sum_mean",
+            "basename": "p_reward_sum_mean",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw__lug",
+            "fid": "p_reward_sum_std",
+            "name": "p_reward_sum_std",
+            "basename": "p_reward_sum_std",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_XiPH",
+            "fid": "p_reward_sum_median",
+            "name": "p_reward_sum_median",
+            "basename": "p_reward_sum_median",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_HGea",
+            "fid": "p_reward_contrast_mean",
+            "name": "p_reward_contrast_mean",
+            "basename": "p_reward_contrast_mean",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_uzzO",
+            "fid": "p_reware_contrast_median",
+            "name": "p_reware_contrast_median",
+            "basename": "p_reware_contrast_median",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_BEbG",
+            "fid": "effective_block_length_mean",
+            "name": "effective_block_length_mean",
+            "basename": "effective_block_length_mean",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_PdTN",
+            "fid": "effective_block_length_std",
+            "name": "effective_block_length_std",
+            "basename": "effective_block_length_std",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_7tDf",
+            "fid": "effective_block_length_median",
+            "name": "effective_block_length_median",
+            "basename": "effective_block_length_median",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_Bdy1",
+            "fid": "effective_block_length_max",
+            "name": "effective_block_length_max",
+            "basename": "effective_block_length_max",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_AJRL",
+            "fid": "duration_gocue_stop_mean",
+            "name": "duration_gocue_stop_mean",
+            "basename": "duration_gocue_stop_mean",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_rNv7",
+            "fid": "duration_gocue_stop_std",
+            "name": "duration_gocue_stop_std",
+            "basename": "duration_gocue_stop_std",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_SKr9",
+            "fid": "duration_gocue_stop_median",
+            "name": "duration_gocue_stop_median",
+            "basename": "duration_gocue_stop_median",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_jxi3",
+            "fid": "duration_gocue_stop_min",
+            "name": "duration_gocue_stop_min",
+            "basename": "duration_gocue_stop_min",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_nnAV",
+            "fid": "duration_gocue_stop_max",
+            "name": "duration_gocue_stop_max",
+            "basename": "duration_gocue_stop_max",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_WJX5",
+            "fid": "duration_delay_period_mean",
+            "name": "duration_delay_period_mean",
+            "basename": "duration_delay_period_mean",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_uET6",
+            "fid": "duration_delay_period_std",
+            "name": "duration_delay_period_std",
+            "basename": "duration_delay_period_std",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_7YQc",
+            "fid": "duration_delay_period_median",
+            "name": "duration_delay_period_median",
+            "basename": "duration_delay_period_median",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_XAAa",
+            "fid": "duration_delay_period_min",
+            "name": "duration_delay_period_min",
+            "basename": "duration_delay_period_min",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_XCCP",
+            "fid": "duration_delay_period_max",
+            "name": "duration_delay_period_max",
+            "basename": "duration_delay_period_max",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_wbZY",
+            "fid": "duration_iti_mean",
+            "name": "duration_iti_mean",
+            "basename": "duration_iti_mean",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_FOr4",
+            "fid": "duration_iti_std",
+            "name": "duration_iti_std",
+            "basename": "duration_iti_std",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_LkVx",
+            "fid": "duration_iti_median",
+            "name": "duration_iti_median",
+            "basename": "duration_iti_median",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_Zgj9",
+            "fid": "duration_iti_min",
+            "name": "duration_iti_min",
+            "basename": "duration_iti_min",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_iKjR",
+            "fid": "duration_iti_max",
+            "name": "duration_iti_max",
+            "basename": "duration_iti_max",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_lR2H",
+            "fid": "reward_volume_left_mean",
+            "name": "reward_volume_left_mean",
+            "basename": "reward_volume_left_mean",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_IcCJ",
+            "fid": "reward_volume_right_mean",
+            "name": "reward_volume_right_mean",
+            "basename": "reward_volume_right_mean",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_UBDm",
+            "fid": "lickspout_movement_range_x",
+            "name": "lickspout_movement_range_x",
+            "basename": "lickspout_movement_range_x",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_XxJB",
+            "fid": "lickspout_movement_range_y",
+            "name": "lickspout_movement_range_y",
+            "basename": "lickspout_movement_range_y",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_Peoi",
+            "fid": "lickspout_movement_range_z",
+            "name": "lickspout_movement_range_z",
+            "basename": "lickspout_movement_range_z",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_rp55",
+            "fid": "lickspout_initial_pos_x",
+            "name": "lickspout_initial_pos_x",
+            "basename": "lickspout_initial_pos_x",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_-iZ2",
+            "fid": "lickspout_initial_pos_y",
+            "name": "lickspout_initial_pos_y",
+            "basename": "lickspout_initial_pos_y",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_JwGS",
+            "fid": "lickspout_initial_pos_z",
+            "name": "lickspout_initial_pos_z",
+            "basename": "lickspout_initial_pos_z",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_tNoo",
+            "fid": "lickspout_median_pos_x",
+            "name": "lickspout_median_pos_x",
+            "basename": "lickspout_median_pos_x",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_PCh7",
+            "fid": "lickspout_median_pos_y",
+            "name": "lickspout_median_pos_y",
+            "basename": "lickspout_median_pos_y",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_Fi8A",
+            "fid": "lickspout_median_pos_z",
+            "name": "lickspout_median_pos_z",
+            "basename": "lickspout_median_pos_z",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_oUIK",
+            "fid": "total_trials_with_autowater",
+            "name": "total_trials_with_autowater",
+            "basename": "total_trials_with_autowater",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_qMLz",
+            "fid": "finished_trials_with_autowater",
+            "name": "finished_trials_with_autowater",
+            "basename": "finished_trials_with_autowater",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_5E5N",
+            "fid": "finished_rate_with_autowater",
+            "name": "finished_rate_with_autowater",
+            "basename": "finished_rate_with_autowater",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_3tgi",
+            "fid": "ignore_rate_with_autowater",
+            "name": "ignore_rate_with_autowater",
+            "basename": "ignore_rate_with_autowater",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_dSTJ",
+            "fid": "total_trials",
+            "name": "total_trials",
+            "basename": "total_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_0fyB",
+            "fid": "finished_trials",
+            "name": "finished_trials",
+            "basename": "finished_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_jR8j",
+            "fid": "ignored_trials",
+            "name": "ignored_trials",
+            "basename": "ignored_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_DExV",
+            "fid": "finished_rate",
+            "name": "finished_rate",
+            "basename": "finished_rate",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_YDdZ",
+            "fid": "ignore_rate",
+            "name": "ignore_rate",
+            "basename": "ignore_rate",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_EuwN",
+            "fid": "reward_trials",
+            "name": "reward_trials",
+            "basename": "reward_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_cbzw",
+            "fid": "reward_rate",
+            "name": "reward_rate",
+            "basename": "reward_rate",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_zIXW",
+            "fid": "foraging_eff",
+            "name": "foraging_eff",
+            "basename": "foraging_eff",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_UaPV",
+            "fid": "foraging_eff_random_seed",
+            "name": "foraging_eff_random_seed",
+            "basename": "foraging_eff_random_seed",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_tysG",
+            "fid": "bias_naive",
+            "name": "bias_naive",
+            "basename": "bias_naive",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_QOAX",
+            "fid": "reaction_time_median",
+            "name": "reaction_time_median",
+            "basename": "reaction_time_median",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_RKF9",
+            "fid": "reaction_time_mean",
+            "name": "reaction_time_mean",
+            "basename": "reaction_time_mean",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_ukgK",
+            "fid": "early_lick_rate",
+            "name": "early_lick_rate",
+            "basename": "early_lick_rate",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_JdnH",
+            "fid": "invalid_lick_ratio",
+            "name": "invalid_lick_ratio",
+            "basename": "invalid_lick_ratio",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw__3Np",
+            "fid": "double_dipping_rate_finished_trials",
+            "name": "double_dipping_rate_finished_trials",
+            "basename": "double_dipping_rate_finished_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_m1TR",
+            "fid": "double_dipping_rate_finished_reward_trials",
+            "name": "double_dipping_rate_finished_reward_trials",
+            "basename": "double_dipping_rate_finished_reward_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_tAje",
+            "fid": "double_dipping_rate_finished_noreward_trials",
+            "name": "double_dipping_rate_finished_noreward_trials",
+            "basename": "double_dipping_rate_finished_noreward_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_bW2e",
+            "fid": "lick_consistency_mean_finished_trials",
+            "name": "lick_consistency_mean_finished_trials",
+            "basename": "lick_consistency_mean_finished_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw__v8r",
+            "fid": "lick_consistency_mean_finished_reward_trials",
+            "name": "lick_consistency_mean_finished_reward_trials",
+            "basename": "lick_consistency_mean_finished_reward_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_XAVv",
+            "fid": "lick_consistency_mean_finished_noreward_trials",
+            "name": "lick_consistency_mean_finished_noreward_trials",
+            "basename": "lick_consistency_mean_finished_noreward_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_f59Y",
+            "fid": "Su2022_RewC_tau",
+            "name": "Su2022_RewC_tau",
+            "basename": "Su2022_RewC_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_Tqlw",
+            "fid": "Su2022_RewC_amp",
+            "name": "Su2022_RewC_amp",
+            "basename": "Su2022_RewC_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_SXP3",
+            "fid": "Su2022_UnrC_tau",
+            "name": "Su2022_UnrC_tau",
+            "basename": "Su2022_UnrC_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_8B_H",
+            "fid": "Su2022_UnrC_amp",
+            "name": "Su2022_UnrC_amp",
+            "basename": "Su2022_UnrC_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_YJ_A",
+            "fid": "Bari2019_RewC_tau",
+            "name": "Bari2019_RewC_tau",
+            "basename": "Bari2019_RewC_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_bynX",
+            "fid": "Bari2019_RewC_amp",
+            "name": "Bari2019_RewC_amp",
+            "basename": "Bari2019_RewC_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_KSnQ",
+            "fid": "Bari2019_Choice_tau",
+            "name": "Bari2019_Choice_tau",
+            "basename": "Bari2019_Choice_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_d630",
+            "fid": "Bari2019_Choice_amp",
+            "name": "Bari2019_Choice_amp",
+            "basename": "Bari2019_Choice_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_tpbh",
+            "fid": "Hattori2019_RewC_tau",
+            "name": "Hattori2019_RewC_tau",
+            "basename": "Hattori2019_RewC_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_oZ_y",
+            "fid": "Hattori2019_RewC_amp",
+            "name": "Hattori2019_RewC_amp",
+            "basename": "Hattori2019_RewC_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_h2ST",
+            "fid": "Hattori2019_UnrC_tau",
+            "name": "Hattori2019_UnrC_tau",
+            "basename": "Hattori2019_UnrC_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_jNxW",
+            "fid": "Hattori2019_UnrC_amp",
+            "name": "Hattori2019_UnrC_amp",
+            "basename": "Hattori2019_UnrC_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_CJd3",
+            "fid": "Hattori2019_Choice_tau",
+            "name": "Hattori2019_Choice_tau",
+            "basename": "Hattori2019_Choice_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_3VOK",
+            "fid": "Hattori2019_Choice_amp",
+            "name": "Hattori2019_Choice_amp",
+            "basename": "Hattori2019_Choice_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_tVjD",
+            "fid": "Miller2021_Choice_tau",
+            "name": "Miller2021_Choice_tau",
+            "basename": "Miller2021_Choice_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_DQw6",
+            "fid": "Miller2021_Choice_amp",
+            "name": "Miller2021_Choice_amp",
+            "basename": "Miller2021_Choice_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_8CYv",
+            "fid": "Miller2021_Reward_tau",
+            "name": "Miller2021_Reward_tau",
+            "basename": "Miller2021_Reward_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_atsE",
+            "fid": "Miller2021_Reward_amp",
+            "name": "Miller2021_Reward_amp",
+            "basename": "Miller2021_Reward_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_n05E",
+            "fid": "Miller2021_Choice_x_Reward_tau",
+            "name": "Miller2021_Choice_x_Reward_tau",
+            "basename": "Miller2021_Choice_x_Reward_tau",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_H0fa",
+            "fid": "Miller2021_Choice_x_Reward_amp",
+            "name": "Miller2021_Choice_x_Reward_amp",
+            "basename": "Miller2021_Choice_x_Reward_amp",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "analyticType": "measure",
+            "dragId": "gw_uiYQ",
+            "fid": "gw_uiYQ",
+            "name": "Relative weight",
+            "semanticType": "quantitative",
+            "computed": true,
+            "aggName": "sum",
+            "expression": {
+              "as": "gw_uiYQ",
+              "op": "expr",
+              "params": [
+                {
+                  "type": "sql",
+                  "value": "weight_after / base_weight"
+                }
+              ]
+            }
+          },
+          {
+            "dragId": "gw_count_fid",
+            "fid": "gw_count_fid",
+            "name": "Row count",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "computed": true,
+            "expression": {
+              "op": "one",
+              "params": [],
+              "as": "gw_count_fid"
+            }
+          },
+          {
+            "dragId": "gw_mea_val_fid",
+            "fid": "gw_mea_val_fid",
+            "name": "Measure values",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum"
+          }
+        ],
+        "rows": [
+          {
+            "analyticType": "measure",
+            "dragId": "gw_7PP-",
+            "fid": "gw_uiYQ",
+            "name": "Relative weight",
+            "semanticType": "quantitative",
+            "computed": true,
+            "aggName": "sum",
+            "expression": {
+              "as": "gw_uiYQ",
+              "op": "expr",
+              "params": [
+                {
+                  "type": "sql",
+                  "value": "weight_after / base_weight"
+                }
+              ]
+            }
+          }
+        ],
+        "columns": [
+          {
+            "dragId": "gw_ffOM",
+            "fid": "session",
+            "name": "session",
+            "basename": "session",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          }
+        ],
+        "color": [],
+        "opacity": [],
+        "size": [],
+        "shape": [],
+        "radius": [],
+        "theta": [],
+        "longitude": [],
+        "latitude": [],
+        "geoId": [],
+        "details": [],
+        "filters": [],
+        "text": []
+      },
+      "layout": {
+        "showActions": false,
+        "showTableSummary": false,
+        "stack": "stack",
+        "interactiveScale": false,
+        "zeroScale": false,
+        "size": {
+          "mode": "fixed",
+          "width": 590,
+          "height": 371
+        },
+        "format": {},
+        "geoKey": "name",
+        "resolve": {
+          "x": false,
+          "y": false,
+          "color": false,
+          "opacity": false,
+          "shape": false,
+          "size": false
+        },
+        "scaleIncludeUnmatchedChoropleth": false,
+        "colorPalette": "",
+        "useSvg": false,
+        "scale": {
+          "opacity": {},
+          "size": {}
+        }
+      },
+      "visId": "gw_Q2kt",
+      "name": "Weight and water"
+    }
+  ]

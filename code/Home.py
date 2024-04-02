@@ -32,6 +32,7 @@ from PIL import Image, ImageColor
 import streamlit.components.v1 as components
 import streamlit_nested_layout
 from streamlit_plotly_events import plotly_events
+from pygwalker.api.streamlit import StreamlitRenderer, init_streamlit_comm
 
 # To suppress the warning that I set the default value of a widget and also set it in the session state
 from streamlit.elements.utils import _shown_default_value_warning
@@ -201,6 +202,10 @@ def show_mouse_level_img_by_key_and_prefix(key, prefix, column=None, other_patte
 #     'sessions_bonsai': fetch_sessions,
 #     'ephys_units': fetch_ephys_units,
 # }
+
+@st.cache_resource(ttl=24*3600)
+def get_pyg_renderer(df, spec="./gw_config.json", **kwargs) -> "StreamlitRenderer":
+    return StreamlitRenderer(df, spec=spec, debug=False, **kwargs)
 
     
 def draw_session_plots(df_to_draw_session):
@@ -530,6 +535,9 @@ def init():
 
     st.session_state.session_stats_names = [keys for keys in st.session_state.df['sessions_bonsai'].keys()]
        
+    # Establish communication between pygwalker and streamlit
+    init_streamlit_comm()
+    
 
 def app():
     
@@ -596,6 +604,7 @@ def app():
     chosen_id = stx.tab_bar(data=[
         stx.TabBarItemData(id="tab_session_x_y", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
         stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
+        stx.TabBarItemData(id="tab_pygwalker", title="📊 PyGWalker (Tableau)", description="Interactive dataframe explorer"),
         stx.TabBarItemData(id="tab_auto_train_history", title="🎓 Automatic Training History", description="Track progress"),
         stx.TabBarItemData(id="tab_auto_train_curriculum", title="📚 Automatic Training Curriculums", description="Collection of curriculums"),
         # stx.TabBarItemData(id="tab_mouse_inspector", title="🐭 Mouse Inspector", description="Mouse-level summary"),
@@ -603,9 +612,9 @@ def app():
                    else st.session_state.tab_id)
 
     placeholder = st.container()
+    st.session_state.tab_id = chosen_id
 
     if chosen_id == "tab_session_x_y":
-        st.session_state.tab_id = chosen_id
         with placeholder:
             df_selected_from_plotly, x_y_cols = plot_x_y_session()
             
@@ -624,9 +633,39 @@ def app():
                 st.session_state.df_selected_from_plotly = df_selected_from_plotly
                 st.session_state.df_selected_from_dataframe = df_selected_from_plotly  # Sync selected on dataframe
                 st.experimental_rerun()
+                
+    elif chosen_id == "tab_pygwalker":
+        with placeholder:
+            cols = st.columns([1, 4])
+            cols[0].markdown('##### Exploring data using [PyGWalker](https://docs.kanaries.net/pygwalker)')
+            with cols[1]:
+                with st.expander('Specify PyGWalker json'):
+                    # Load json from ./gw_config.json
+                    pyg_user_json = st.text_area("Export your plot settings to json by clicking `export_code` "
+                                                 "button below and then paste your json here to reproduce your plots", 
+                                                key='pyg_walker', height=100)
+            
+            # If pyg_user_json is not empty, use it; otherwise, use the default gw_config.json
+            if pyg_user_json:
+                try:
+                    pygwalker_renderer = get_pyg_renderer(
+                        df=st.session_state.df_session_filtered,
+                        spec=pyg_user_json,
+                        )
+                except:
+                    pygwalker_renderer = get_pyg_renderer(
+                        df=st.session_state.df_session_filtered,
+                        spec="./gw_config.json",
+                        )
+            else:
+                pygwalker_renderer = get_pyg_renderer(
+                    df=st.session_state.df_session_filtered,
+                    spec="./gw_config.json",
+                    )
+                            
+            pygwalker_renderer.render_explore(height=1010, scrolling=False)
         
     elif chosen_id == "tab_session_inspector":
-        st.session_state.tab_id = chosen_id
         with placeholder:
             with st.columns([4, 10])[0]:
                 if_draw_all_sessions = session_plot_settings(need_click=False)
@@ -636,18 +675,15 @@ def app():
                 draw_session_plots(df_to_draw_sessions)
                 
     elif chosen_id == "tab_mouse_inspector":
-        st.session_state.tab_id = chosen_id
         with placeholder:
             selected_subject_id = st.columns([1, 3])[0].selectbox('Select a mouse', options=st.session_state.df_session_filtered['subject_id'].unique())
             st.markdown(f"### [Go to WaterLog](http://eng-tools:8004/water_weight_log/?external_donor_name={selected_subject_id})")
             
     elif chosen_id == "tab_auto_train_history":  # Automatic training history
-        st.session_state.tab_id = chosen_id
         with placeholder:
             add_auto_train_manager()
 
     elif chosen_id == "tab_auto_train_curriculum":  # Automatic training curriculums
-        st.session_state.tab_id = chosen_id
         df_curriculums = st.session_state.curriculum_manager.df_curriculums().sort_values(
             by=['curriculum_schema_version', 'curriculum_name', 'curriculum_version']).reset_index().drop(columns='index')
         with placeholder:
