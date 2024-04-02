@@ -390,7 +390,7 @@ def add_session_filter(if_bonsai=False, url_query={}):
 def add_xy_selector(if_bonsai):
     with st.expander("Select axes", expanded=True):
         # with st.form("axis_selection"):
-        cols = st.columns([1, 1, 1])
+        cols = st.columns([1])
         x_name = cols[0].selectbox("x axis", 
                                    st.session_state.session_stats_names, 
                                    index=st.session_state.session_stats_names.index(st.session_state['x_y_plot_xname'])
@@ -400,7 +400,7 @@ def add_xy_selector(if_bonsai):
                                          else st.session_state.session_stats_names.index('session'), 
                                    key='x_y_plot_xname'
                                    )
-        y_name = cols[1].selectbox("y axis", 
+        y_name = cols[0].selectbox("y axis", 
                                    st.session_state.session_stats_names, 
                                    index=st.session_state.session_stats_names.index(st.session_state['x_y_plot_yname'])
                                          if 'x_y_plot_yname' in st.session_state else 
@@ -415,7 +415,7 @@ def add_xy_selector(if_bonsai):
             options = ['h2o', 'task', 'photostim_location', 'weekday',
                        'headbar', 'user_name', 'sex', 'rig']
         
-        group_by = cols[2].selectbox("grouped by", 
+        group_by = cols[0].selectbox("grouped by", 
                                      options=options, 
                                      index=options.index(st.session_state['x_y_plot_group_by'])
                                            if 'x_y_plot_group_by' in st.session_state else 
