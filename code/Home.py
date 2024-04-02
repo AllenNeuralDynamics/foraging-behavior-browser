@@ -203,10 +203,9 @@ def show_mouse_level_img_by_key_and_prefix(key, prefix, column=None, other_patte
 #     'ephys_units': fetch_ephys_units,
 # }
 
-def get_pyg_renderer(df) -> "StreamlitRenderer":
-    # df = pd.read_csv("https://kanaries-app.s3.ap-northeast-1.amazonaws.com/public-datasets/bike_sharing_dc.csv")
-    # When you need to publish your app to the public, you should set the debug parameter to False to prevent other users from writing to your chart configuration file.
-    return StreamlitRenderer(df, spec="./gw_config.json", debug=False)
+@st.cache_resource(ttl=24*3600)
+def get_pyg_renderer(df, spec="./gw_config.json", **kwargs) -> "StreamlitRenderer":
+    return StreamlitRenderer(df, spec=spec, debug=False, **kwargs)
 
     
 def draw_session_plots(df_to_draw_session):
@@ -636,10 +635,7 @@ def app():
                 st.experimental_rerun()
                 
     elif chosen_id == "tab_pygwalker":
-        init_streamlit_comm()
         with placeholder:
-            df = pd.read_csv("https://kanaries-app.s3.ap-northeast-1.amazonaws.com/public-datasets/bike_sharing_dc.csv")
-            df = df[:100]
             pygwalker_renderer = get_pyg_renderer(df=st.session_state.df_session_filtered)
             pygwalker_renderer.render_explore()
         
