@@ -603,8 +603,8 @@ def app():
 
     chosen_id = stx.tab_bar(data=[
         stx.TabBarItemData(id="tab_session_x_y", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
-        stx.TabBarItemData(id="tab_pygwalker", title="📊 PyGWalker (Tableau)", description="Interactive dataframe explorer"),
         stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
+        stx.TabBarItemData(id="tab_pygwalker", title="📊 PyGWalker (Tableau)", description="Interactive dataframe explorer"),
         stx.TabBarItemData(id="tab_auto_train_history", title="🎓 Automatic Training History", description="Track progress"),
         stx.TabBarItemData(id="tab_auto_train_curriculum", title="📚 Automatic Training Curriculums", description="Collection of curriculums"),
         # stx.TabBarItemData(id="tab_mouse_inspector", title="🐭 Mouse Inspector", description="Mouse-level summary"),
@@ -636,8 +636,34 @@ def app():
                 
     elif chosen_id == "tab_pygwalker":
         with placeholder:
-            pygwalker_renderer = get_pyg_renderer(df=st.session_state.df_session_filtered)
-            pygwalker_renderer.render_explore()
+            cols = st.columns([1, 4])
+            cols[0].markdown('##### Exploring data using [PyGWalker](https://docs.kanaries.net/pygwalker)')
+            with cols[1]:
+                with st.expander('Specify PyGWalker json'):
+                    # Load json from ./gw_config.json
+                    pyg_user_json = st.text_area("Export your plot settings to json by clicking `export_code` "
+                                                 "button below and then paste your json here to reproduce your plots", 
+                                                key='pyg_walker', height=100)
+            
+            # If pyg_user_json is not empty, use it; otherwise, use the default gw_config.json
+            if pyg_user_json:
+                try:
+                    pygwalker_renderer = get_pyg_renderer(
+                        df=st.session_state.df_session_filtered,
+                        spec=pyg_user_json,
+                        )
+                except:
+                    pygwalker_renderer = get_pyg_renderer(
+                        df=st.session_state.df_session_filtered,
+                        spec="./gw_config.json",
+                        )
+            else:
+                pygwalker_renderer = get_pyg_renderer(
+                    df=st.session_state.df_session_filtered,
+                    spec="./gw_config.json",
+                    )
+                            
+            pygwalker_renderer.render_explore(height=1010, scrolling=False)
         
     elif chosen_id == "tab_session_inspector":
         with placeholder:
