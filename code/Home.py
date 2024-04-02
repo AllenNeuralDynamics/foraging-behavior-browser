@@ -32,6 +32,7 @@ from PIL import Image, ImageColor
 import streamlit.components.v1 as components
 import streamlit_nested_layout
 from streamlit_plotly_events import plotly_events
+from pygwalker.api.streamlit import StreamlitRenderer, init_streamlit_comm
 
 # To suppress the warning that I set the default value of a widget and also set it in the session state
 from streamlit.elements.utils import _shown_default_value_warning
@@ -201,6 +202,11 @@ def show_mouse_level_img_by_key_and_prefix(key, prefix, column=None, other_patte
 #     'sessions_bonsai': fetch_sessions,
 #     'ephys_units': fetch_ephys_units,
 # }
+
+def get_pyg_renderer(df) -> "StreamlitRenderer":
+    # df = pd.read_csv("https://kanaries-app.s3.ap-northeast-1.amazonaws.com/public-datasets/bike_sharing_dc.csv")
+    # When you need to publish your app to the public, you should set the debug parameter to False to prevent other users from writing to your chart configuration file.
+    return StreamlitRenderer(df, spec="./gw_config.json", debug=False)
 
     
 def draw_session_plots(df_to_draw_session):
@@ -530,6 +536,9 @@ def init():
 
     st.session_state.session_stats_names = [keys for keys in st.session_state.df['sessions_bonsai'].keys()]
        
+    # Establish communication between pygwalker and streamlit
+    init_streamlit_comm()
+    
 
 def app():
     
@@ -595,6 +604,7 @@ def app():
 
     chosen_id = stx.tab_bar(data=[
         stx.TabBarItemData(id="tab_session_x_y", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
+        stx.TabBarItemData(id="tab_pygwalker", title="📊 PyGWalker (Tableau)", description="Interactive dataframe explorer"),
         stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
         stx.TabBarItemData(id="tab_auto_train_history", title="🎓 Automatic Training History", description="Track progress"),
         stx.TabBarItemData(id="tab_auto_train_curriculum", title="📚 Automatic Training Curriculums", description="Collection of curriculums"),
@@ -603,9 +613,9 @@ def app():
                    else st.session_state.tab_id)
 
     placeholder = st.container()
+    st.session_state.tab_id = chosen_id
 
     if chosen_id == "tab_session_x_y":
-        st.session_state.tab_id = chosen_id
         with placeholder:
             df_selected_from_plotly, x_y_cols = plot_x_y_session()
             
@@ -624,9 +634,16 @@ def app():
                 st.session_state.df_selected_from_plotly = df_selected_from_plotly
                 st.session_state.df_selected_from_dataframe = df_selected_from_plotly  # Sync selected on dataframe
                 st.experimental_rerun()
+                
+    elif chosen_id == "tab_pygwalker":
+        init_streamlit_comm()
+        with placeholder:
+            df = pd.read_csv("https://kanaries-app.s3.ap-northeast-1.amazonaws.com/public-datasets/bike_sharing_dc.csv")
+            df = df[:100]
+            pygwalker_renderer = get_pyg_renderer(df=st.session_state.df_session_filtered)
+            pygwalker_renderer.render_explore()
         
     elif chosen_id == "tab_session_inspector":
-        st.session_state.tab_id = chosen_id
         with placeholder:
             with st.columns([4, 10])[0]:
                 if_draw_all_sessions = session_plot_settings(need_click=False)
@@ -636,18 +653,15 @@ def app():
                 draw_session_plots(df_to_draw_sessions)
                 
     elif chosen_id == "tab_mouse_inspector":
-        st.session_state.tab_id = chosen_id
         with placeholder:
             selected_subject_id = st.columns([1, 3])[0].selectbox('Select a mouse', options=st.session_state.df_session_filtered['subject_id'].unique())
             st.markdown(f"### [Go to WaterLog](http://eng-tools:8004/water_weight_log/?external_donor_name={selected_subject_id})")
             
     elif chosen_id == "tab_auto_train_history":  # Automatic training history
-        st.session_state.tab_id = chosen_id
         with placeholder:
             add_auto_train_manager()
 
     elif chosen_id == "tab_auto_train_curriculum":  # Automatic training curriculums
-        st.session_state.tab_id = chosen_id
         df_curriculums = st.session_state.curriculum_manager.df_curriculums().sort_values(
             by=['curriculum_schema_version', 'curriculum_name', 'curriculum_version']).reset_index().drop(columns='index')
         with placeholder:
