@@ -76,6 +76,8 @@ to_sync_with_url_query = {
     'x_y_plot_dot_size': 10,
     'x_y_plot_dot_opacity': 0.5,
     'x_y_plot_line_width': 2.0,
+    
+    'session_plot_mode': 'sessions selected from table or plot',
 
     'auto_training_history_x_axis': 'date',
     'auto_training_history_sort_by': 'subject_id',
@@ -240,7 +242,7 @@ def draw_session_plots(df_to_draw_session):
                     except:
                         date_str = key["session_date"].split("T")[0]
                     
-                    st.markdown(f'''<h3 style='text-align: center; color: orange;'>{key["h2o"]}, Session {key["session"]}, {date_str}''',
+                    st.markdown(f'''<h4 style='text-align: center; color: orange;'>{key["h2o"]}, Session {int(key["session"])}, {date_str}''',
                               unsafe_allow_html=True)
                     if len(st.session_state.selected_draw_types) > 1:  # more than one types, use the pre-defined layout
                         for row, column_setting in enumerate(layout_definition):
@@ -314,11 +316,18 @@ def draw_mice_plots(df_to_draw_mice):
 def session_plot_settings(need_click=True):
     st.markdown('##### Show plots for individual sessions ')
     cols = st.columns([2, 1])
+    
+    session_plot_modes = [f'sessions selected from table or plot', f'all sessions filtered from sidebar']
     st.session_state.selected_draw_sessions = cols[0].selectbox('Which session(s) to draw?', 
-                                                           [f'selected from table/plot ({len(st.session_state.df_selected_from_plotly)} sessions)', 
-                                                            f'filtered from sidebar ({len(st.session_state.df_session_filtered)} sessions)'], 
-                                                           index=0
-                                                           )
+                                                                session_plot_modes,
+                                                                index=session_plot_modes.index(st.session_state['session_plot_mode'])
+                                                                    if 'session_plot_mode' in st.session_state else 
+                                                                    session_plot_modes.index(st.query_params['session_plot_mode'])
+                                                                    if 'session_plot_mode' in st.query_params 
+                                                                    else 0, 
+                                                                key='session_plot_mode',
+                                                               )
+    
     st.session_state.num_cols = cols[1].number_input('Number of columns', 1, 10, 
                                                      3 if 'num_cols' not in st.session_state else st.session_state.num_cols)
     
@@ -515,20 +524,35 @@ def init():
    
     # Some ad-hoc modifications on df_sessions
     st.session_state.df['sessions_bonsai'].columns = st.session_state.df['sessions_bonsai'].columns.get_level_values(1)
+    st.session_state.df['sessions_bonsai'].sort_values(['session_end_time'], ascending=False, inplace=True)
     st.session_state.df['sessions_bonsai'] = st.session_state.df['sessions_bonsai'].reset_index().query('subject_id != "0"')
     st.session_state.df['sessions_bonsai']['h2o'] = st.session_state.df['sessions_bonsai']['subject_id']
     st.session_state.df['sessions_bonsai'].dropna(subset=['session'], inplace=True) # Remove rows with no session number (only leave the nwb file with the largest finished_trials for now)
+    st.session_state.df['sessions_bonsai'].drop(st.session_state.df['sessions_bonsai'].query('session < 1').index, inplace=True)
     
     # # add something else
-    # st.session_state.df['sessions_bonsai']['abs(bias)'] = np.abs(st.session_state.df['sessions_bonsai'].biasL)
-    
+    # add abs(bais) to all terms that have 'bias' in name
+    for col in st.session_state.df['sessions_bonsai'].columns:
+        if 'bias' in col:
+            st.session_state.df['sessions_bonsai'][f'abs({col})'] = np.abs(st.session_state.df['sessions_bonsai'][col])
+        
     # # delta weight
     # diff_relative_weight_next_day = st.session_state.df['sessions_bonsai'].set_index(
     #     ['session']).sort_values('session', ascending=True).groupby('h2o').apply(
     #         lambda x: - x.relative_weight.diff(periods=-1)).rename("diff_relative_weight_next_day")
         
     # weekday
-    # st.session_state.df['sessions_bonsai']['weekday'] =  st.session_state.df['sessions_bonsai'].session_date.dt.dayofweek + 1
+    st.session_state.df['sessions_bonsai'].session_date = pd.to_datetime(st.session_state.df['sessions_bonsai'].session_date)
+    st.session_state.df['sessions_bonsai']['weekday'] = st.session_state.df['sessions_bonsai'].session_date.dt.day_name()
+    
+    # foraging performance = foraing_eff * finished_rate
+    if 'foraging_performance' not in st.session_state.df['sessions_bonsai'].columns:
+        st.session_state.df['sessions_bonsai']['foraging_performance'] = \
+            st.session_state.df['sessions_bonsai']['foraging_eff'] \
+            * st.session_state.df['sessions_bonsai']['finished_rate']
+        st.session_state.df['sessions_bonsai']['foraging_performance_random_seed'] = \
+            st.session_state.df['sessions_bonsai']['foraging_eff_random_seed'] \
+            * st.session_state.df['sessions_bonsai']['finished_rate']
 
     # st.session_state.df['sessions_bonsai'] = st.session_state.df['sessions_bonsai'].merge(
     #     diff_relative_weight_next_day, how='left', on=['h2o', 'session'])
@@ -563,7 +587,7 @@ def app():
             if st.button('Reload data from AWS S3'):
                 st.cache_data.clear()
                 init()
-                st.experimental_rerun()
+                st.rerun()
         
     
 
@@ -575,11 +599,11 @@ def app():
         cols = st.columns([2, 2, 2])
         cols[0].markdown(f'### Filter the sessions on the sidebar ({len(st.session_state.df_session_filtered)} filtered)')
         # if cols[1].button('Press this and then Ctrl + R to reload from S3'):
-        #     st.experimental_rerun()
+        #     st.rerun()
         if cols[1].button('Reload data '):
             st.cache_data.clear()
             init()
-            st.experimental_rerun()
+            st.rerun()
     
         # aggrid_outputs = aggrid_interactive_table_units(df=df['ephys_units'])
         # st.session_state.df_session_filtered = aggrid_outputs['data']
@@ -599,7 +623,7 @@ def app():
         st.session_state.df_selected_from_dataframe = pd.DataFrame(aggrid_outputs['selected_rows'])
         st.session_state.df_selected_from_plotly = st.session_state.df_selected_from_dataframe  # Sync selected on plotly
         # if st.session_state.tab_id == "tab_session_x_y":
-        st.experimental_rerun()
+        st.rerun()
 
     chosen_id = stx.tab_bar(data=[
         stx.TabBarItemData(id="tab_session_x_y", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
@@ -632,7 +656,7 @@ def app():
                                                 st.session_state.df_selected_from_plotly.set_index(['h2o', 'session']).index):
                 st.session_state.df_selected_from_plotly = df_selected_from_plotly
                 st.session_state.df_selected_from_dataframe = df_selected_from_plotly  # Sync selected on dataframe
-                st.experimental_rerun()
+                st.rerun()
                 
     elif chosen_id == "tab_pygwalker":
         with placeholder:
@@ -667,10 +691,11 @@ def app():
         
     elif chosen_id == "tab_session_inspector":
         with placeholder:
-            with st.columns([4, 10])[0]:
+            cols = st.columns([6, 3, 7])
+            with cols[0]:
                 if_draw_all_sessions = session_plot_settings(need_click=False)
                 df_to_draw_sessions = st.session_state.df_selected_from_plotly if 'selected' in st.session_state.selected_draw_sessions else st.session_state.df_session_filtered
-                
+
             if if_draw_all_sessions and len(df_to_draw_sessions):
                 draw_session_plots(df_to_draw_sessions)
                 

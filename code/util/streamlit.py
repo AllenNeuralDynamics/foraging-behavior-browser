@@ -54,7 +54,10 @@ def aggrid_interactive_table_session(df: pd.DataFrame):
 
     options.configure_side_bar()
     
-    df = df.sort_values('session_date', ascending=False)
+    if 'session_end_time' in df.columns:
+        df = df.sort_values('session_end_time', ascending=False)
+    else:
+        df = df.sort_values('session_date', ascending=False)
     
     # preselect
     if (('df_selected_from_dataframe' in st.session_state and len(st.session_state.df_selected_from_dataframe)) 
@@ -390,7 +393,7 @@ def add_session_filter(if_bonsai=False, url_query={}):
 def add_xy_selector(if_bonsai):
     with st.expander("Select axes", expanded=True):
         # with st.form("axis_selection"):
-        cols = st.columns([1, 1, 1])
+        cols = st.columns([1])
         x_name = cols[0].selectbox("x axis", 
                                    st.session_state.session_stats_names, 
                                    index=st.session_state.session_stats_names.index(st.session_state['x_y_plot_xname'])
@@ -400,7 +403,7 @@ def add_xy_selector(if_bonsai):
                                          else st.session_state.session_stats_names.index('session'), 
                                    key='x_y_plot_xname'
                                    )
-        y_name = cols[1].selectbox("y axis", 
+        y_name = cols[0].selectbox("y axis", 
                                    st.session_state.session_stats_names, 
                                    index=st.session_state.session_stats_names.index(st.session_state['x_y_plot_yname'])
                                          if 'x_y_plot_yname' in st.session_state else 
@@ -410,12 +413,12 @@ def add_xy_selector(if_bonsai):
                                    key='x_y_plot_yname')
         
         if if_bonsai:
-            options = ['h2o', 'task', 'user_name', 'rig']
+            options = ['h2o', 'task', 'user_name', 'rig', 'weekday']
         else:
             options = ['h2o', 'task', 'photostim_location', 'weekday',
                        'headbar', 'user_name', 'sex', 'rig']
         
-        group_by = cols[2].selectbox("grouped by", 
+        group_by = cols[0].selectbox("grouped by", 
                                      options=options, 
                                      index=options.index(st.session_state['x_y_plot_group_by'])
                                            if 'x_y_plot_group_by' in st.session_state else 
@@ -574,7 +577,7 @@ def data_selector():
         
         # if cols[1].button('❌'):
         #     st.session_state.df_selected_from_dataframe = pd.DataFrame()
-        #     st.experimental_rerun()
+        #     st.rerun()
 
         cols = st.columns([5, 1, 1])
         with cols[0].expander(f"Selected: {len(st.session_state.df_selected_from_plotly)} sessions, "
@@ -582,13 +585,13 @@ def data_selector():
             st.dataframe(st.session_state.df_selected_from_plotly)
         if cols[1].button('all'):
             st.session_state.df_selected_from_plotly = st.session_state.df_session_filtered
-            st.experimental_rerun()
+            st.rerun()
             
         
         if cols[2].button('❌ '):
             st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
             st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
-            st.experimental_rerun()
+            st.rerun()
 
 def add_auto_train_manager():
     

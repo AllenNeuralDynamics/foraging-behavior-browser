@@ -24,6 +24,7 @@ from util.streamlit import (filter_dataframe, aggrid_interactive_table_session, 
 import extra_streamlit_components as stx
 
 from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
+from pygwalker.api.streamlit import StreamlitRenderer, init_streamlit_comm
 
 
 # Sync widgets with URL query params
@@ -486,6 +487,7 @@ def init():
     df_this_model = st.session_state.df['model_fitting_params'].query(f'model_id == {selected_id}')
     valid_field = df_this_model.columns[~np.all(~df_this_model.notna(), axis=0)]
     to_add_model = st.session_state.df['model_fitting_params'].query(f'model_id == {selected_id}')[valid_field]
+    st.session_state.df['sessions'].drop(st.session_state.df['sessions'].query('session < 1').index, inplace=True)
     
     st.session_state.df['sessions'] = st.session_state.df['sessions'].merge(to_add_model, on=('subject_id', 'session'), how='left')
 
@@ -497,6 +499,12 @@ def init():
         ['session']).sort_values('session', ascending=True).groupby('h2o').apply(
             lambda x: - x.relative_weight.diff(periods=-1)).rename("diff_relative_weight_next_day")
         
+    # foraging performance = foraing_eff * finished_ratio
+    if 'foraging_performance' not in st.session_state.df['sessions'].columns:
+        st.session_state.df['sessions']['foraging_performance'] = \
+            st.session_state.df['sessions']['foraging_eff'] \
+            * (1 - st.session_state.df['sessions']['ignore_rate'])
+        
     # weekday
     st.session_state.df['sessions']['weekday'] =  st.session_state.df['sessions'].session_date.dt.dayofweek + 1
 
@@ -505,7 +513,9 @@ def init():
 
     st.session_state.session_stats_names = [keys for keys in st.session_state.df['sessions'].keys()]
    
-   
+@st.cache_resource(ttl=24*3600)
+def get_pyg_renderer(df, spec="./gw_config.json", **kwargs) -> "StreamlitRenderer":
+    return StreamlitRenderer(df, spec=spec, debug=False, **kwargs)
     
 
 def app():
@@ -524,7 +534,7 @@ def app():
             if st.button('Reload data from AWS S3'):
                 st.cache_data.clear()
                 init()
-                st.experimental_rerun()
+                st.rerun()
         
     
 
@@ -536,11 +546,11 @@ def app():
         cols = st.columns([2, 2, 2])
         cols[0].markdown(f'### Filter the sessions on the sidebar ({len(st.session_state.df_session_filtered)} filtered)')
         # if cols[1].button('Press this and then Ctrl + R to reload from S3'):
-        #     st.experimental_rerun()
+        #     st.rerun()
         if cols[1].button('Reload data '):
             st.cache_data.clear()
             init()
-            st.experimental_rerun()
+            st.rerun()
     
         # aggrid_outputs = aggrid_interactive_table_units(df=df['ephys_units'])
         # st.session_state.df_session_filtered = aggrid_outputs['data']
@@ -560,11 +570,12 @@ def app():
         st.session_state.df_selected_from_dataframe = pd.DataFrame(aggrid_outputs['selected_rows'])
         st.session_state.df_selected_from_plotly = st.session_state.df_selected_from_dataframe  # Sync selected on plotly
         # if st.session_state.tab_id == "tab_session_x_y":
-        st.experimental_rerun()
+        st.rerun()
             
     chosen_id = stx.tab_bar(data=[
         stx.TabBarItemData(id="tab_session_x_y", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
         stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
+        stx.TabBarItemData(id="tab_pygwalker", title="📊 PyGWalker (Tableau)", description="Interactive dataframe explorer"),
         stx.TabBarItemData(id="tab_auto_train_history", title="🎓 Automatic Training History", description="Track progress"),
         stx.TabBarItemData(id="tab_mouse_inspector", title="🐭 Mouse Model Fitting", description="Mouse-level model fitting results"),
         ], default="tab_session_inspector" if 'tab_id' not in st.session_state else st.session_state.tab_id)
@@ -591,7 +602,7 @@ def app():
                                                 st.session_state.df_selected_from_plotly.set_index(['h2o', 'session']).index):
                 st.session_state.df_selected_from_plotly = df_selected_from_plotly
                 st.session_state.df_selected_from_dataframe = df_selected_from_plotly  # Sync selected on dataframe
-                st.experimental_rerun()
+                st.rerun()
             
     elif chosen_id == "tab_session_inspector":
         st.session_state.tab_id = chosen_id
@@ -602,6 +613,38 @@ def app():
                 
             if if_draw_all_sessions and len(df_to_draw_sessions):
                 draw_session_plots(df_to_draw_sessions)
+    
+    elif chosen_id == "tab_pygwalker":
+        with placeholder:
+            cols = st.columns([1, 4])
+            cols[0].markdown('##### Exploring data using [PyGWalker](https://docs.kanaries.net/pygwalker)')
+            with cols[1]:
+                with st.expander('Specify PyGWalker json'):
+                    # Load json from ./gw_config.json
+                    pyg_user_json = st.text_area("Export your plot settings to json by clicking `export_code` "
+                                                 "button below and then paste your json here to reproduce your plots", 
+                                                key='pyg_walker', height=100)
+            
+            # If pyg_user_json is not empty, use it; otherwise, use the default gw_config.json
+            if pyg_user_json:
+                try:
+                    pygwalker_renderer = get_pyg_renderer(
+                        df=st.session_state.df_session_filtered,
+                        spec=pyg_user_json,
+                        )
+                except:
+                    pygwalker_renderer = get_pyg_renderer(
+                        df=st.session_state.df_session_filtered,
+                        spec="./gw_config_old_mice.json",
+                        )
+            else:
+                pygwalker_renderer = get_pyg_renderer(
+                    df=st.session_state.df_session_filtered,
+                    spec="./gw_config_old_mice.json",
+                    )
+                            
+            pygwalker_renderer.render_explore(height=1010, scrolling=False)
+
                 
     elif chosen_id == "tab_auto_train_history":  # Automatic training history
         st.session_state.tab_id = chosen_id
