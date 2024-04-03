@@ -1,5 +1,6 @@
 # hash:sha256:51bda5f40316acb89ad85a82e996448f5a31d6f40b5b443e817e9b346eee2f67
-FROM registry.codeocean.allenneuraldynamics.org/codeocean/jupyterlab:3.0.9-miniconda4.9.2-python3.8-ubuntu20.04
+ARG REGISTRY_HOST
+FROM $REGISTRY_HOST/codeocean/jupyterlab:3.6.1-miniconda4.12.0-python3.9-ubuntu20.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -65,8 +66,8 @@ RUN pip install -U --no-cache-dir \
     semver==2.13.0 \
     six==1.16.0 \
     smmap==5.0.0 \
-    streamlit==1.30.0 \
-    streamlit-aggrid==0.3.3 \
+    streamlit==1.31.0 \
+    streamlit-aggrid==0.3.5 \
     streamlit-nested-layout==0.1.1 \
     streamlit-plotly-events==0.0.6 \
     tenacity==8.1.0 \
@@ -87,7 +88,8 @@ RUN pip install -U --no-cache-dir \
     statannotations \
     seaborn \
     pynwb --ignore-installed ruamel.yaml\
-    git+https://github.com/AllenNeuralDynamics/aind-foraging-behavior-bonsai-automatic-training.git@main
+    git+https://github.com/AllenNeuralDynamics/aind-foraging-behavior-bonsai-automatic-training.git@main\
+    pygwalker
 
 ADD "https://github.com/coder/code-server/releases/download/v4.9.0/code-server-4.9.0-linux-amd64.tar.gz" /.code-server/code-server.tar.gz
 	
