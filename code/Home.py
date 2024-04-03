@@ -542,6 +542,15 @@ def init():
     # weekday
     st.session_state.df['sessions_bonsai'].session_date = pd.to_datetime(st.session_state.df['sessions_bonsai'].session_date)
     st.session_state.df['sessions_bonsai']['weekday'] = st.session_state.df['sessions_bonsai'].session_date.dt.day_name()
+    
+    # foraging performance = foraing_eff * finished_rate
+    if 'foraging_performance' not in st.session_state.df['sessions_bonsai'].columns:
+        st.session_state.df['sessions_bonsai']['foraging_performance'] = \
+            st.session_state.df['sessions_bonsai']['foraging_eff'] \
+            * st.session_state.df['sessions_bonsai']['finished_rate']
+        st.session_state.df['sessions_bonsai']['foraging_performance_random_seed'] = \
+            st.session_state.df['sessions_bonsai']['foraging_eff_random_seed'] \
+            * st.session_state.df['sessions_bonsai']['finished_rate']
 
     # st.session_state.df['sessions_bonsai'] = st.session_state.df['sessions_bonsai'].merge(
     #     diff_relative_weight_next_day, how='left', on=['h2o', 'session'])

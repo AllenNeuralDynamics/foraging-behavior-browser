@@ -497,6 +497,12 @@ def init():
         ['session']).sort_values('session', ascending=True).groupby('h2o').apply(
             lambda x: - x.relative_weight.diff(periods=-1)).rename("diff_relative_weight_next_day")
         
+    # foraging performance = foraing_eff * finished_ratio
+    if 'foraging_performance' not in st.session_state.df['sessions'].columns:
+        st.session_state.df['sessions']['foraging_performance'] = \
+            st.session_state.df['sessions']['foraging_eff'] \
+            * (1 - st.session_state.df['sessions']['ignore_rate'])
+        
     # weekday
     st.session_state.df['sessions']['weekday'] =  st.session_state.df['sessions'].session_date.dt.dayofweek + 1
 
