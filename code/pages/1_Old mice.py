@@ -24,6 +24,7 @@ from util.streamlit import (filter_dataframe, aggrid_interactive_table_session, 
 import extra_streamlit_components as stx
 
 from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
+from pygwalker.api.streamlit import StreamlitRenderer, init_streamlit_comm
 
 
 # Sync widgets with URL query params
@@ -512,7 +513,9 @@ def init():
 
     st.session_state.session_stats_names = [keys for keys in st.session_state.df['sessions'].keys()]
    
-   
+@st.cache_resource(ttl=24*3600)
+def get_pyg_renderer(df, spec="./gw_config.json", **kwargs) -> "StreamlitRenderer":
+    return StreamlitRenderer(df, spec=spec, debug=False, **kwargs)
     
 
 def app():
@@ -572,6 +575,7 @@ def app():
     chosen_id = stx.tab_bar(data=[
         stx.TabBarItemData(id="tab_session_x_y", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
         stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
+        stx.TabBarItemData(id="tab_pygwalker", title="📊 PyGWalker (Tableau)", description="Interactive dataframe explorer"),
         stx.TabBarItemData(id="tab_auto_train_history", title="🎓 Automatic Training History", description="Track progress"),
         stx.TabBarItemData(id="tab_mouse_inspector", title="🐭 Mouse Model Fitting", description="Mouse-level model fitting results"),
         ], default="tab_session_inspector" if 'tab_id' not in st.session_state else st.session_state.tab_id)
@@ -609,6 +613,38 @@ def app():
                 
             if if_draw_all_sessions and len(df_to_draw_sessions):
                 draw_session_plots(df_to_draw_sessions)
+    
+    elif chosen_id == "tab_pygwalker":
+        with placeholder:
+            cols = st.columns([1, 4])
+            cols[0].markdown('##### Exploring data using [PyGWalker](https://docs.kanaries.net/pygwalker)')
+            with cols[1]:
+                with st.expander('Specify PyGWalker json'):
+                    # Load json from ./gw_config.json
+                    pyg_user_json = st.text_area("Export your plot settings to json by clicking `export_code` "
+                                                 "button below and then paste your json here to reproduce your plots", 
+                                                key='pyg_walker', height=100)
+            
+            # If pyg_user_json is not empty, use it; otherwise, use the default gw_config.json
+            if pyg_user_json:
+                try:
+                    pygwalker_renderer = get_pyg_renderer(
+                        df=st.session_state.df_session_filtered,
+                        spec=pyg_user_json,
+                        )
+                except:
+                    pygwalker_renderer = get_pyg_renderer(
+                        df=st.session_state.df_session_filtered,
+                        spec="./gw_config_old_mice.json",
+                        )
+            else:
+                pygwalker_renderer = get_pyg_renderer(
+                    df=st.session_state.df_session_filtered,
+                    spec="./gw_config_old_mice.json",
+                    )
+                            
+            pygwalker_renderer.render_explore(height=1010, scrolling=False)
+
                 
     elif chosen_id == "tab_auto_train_history":  # Automatic training history
         st.session_state.tab_id = chosen_id

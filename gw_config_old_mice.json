@@ -1,0 +1,822 @@
+[
+    {
+      "config": {
+        "defaultAggregated": false,
+        "geoms": [
+          "boxplot"
+        ],
+        "coordSystem": "generic",
+        "limit": -1,
+        "timezoneDisplayOffset": 0
+      },
+      "encodings": {
+        "dimensions": [
+          {
+            "dragId": "gw_uz5A",
+            "fid": "session_date",
+            "name": "session_date",
+            "basename": "session_date",
+            "semanticType": "temporal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_Ue21",
+            "fid": "h2o",
+            "name": "h2o",
+            "basename": "h2o",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_93uv",
+            "fid": "photostim",
+            "name": "photostim",
+            "basename": "photostim",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_2lYH",
+            "fid": "task",
+            "name": "task",
+            "basename": "task",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_3nIH",
+            "fid": "rig",
+            "name": "rig",
+            "basename": "rig",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_5E9q",
+            "fid": "sex",
+            "name": "sex",
+            "basename": "sex",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_DkN-",
+            "fid": "ephys_ins",
+            "name": "ephys_ins",
+            "basename": "ephys_ins",
+            "semanticType": "quantitative",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_tXjQ",
+            "fid": "histology",
+            "name": "histology",
+            "basename": "histology",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_8fDq",
+            "fid": "photostim_NI",
+            "name": "photostim_NI",
+            "basename": "photostim_NI",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_6ptm",
+            "fid": "user_name",
+            "name": "user_name",
+            "basename": "user_name",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_6XYE",
+            "fid": "photostim_location",
+            "name": "photostim_location",
+            "basename": "photostim_location",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_OgKh",
+            "fid": "photostim_aligned_to",
+            "name": "photostim_aligned_to",
+            "basename": "photostim_aligned_to",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_A6wd",
+            "fid": "bpod_timer_offset",
+            "name": "bpod_timer_offset",
+            "basename": "bpod_timer_offset",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_5VMu",
+            "fid": "not_pretrain",
+            "name": "not_pretrain",
+            "basename": "not_pretrain",
+            "semanticType": "quantitative",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_ZamT",
+            "fid": "headbar",
+            "name": "headbar",
+            "basename": "headbar",
+            "semanticType": "nominal",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_Kiu7",
+            "fid": "weekday",
+            "name": "weekday",
+            "basename": "weekday",
+            "semanticType": "quantitative",
+            "analyticType": "dimension",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_mea_key_fid",
+            "fid": "gw_mea_key_fid",
+            "name": "Measure names",
+            "analyticType": "dimension",
+            "semanticType": "nominal"
+          }
+        ],
+        "measures": [
+          {
+            "dragId": "gw_F8cM",
+            "fid": "session",
+            "name": "session",
+            "basename": "session",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_tLuM",
+            "fid": "subject_id",
+            "name": "subject_id",
+            "basename": "subject_id",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_zAPk",
+            "fid": "finished_trials",
+            "name": "finished_trials",
+            "basename": "finished_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_PVgs",
+            "fid": "foraging_eff",
+            "name": "foraging_eff",
+            "basename": "foraging_eff",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_Blod",
+            "fid": "start_weight",
+            "name": "start_weight",
+            "basename": "start_weight",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_FWjF",
+            "fid": "session_weight",
+            "name": "session_weight",
+            "basename": "session_weight",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_C5BJ",
+            "fid": "time_in_day",
+            "name": "time_in_day",
+            "basename": "time_in_day",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_195b",
+            "fid": "water_earned",
+            "name": "water_earned",
+            "basename": "water_earned",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_RtDl",
+            "fid": "water_extra",
+            "name": "water_extra",
+            "basename": "water_extra",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw__TMp",
+            "fid": "photostim_power_median",
+            "name": "photostim_power_median",
+            "basename": "photostim_power_median",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_ur7q",
+            "fid": "photostim_ramping_down",
+            "name": "photostim_ramping_down",
+            "basename": "photostim_ramping_down",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_xGVR",
+            "fid": "photostim_trials",
+            "name": "photostim_trials",
+            "basename": "photostim_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_hvgF",
+            "fid": "photostim_interval_mean",
+            "name": "photostim_interval_mean",
+            "basename": "photostim_interval_mean",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_E7TM",
+            "fid": "total_trials",
+            "name": "total_trials",
+            "basename": "total_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_EgJL",
+            "fid": "block_num",
+            "name": "block_num",
+            "basename": "block_num",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_cy9N",
+            "fid": "reward_trials",
+            "name": "reward_trials",
+            "basename": "reward_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_VedB",
+            "fid": "early_lick_ratio",
+            "name": "early_lick_ratio",
+            "basename": "early_lick_ratio",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_eGTl",
+            "fid": "autowater_num",
+            "name": "autowater_num",
+            "basename": "autowater_num",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_GPn2",
+            "fid": "double_dipping_ratio",
+            "name": "double_dipping_ratio",
+            "basename": "double_dipping_ratio",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_mLVr",
+            "fid": "mean_reward_sum",
+            "name": "mean_reward_sum",
+            "basename": "mean_reward_sum",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_rDhh",
+            "fid": "mean_reward_contrast",
+            "name": "mean_reward_contrast",
+            "basename": "mean_reward_contrast",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_Gqin",
+            "fid": "reward_rate",
+            "name": "reward_rate",
+            "basename": "reward_rate",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_tm3u",
+            "fid": "miss_rate",
+            "name": "miss_rate",
+            "basename": "miss_rate",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_jTFj",
+            "fid": "ignore_rate",
+            "name": "ignore_rate",
+            "basename": "ignore_rate",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_gH6i",
+            "fid": "block_length",
+            "name": "block_length",
+            "basename": "block_length",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_AM_S",
+            "fid": "valid_trial_start",
+            "name": "valid_trial_start",
+            "basename": "valid_trial_start",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_dlIo",
+            "fid": "valid_trial_end",
+            "name": "valid_trial_end",
+            "basename": "valid_trial_end",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_Zyyd",
+            "fid": "valid_ratio",
+            "name": "valid_ratio",
+            "basename": "valid_ratio",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_2VWl",
+            "fid": "photostim_trial_ratio",
+            "name": "photostim_trial_ratio",
+            "basename": "photostim_trial_ratio",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_YsRU",
+            "fid": "age_in_weeks",
+            "name": "age_in_weeks",
+            "basename": "age_in_weeks",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_N-7l",
+            "fid": "session_length_in_hrs",
+            "name": "session_length_in_hrs",
+            "basename": "session_length_in_hrs",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_DrUf",
+            "fid": "relative_weight",
+            "name": "relative_weight",
+            "basename": "relative_weight",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_5aXC",
+            "fid": "water_total",
+            "name": "water_total",
+            "basename": "water_total",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_N6wE",
+            "fid": "water_per_trial_in_uL",
+            "name": "water_per_trial_in_uL",
+            "basename": "water_per_trial_in_uL",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_ge52",
+            "fid": "model_id",
+            "name": "model_id",
+            "basename": "model_id",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_DSHO",
+            "fid": "n_trials",
+            "name": "n_trials",
+            "basename": "n_trials",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_btIC",
+            "fid": "n_params",
+            "name": "n_params",
+            "basename": "n_params",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_lBDw",
+            "fid": "log_likelihood",
+            "name": "log_likelihood",
+            "basename": "log_likelihood",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_Qxyz",
+            "fid": "aic",
+            "name": "aic",
+            "basename": "aic",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_X7tT",
+            "fid": "bic",
+            "name": "bic",
+            "basename": "bic",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_OQb_",
+            "fid": "lpt",
+            "name": "lpt",
+            "basename": "lpt",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_HrC-",
+            "fid": "lpt_aic",
+            "name": "lpt_aic",
+            "basename": "lpt_aic",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_Ud4y",
+            "fid": "lpt_bic",
+            "name": "lpt_bic",
+            "basename": "lpt_bic",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_mEVv",
+            "fid": "prediction_accuracy",
+            "name": "prediction_accuracy",
+            "basename": "prediction_accuracy",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_M0aA",
+            "fid": "cross_valid_accuracy_fit",
+            "name": "cross_valid_accuracy_fit",
+            "basename": "cross_valid_accuracy_fit",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_BLsy",
+            "fid": "cross_valid_accuracy_test",
+            "name": "cross_valid_accuracy_test",
+            "basename": "cross_valid_accuracy_test",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_xp_G",
+            "fid": "cross_valid_accuracy_test_bias_only",
+            "name": "cross_valid_accuracy_test_bias_only",
+            "basename": "cross_valid_accuracy_test_bias_only",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_x4_-",
+            "fid": "biasL",
+            "name": "biasL",
+            "basename": "biasL",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_PFhD",
+            "fid": "softmax_temperature",
+            "name": "softmax_temperature",
+            "basename": "softmax_temperature",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_-UaT",
+            "fid": "forget_rate",
+            "name": "forget_rate",
+            "basename": "forget_rate",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_K6YW",
+            "fid": "learn_rate_rew",
+            "name": "learn_rate_rew",
+            "basename": "learn_rate_rew",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_dZdX",
+            "fid": "learn_rate_unrew",
+            "name": "learn_rate_unrew",
+            "basename": "learn_rate_unrew",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_fJCR",
+            "fid": "choice_softmax_temperature",
+            "name": "choice_softmax_temperature",
+            "basename": "choice_softmax_temperature",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_EGZR",
+            "fid": "choice_step_size",
+            "name": "choice_step_size",
+            "basename": "choice_step_size",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_IsMK",
+            "fid": "abs(bias)",
+            "name": "abs(bias)",
+            "basename": "abs(bias)",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_tsch",
+            "fid": "foraging_performance",
+            "name": "foraging_performance",
+            "basename": "foraging_performance",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_9uwz",
+            "fid": "diff_relative_weight_next_day",
+            "name": "diff_relative_weight_next_day",
+            "basename": "diff_relative_weight_next_day",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          },
+          {
+            "dragId": "gw_count_fid",
+            "fid": "gw_count_fid",
+            "name": "Row count",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "computed": true,
+            "expression": {
+              "op": "one",
+              "params": [],
+              "as": "gw_count_fid"
+            }
+          },
+          {
+            "dragId": "gw_mea_val_fid",
+            "fid": "gw_mea_val_fid",
+            "name": "Measure values",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum"
+          }
+        ],
+        "rows": [
+          {
+            "dragId": "gw_XuBo",
+            "fid": "foraging_performance",
+            "name": "foraging_performance",
+            "basename": "foraging_performance",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          }
+        ],
+        "columns": [
+          {
+            "dragId": "gw_CL-J",
+            "fid": "session",
+            "name": "session",
+            "basename": "session",
+            "analyticType": "measure",
+            "semanticType": "quantitative",
+            "aggName": "sum",
+            "offset": 0
+          }
+        ],
+        "color": [],
+        "opacity": [],
+        "size": [],
+        "shape": [],
+        "radius": [],
+        "theta": [],
+        "longitude": [],
+        "latitude": [],
+        "geoId": [],
+        "details": [],
+        "filters": [],
+        "text": []
+      },
+      "layout": {
+        "showActions": false,
+        "showTableSummary": false,
+        "stack": "stack",
+        "interactiveScale": false,
+        "zeroScale": true,
+        "size": {
+          "mode": "fixed",
+          "width": 898,
+          "height": 530
+        },
+        "format": {},
+        "geoKey": "name",
+        "resolve": {
+          "x": false,
+          "y": false,
+          "color": false,
+          "opacity": false,
+          "shape": false,
+          "size": false
+        }
+      },
+      "visId": "gw_FPy8",
+      "name": "Chart 1"
+    }
+  ]
