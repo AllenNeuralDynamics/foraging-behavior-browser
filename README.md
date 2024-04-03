@@ -3,26 +3,23 @@
 A streamlit app for browsing foraging behavior sessions in AIND.
 
 ## The app
-- The one running on ECS: https://aindephysforagingapplb-23793000.us-west-2.elb.amazonaws.com/
-- 
-  If you see this, click "Advanced"
-  
-  <img src="https://github.com/hanhou/foraging-behavior-browser/assets/24734299/4431c438-438c-4591-a62e-15526615d5b0" width=500>
-  
-  and then click "Continue to..."
-  
-  <img src="https://github.com/hanhou/foraging-behavior-browser/assets/24734299/0799dc32-8bc5-4c53-a85a-58c50f57f33e" width=500>
-
-- ~~The one running on Streamlit Community Cloud: https://foraging-behavior-browser.streamlit.app/~~
+- The one running on ECS: https://foraging-behavior-browser.allenneuraldynamics-test.org/
 - To debug, use this [Code Ocean capsule](https://codeocean.allenneuraldynamics.org/capsule/3373065/tree?cw=true)
 - See also a streamlit app for ephys sessions https://github.com/AllenNeuralDynamics/foraging-ephys-browser/
 
 ## Sharing a contextual app
 Starting from this [PR](https://github.com/AllenNeuralDynamics/foraging-behavior-browser/pull/25), the URL contains (part of) the session state of the app. Meaning that the user can "query" pre-set filters and plot settings in the URL. On the other hand, after interacting with the app, the URL is automatically updated to reflect the user interactions, and the user can then copy and paste the URL to share/save the new context. Essentially, this becomes a cool way of sharing a data analysis.
 
-For example, this URL will show exactly the plot below. Note the filters and plot settings are preserved.
+For example, this URL show all plots of mouse 699982
 
-> https://foraging-behavior-browser.streamlit.app/Old_mice?filter_h2o=HH&filter_session=1.0&filter_session=81.0&filter_finished_trials=825.6&filter_finished_trials=1872.0&filter_foraging_eff=0.793295&filter_foraging_eff=1.2966&filter_task=coupled_block_baiting&filter_photostim_location=None&tab_id=tab_session_x_y&x_y_plot_xname=foraging_eff&x_y_plot_yname=finished_trials&x_y_plot_group_by=h2o&x_y_plot_if_show_dots=True&x_y_plot_if_aggr_each_group=True&x_y_plot_aggr_method_group=linear+fit&x_y_plot_if_aggr_all=False&x_y_plot_aggr_method_all=mean+%2B%2F-+sem&x_y_plot_smooth_factor=5&x_y_plot_if_use_x_quantile_group=False&x_y_plot_q_quantiles_group=20&x_y_plot_if_use_x_quantile_all=False&x_y_plot_q_quantiles_all=20&x_y_plot_dot_size=21&x_y_plot_dot_opacity=0.4&x_y_plot_line_width=3.5&auto_training_history_x_axis=session&auto_training_history_sort_by=progress_to_graduated&auto_training_history_sort_order=descending
+> https://foraging-behavior-browser.allenneuraldynamics-test.org/?filter_subject_id=699982&session_plot_mode=all+sessions+filtered+from+sidebar&tab_id=tab_session_inspector
+
+![image](https://github.com/AllenNeuralDynamics/foraging-behavior-browser/assets/24734299/4389e251-1305-4a85-8936-7e5d737f8408)
+
+
+and this URL will show exactly the plot below. Note the filters and plot settings are preserved.
+
+> https://foraging-behavior-browser.allenneuraldynamics-test.org/Old_mice?filter_h2o=HH&filter_session=1.0&filter_session=81.0&filter_finished_trials=825.6&filter_finished_trials=1872.0&filter_foraging_eff=0.793295&filter_foraging_eff=1.2966&filter_task=coupled_block_baiting&filter_photostim_location=None&tab_id=tab_session_x_y&x_y_plot_xname=foraging_eff&x_y_plot_yname=finished_trials&x_y_plot_group_by=h2o&x_y_plot_if_show_dots=True&x_y_plot_if_aggr_each_group=True&x_y_plot_aggr_method_group=linear+fit&x_y_plot_if_aggr_all=False&x_y_plot_aggr_method_all=mean+%2B%2F-+sem&x_y_plot_smooth_factor=5&x_y_plot_if_use_x_quantile_group=False&x_y_plot_q_quantiles_group=20&x_y_plot_if_use_x_quantile_all=False&x_y_plot_q_quantiles_all=20&x_y_plot_dot_size=21&x_y_plot_dot_opacity=0.4&x_y_plot_line_width=3.5&auto_training_history_x_axis=session&auto_training_history_sort_by=progress_to_graduated&auto_training_history_sort_order=descending
 
 <img width="1664" alt="image" src="https://github.com/AllenNeuralDynamics/foraging-behavior-browser/assets/24734299/2eaa7697-01cc-4eb3-bd0c-7d91c1eb64e0">
 
