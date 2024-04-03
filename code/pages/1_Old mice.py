@@ -486,6 +486,7 @@ def init():
     df_this_model = st.session_state.df['model_fitting_params'].query(f'model_id == {selected_id}')
     valid_field = df_this_model.columns[~np.all(~df_this_model.notna(), axis=0)]
     to_add_model = st.session_state.df['model_fitting_params'].query(f'model_id == {selected_id}')[valid_field]
+    st.session_state.df['sessions'].drop(st.session_state.df['sessions'].query('session < 1').index, inplace=True)
     
     st.session_state.df['sessions'] = st.session_state.df['sessions'].merge(to_add_model, on=('subject_id', 'session'), how='left')
 
