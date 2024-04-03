@@ -529,15 +529,19 @@ def init():
     st.session_state.df['sessions_bonsai'].dropna(subset=['session'], inplace=True) # Remove rows with no session number (only leave the nwb file with the largest finished_trials for now)
     
     # # add something else
-    # st.session_state.df['sessions_bonsai']['abs(bias)'] = np.abs(st.session_state.df['sessions_bonsai'].biasL)
-    
+    # add abs(bais) to all terms that have 'bias' in name
+    for col in st.session_state.df['sessions_bonsai'].columns:
+        if 'bias' in col:
+            st.session_state.df['sessions_bonsai'][f'abs({col})'] = np.abs(st.session_state.df['sessions_bonsai'][col])
+        
     # # delta weight
     # diff_relative_weight_next_day = st.session_state.df['sessions_bonsai'].set_index(
     #     ['session']).sort_values('session', ascending=True).groupby('h2o').apply(
     #         lambda x: - x.relative_weight.diff(periods=-1)).rename("diff_relative_weight_next_day")
         
     # weekday
-    # st.session_state.df['sessions_bonsai']['weekday'] =  st.session_state.df['sessions_bonsai'].session_date.dt.dayofweek + 1
+    st.session_state.df['sessions_bonsai'].session_date = pd.to_datetime(st.session_state.df['sessions_bonsai'].session_date)
+    st.session_state.df['sessions_bonsai']['weekday'] = st.session_state.df['sessions_bonsai'].session_date.dt.day_name()
 
     # st.session_state.df['sessions_bonsai'] = st.session_state.df['sessions_bonsai'].merge(
     #     diff_relative_weight_next_day, how='left', on=['h2o', 'session'])

@@ -410,7 +410,7 @@ def add_xy_selector(if_bonsai):
                                    key='x_y_plot_yname')
         
         if if_bonsai:
-            options = ['h2o', 'task', 'user_name', 'rig']
+            options = ['h2o', 'task', 'user_name', 'rig', 'weekday']
         else:
             options = ['h2o', 'task', 'photostim_location', 'weekday',
                        'headbar', 'user_name', 'sex', 'rig']
