@@ -164,7 +164,8 @@ def _fetch_img(glob_patterns, crop=None):
 # @st.cache_data(ttl=24*3600, max_entries=20)
 def show_session_level_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], crop=None, caption=True, **kwargs):
     
-    subject_session_date_str = f"{key['subject_id']}_{key['session_date']}_{key['nwb_suffix']}".split('_0')[0]
+    # Convert session_date to 2024-04-01 format
+    subject_session_date_str = f"{key['subject_id']}_{key['session_date'].strftime(r'%Y-%m-%d')}_{key['nwb_suffix']}".split('_0')[0]
     glob_patterns = [cache_folder + f"{subject_session_date_str}/{subject_session_date_str}_{prefix}*"]
     
     img, f_name = _fetch_img(glob_patterns, crop)
@@ -192,7 +193,7 @@ def show_mouse_level_img_by_key_and_prefix(key, prefix, column=None, other_patte
         
     _f = st if column is None else column
     
-    _f.image(img if img is not None else "https://cdn-icons-png.flaticon.com/512/3585/3585596.png", 
+    _f.stream(img if img is not None else "https://cdn-icons-png.flaticon.com/512/3585/3585596.png", 
                 output_format='PNG', 
                 #caption=f_name.split('/')[-1] if caption and f_name else '',
                 use_column_width='always',
