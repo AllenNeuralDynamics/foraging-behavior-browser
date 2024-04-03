@@ -54,7 +54,10 @@ def aggrid_interactive_table_session(df: pd.DataFrame):
 
     options.configure_side_bar()
     
-    df = df.sort_values('session_date', ascending=False)
+    if 'session_end_time' in df.columns:
+        df = df.sort_values('session_end_time', ascending=False)
+    else:
+        df = df.sort_values('session_date', ascending=False)
     
     # preselect
     if (('df_selected_from_dataframe' in st.session_state and len(st.session_state.df_selected_from_dataframe)) 
