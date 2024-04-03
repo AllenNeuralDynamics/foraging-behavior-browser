@@ -89,7 +89,8 @@ RUN pip install -U --no-cache-dir \
     seaborn \
     pynwb --ignore-installed ruamel.yaml\
     git+https://github.com/AllenNeuralDynamics/aind-foraging-behavior-bonsai-automatic-training.git@main\
-    pygwalker
+    pygwalker \
+    scikit-learn==1.4.1
 
 ADD "https://github.com/coder/code-server/releases/download/v4.9.0/code-server-4.9.0-linux-amd64.tar.gz" /.code-server/code-server.tar.gz
 	
