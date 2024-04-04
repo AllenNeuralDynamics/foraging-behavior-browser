@@ -163,9 +163,13 @@ def _fetch_img(glob_patterns, crop=None):
 
 # @st.cache_data(ttl=24*3600, max_entries=20)
 def show_session_level_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], crop=None, caption=True, **kwargs):
+    try:
+        date_str = key["session_date"].strftime(r'%Y-%m-%d')
+    except:
+        date_str = key["session_date"].split("T")[0]
     
     # Convert session_date to 2024-04-01 format
-    subject_session_date_str = f"{key['subject_id']}_{key['session_date'].strftime(r'%Y-%m-%d')}_{key['nwb_suffix']}".split('_0')[0]
+    subject_session_date_str = f"{key['subject_id']}_{date_str}_{key['nwb_suffix']}".split('_0')[0]
     glob_patterns = [cache_folder + f"{subject_session_date_str}/{subject_session_date_str}_{prefix}*"]
     
     img, f_name = _fetch_img(glob_patterns, crop)
