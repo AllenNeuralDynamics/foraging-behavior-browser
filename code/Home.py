@@ -323,7 +323,7 @@ def session_plot_settings(need_click=True):
     cols = st.columns([2, 1])
     
     session_plot_modes = [f'sessions selected from table or plot', f'all sessions filtered from sidebar']
-    st.session_state.selected_draw_sessions = cols[0].selectbox('Which session(s) to draw?', 
+    st.session_state.selected_draw_sessions = cols[0].selectbox(f'Which session(s) to draw?', 
                                                                 session_plot_modes,
                                                                 index=session_plot_modes.index(st.session_state['session_plot_mode'])
                                                                     if 'session_plot_mode' in st.session_state else 
@@ -333,7 +333,12 @@ def session_plot_settings(need_click=True):
                                                                 key='session_plot_mode',
                                                                )
     
-    st.session_state.num_cols = cols[1].number_input('Number of columns', 1, 10, 
+    n_session_to_draw = len(st.session_state.df_selected_from_plotly) \
+        if 'selected from table or plot' in st.session_state.selected_draw_sessions \
+        else len(st.session_state.df_session_filtered) 
+    st.markdown(f'{n_session_to_draw} sessions to draw')
+    
+    st.session_state.num_cols = cols[1].number_input('number of columns', 1, 10, 
                                                      3 if 'num_cols' not in st.session_state else st.session_state.num_cols)
     
     st.markdown(
@@ -351,7 +356,7 @@ def session_plot_settings(need_click=True):
                                                           if 'selected_draw_types' not in st.session_state else 
                                                           st.session_state.selected_draw_types)
     if need_click:
-        draw_it = st.button('Show me all sessions!', use_container_width=True)
+        draw_it = st.button(f'Show me all {n_session_to_draw} sessions!', use_container_width=True)
     else:
         draw_it = True
     return draw_it
