@@ -23,8 +23,29 @@ and this URL will show exactly the plot below. Note the filters and plot setting
 
 <img width="1664" alt="image" src="https://github.com/AllenNeuralDynamics/foraging-behavior-browser/assets/24734299/2eaa7697-01cc-4eb3-bd0c-7d91c1eb64e0">
 
-<br><br>
+<br>
 So far, theses are all supported fields in the URL query:
 https://github.com/AllenNeuralDynamics/foraging-behavior-browser/blob/3f4124e98ed7aa3524b2d32c0670e8cd92ec9e41/code/Home.py#L54-L85
 
+
+## Develop in Code Ocean
+1. Duplicate the capsule [`foraging-behavior-browser`](https://codeocean.allenneuraldynamics.org/capsule/3373065/tree?cw=true)
+2. Start a VS Code machine
+3. Click "Start Debugging" or press F5
+   
+   <img src="https://github.com/AllenNeuralDynamics/foraging-behavior-browser/assets/24734299/0b0e70b5-d517-4d6d-a588-d5e9b3d1fb76" width=500>
+4. You should see something like this in the terminal
+   
+   <img src="https://github.com/AllenNeuralDynamics/foraging-behavior-browser/assets/24734299/76d422bb-33f1-4387-bac1-307698426cc6" width=700>
+
+   and a dialog like this
+   
+   <img src="https://github.com/AllenNeuralDynamics/foraging-behavior-browser/assets/24734299/ab87a989-c3e3-4d5b-b943-eccc19ae8d03" width=500>
+
+   Press "Open in Browser" will initiate the app.
+5. If "Open in Browser" doesn't show up, click the browser icon in `Ports - 8501 - Local Address`.
+
+   ![image](https://github.com/AllenNeuralDynamics/foraging-behavior-browser/assets/24734299/d7665389-5bf1-469c-947d-54e48ff9fed7)
+
+6. You can start to debug the app by adding break points etc.
 
