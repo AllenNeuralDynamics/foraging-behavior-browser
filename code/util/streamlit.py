@@ -429,28 +429,32 @@ def add_xy_selector(if_bonsai):
         
             # st.form_submit_button("update axes")
     return x_name, y_name, group_by
-    
+
+def _checkbox_wrapper_for_url_query(st_prefix, label, key, default_value, **kwargs):
+    return st_prefix.checkbox(
+        label,
+        value=st.session_state[key]
+                if key in st.session_state else 
+                st.query_params[key].lower()=='true' 
+                if key in st.query_params 
+                else default_value,
+        key=key,
+        **kwargs,
+    )
 
 def add_xy_setting():
     with st.expander('Plot settings', expanded=True):            
         s_cols = st.columns([1, 1, 1])
         # if_plot_only_selected_from_dataframe = s_cols[0].checkbox('Only selected', False)
-        if_show_dots = s_cols[0].checkbox('Show data points', 
-                                            value=st.session_state['x_y_plot_if_show_dots']
-                                                  if 'x_y_plot_if_show_dots' in st.session_state else 
-                                                  st.query_params['x_y_plot_if_show_dots'].lower()=='true' 
-                                                  if 'x_y_plot_if_show_dots' in st.query_params 
-                                                  else True,
-                                            key='x_y_plot_if_show_dots')
-        
+        if_show_dots = _checkbox_wrapper_for_url_query(s_cols[0], 
+                                                      label='Show data points', 
+                                                      key='x_y_plot_if_show_dots', 
+                                                      default_value=True)        
 
-        if_aggr_each_group = s_cols[1].checkbox('Aggr each group', 
-                                                value=st.session_state['x_y_plot_if_aggr_each_group']
-                                                      if 'x_y_plot_if_aggr_each_group' in st.session_state else
-                                                      st.query_params['x_y_plot_if_aggr_each_group'].lower()=='true'
-                                                      if 'x_y_plot_if_aggr_each_group' in st.query_params
-                                                      else True,
-                                                key='x_y_plot_if_aggr_each_group')
+        if_aggr_each_group = _checkbox_wrapper_for_url_query(s_cols[1],
+                                                            label='Aggr each group', 
+                                                            key='x_y_plot_if_aggr_each_group', 
+                                                            default_value=True)
         
         aggr_methods =  ['mean', 'mean +/- sem', 'lowess', 'running average', 'linear fit']
         aggr_method_group = s_cols[1].selectbox('aggr method group', 
@@ -463,14 +467,11 @@ def add_xy_setting():
                                                 key='x_y_plot_aggr_method_group', 
                                                 disabled=not if_aggr_each_group)
         
-        if_use_x_quantile_group = s_cols[1].checkbox('Use quantiles of x ', 
-                                                     value=st.session_state['x_y_plot_if_use_x_quantile_group']
-                                                           if 'x_y_plot_if_use_x_quantile_group' in st.session_state else
-                                                           st.query_params['x_y_plot_if_use_x_quantile_group'].lower()=='true'
-                                                           if 'x_y_plot_if_use_x_quantile_group' in st.query_params
-                                                           else False,
-                                                     key='x_y_plot_if_use_x_quantile_group',
-                                                     disabled='mean' not in aggr_method_group) 
+        if_use_x_quantile_group = _checkbox_wrapper_for_url_query(s_cols[1],
+                                                                  label='Use quantiles of x', 
+                                                                  key='x_y_plot_if_use_x_quantile_group', 
+                                                                  default_value=False,
+                                                                  disabled='mean' not in aggr_method_group)
             
         q_quantiles_group = s_cols[1].slider('Number of quantiles ', 1, 100,
                                              value=st.session_state['x_y_plot_q_quantiles_group']
@@ -482,14 +483,10 @@ def add_xy_setting():
                                              disabled=not if_use_x_quantile_group
                                              )
         
-        if_aggr_all = s_cols[2].checkbox('Aggr all',
-                                            value=st.session_state['x_y_plot_if_aggr_all']
-                                                  if 'x_y_plot_if_aggr_all' in st.session_state else
-                                                  st.query_params['x_y_plot_if_aggr_all'].lower()=='true'
-                                                  if 'x_y_plot_if_aggr_all' in st.query_params
-                                                  else True,
-                                            key='x_y_plot_if_aggr_all',
-                                        )
+        if_aggr_all = _checkbox_wrapper_for_url_query(s_cols[2],
+                                                    label='Aggr all', 
+                                                    key='x_y_plot_if_aggr_all', 
+                                                    default_value=True)
         
         # st.session_state.if_aggr_all_cache = if_aggr_all  # Have to use another variable to store this explicitly (my cache_widget somehow doesn't work with checkbox)
         aggr_method_all = s_cols[2].selectbox('aggr method all', aggr_methods, 
@@ -501,15 +498,13 @@ def add_xy_setting():
                                                 key='x_y_plot_aggr_method_all',
                                                 disabled=not if_aggr_all)
 
-        if_use_x_quantile_all = s_cols[2].checkbox('Use quantiles of x', 
-                                                   value=st.session_state['x_y_plot_if_use_x_quantile_all']
-                                                         if 'x_y_plot_if_use_x_quantile_all' in st.session_state else
-                                                         st.query_params['x_y_plot_if_use_x_quantile_all'].lower()=='true'
-                                                         if 'x_y_plot_if_use_x_quantile_all' in st.query_params
-                                                         else False,
-                                                   key='x_y_plot_if_use_x_quantile_all',
-                                                   disabled='mean' not in aggr_method_all,
-                                                   )
+        if_use_x_quantile_all = _checkbox_wrapper_for_url_query(s_cols[2],
+                                                                label='Use quantiles of x', 
+                                                                key='x_y_plot_if_use_x_quantile_all', 
+                                                                default_value=False,
+                                                                disabled='mean' not in aggr_method_all)
+
+        
         q_quantiles_all = s_cols[2].slider('number of quantiles', 1, 100, 
                                            value=st.session_state['x_y_plot_q_quantiles_all']
                                                  if 'x_y_plot_q_quantiles_all' in st.session_state else
@@ -690,7 +685,8 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                          if_use_x_quantile_all=False,
                          q_quantiles_all=20,
                          title='',
-                         dot_size=10,
+                         dot_size_base=10,
+                         dot_size_mapping_name=None,
                          dot_opacity=0.4,
                          line_width=2,
                          **kwarg):
@@ -827,6 +823,11 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
     fig = go.Figure()
     col_map = px.colors.qualitative.Plotly
     
+    if dot_size_mapping_name is not None and dot_size_mapping_name in df.columns:
+        df['dot_size'] = df[dot_size_mapping_name]
+    else:
+        df['dot_size'] = dot_size_base
+    
     for i, group in enumerate(df.sort_values(group_by)[group_by].unique()):
         this_session = df.query(f'{group_by} == "{group}"').sort_values('session')
         col = col_map[i%len(col_map)]
@@ -849,7 +850,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                             showlegend=not if_aggr_each_group,
                             mode="markers",
                             line_width=line_width,
-                            marker_size=dot_size,
+                            marker_size=this_session['dot_size'],
                             marker_color=this_session['colors'],
                             opacity=dot_opacity, # 0.5 if if_aggr_each_group else 0.8,
                             text=this_session['session'],

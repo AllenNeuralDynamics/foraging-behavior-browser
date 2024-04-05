@@ -385,7 +385,7 @@ def plot_x_y_session():
                                         q_quantiles_all=q_quantiles_all,
                                         title=names[(x_name, y_name)] if (x_name, y_name) in names else y_name,
                                         states = st.session_state.df_selected_from_plotly,
-                                        dot_size=dot_size,
+                                        dot_size_base=dot_size,
                                         dot_opacity=dot_opacity,
                                         line_width=line_width)
         
