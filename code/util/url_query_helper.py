@@ -32,6 +32,8 @@ def slider_wrapper_for_url_query(st_prefix, label, min_value, max_value, key, de
     # Parse range from URL, compatible with both one or two values
     if key in st.query_params:
         parse_range_from_url = [type(min_value)(v) for v in st.query_params.get_all(key)]
+        if len(parse_range_from_url) == 1:
+            parse_range_from_url = parse_range_from_url[0]
     
     return st_prefix.slider(
         label,
