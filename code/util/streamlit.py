@@ -870,15 +870,26 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
         df['dot_size'] = df[dot_size_mapping_name]
     else:
         df['dot_size'] = dot_size_base
-        
+
     # Turn column of group_by to string if it's not
     if not is_string_dtype(df[group_by]):
         df[group_by] = df[group_by].astype(str)
         
+    # Add a diagonal line first
+    if if_show_diagonal:
+        _min = df[x_name].values.ravel().min()
+        _max = df[y_name].values.ravel().max()
+        fig.add_trace(go.Scattergl(x=[_min, _max], 
+                                   y=[_min, _max], 
+                                   mode='lines',
+                                   line=dict(dash='dash', color='black', width=2),
+                                   showlegend=False)
+                      )
+
     for i, group in enumerate(df.sort_values(group_by)[group_by].unique()):
         this_session = df.query(f'{group_by} == "{group}"').sort_values('session')
         col = col_map[i%len(col_map)]
-        
+
         if if_show_dots:
             if not len(st.session_state.df_selected_from_plotly):   
                 this_session['colors'] = col  # all use normal colors

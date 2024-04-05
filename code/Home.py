@@ -75,6 +75,7 @@ to_sync_with_url_query = {
     'x_y_plot_q_quantiles_group': 20,
     'x_y_plot_if_use_x_quantile_all': False,
     'x_y_plot_q_quantiles_all': 20,
+    'x_y_plot_if_show_diagonal': False,
     'x_y_plot_dot_size': 10,
     'x_y_plot_dot_opacity': 0.5,
     'x_y_plot_line_width': 2.0,
