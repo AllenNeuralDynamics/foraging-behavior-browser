@@ -160,6 +160,21 @@ def _fetch_img(glob_patterns, crop=None):
     
     return img, file[0]
 
+def _user_name_mapper(user_name):
+    user_mapper = {  # tuple of key words --> user name
+        ('Avalon',): 'Avalon Amaya',
+        ('Ella',): 'Ella Hilton',
+        ('Katrina',): 'Katrina Nguyen',
+        ('Lucas',): 'Lucas Kinsey',
+        ('Travis',): 'Travis Ramirez',
+        ('Xinxin', 'the ghost'): 'Xinxin Yin',
+        }
+    for key_words, name in user_mapper.items():
+        for key_word in key_words:
+            if key_word in user_name:
+                return name
+    else:
+        return user_name
 
 # @st.cache_data(ttl=24*3600, max_entries=20)
 def show_session_level_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], crop=None, caption=True, **kwargs):
@@ -553,7 +568,10 @@ def init():
         
     # weekday
     st.session_state.df['sessions_bonsai'].session_date = pd.to_datetime(st.session_state.df['sessions_bonsai'].session_date)
-    st.session_state.df['sessions_bonsai']['weekday'] = st.session_state.df['sessions_bonsai'].session_date.dt.day_name()
+    st.session_state.df['sessions_bonsai']['weekday'] = st.session_state.df['sessions_bonsai'].session_date.dt.dayofweek + 1
+    
+    # map user_name
+    st.session_state.df['sessions_bonsai']['user_name'] = st.session_state.df['sessions_bonsai']['user_name'].apply(_user_name_mapper)
     
     # foraging performance = foraing_eff * finished_rate
     if 'foraging_performance' not in st.session_state.df['sessions_bonsai'].columns:
