@@ -405,32 +405,32 @@ def add_xy_selector(if_bonsai):
                                          else st.session_state.session_stats_names.index('session'), 
                                    key='x_y_plot_xname'
                                    )
-        y_name = cols[0].selectbox("y axis", 
-                                   st.session_state.session_stats_names, 
-                                   index=st.session_state.session_stats_names.index(st.session_state['x_y_plot_yname'])
-                                         if 'x_y_plot_yname' in st.session_state else 
-                                         st.session_state.session_stats_names.index(st.query_params['x_y_plot_yname'])
-                                         if 'x_y_plot_yname' in st.query_params
-                                         else st.session_state.session_stats_names.index('foraging_eff'),
-                                   key='x_y_plot_yname')
-        
+        y_name = selectbox_wrapper_for_url_query(
+            cols[0],
+            label="y axis",
+            options=st.session_state.session_stats_names,
+            key="x_y_plot_yname",
+            default=st.session_state.session_stats_names.index('foraging_performance')
+        )
+
         if if_bonsai:
             options = ['h2o', 'task', 'user_name', 'rig', 'weekday']
         else:
             options = ['h2o', 'task', 'photostim_location', 'weekday',
                        'headbar', 'user_name', 'sex', 'rig']
-        
-        group_by = cols[0].selectbox("grouped by", 
-                                     options=options, 
-                                     index=options.index(st.session_state['x_y_plot_group_by'])
-                                           if 'x_y_plot_group_by' in st.session_state else 
-                                           options.index(st.query_params['x_y_plot_group_by'])
-                                           if 'x_y_plot_group_by' in st.query_params 
-                                           else 0,
-                                     key='x_y_plot_group_by')
-        
-            # st.form_submit_button("update axes")
-    return x_name, y_name, group_by
+
+        group_by = selectbox_wrapper_for_url_query(
+            cols[0],
+            label="grouped by",
+            options=options,
+            key="x_y_plot_group_by",
+            default=0,
+        )
+
+        size_mapper = 1
+
+        # st.form_submit_button("update axes")
+    return x_name, y_name, group_by, size_mapper
 
 def add_xy_setting():
     with st.expander('Plot settings', expanded=True):            
@@ -873,32 +873,4 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                      ticks = "outside", tickcolor='black', ticklen=10, tickwidth=2, ticksuffix=' ')
     return fig
 
-def _sync_widget_with_query(key, default):
-    if key in st.query_params:
-        # always get all query params as a list
-        q_all = st.query_params.get_all(key)
-        
-        # convert type according to default
-        list_default = default if isinstance(default, list) else [default]
-        for d in list_default:
-            _type = type(d)
-            if _type: break  # The first non-None type
-            
-        if _type == bool:
-            q_all_correct_type = [q.lower() == 'true' for q in q_all]
-        else:
-            q_all_correct_type = [_type(q) for q in q_all]
-        
-        # flatten list if only one element
-        if not isinstance(default, list):
-            q_all_correct_type = q_all_correct_type[0]
-        
-        try:
-            st.session_state[key] = q_all_correct_type
-        except:
-            print(f'Failed to set {key} to {q_all_correct_type}')
-    else:
-        try:
-            st.session_state[key] = default
-        except:
-            print(f'Failed to set {key} to {default}')
+

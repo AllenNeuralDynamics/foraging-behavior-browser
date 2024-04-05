@@ -19,8 +19,10 @@ import streamlit_nested_layout
 from streamlit_plotly_events import plotly_events
 
 from util.streamlit import (filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector, 
-                            add_xy_selector, _sync_widget_with_query, add_xy_setting, add_auto_train_manager,
+                            add_xy_selector, add_xy_setting, add_auto_train_manager,
                             _plot_population_x_y)
+from util.url_query_helper import sync_widget_with_query
+
 import extra_streamlit_components as stx
 
 from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
@@ -410,7 +412,7 @@ def init():
 
     # Set session state from URL
     for key, default in to_sync_with_url_query.items():
-        _sync_widget_with_query(key, default)
+        sync_widget_with_query(key, default)
 
     df = load_data(['sessions', 
                     'logistic_regression_hattori', 
