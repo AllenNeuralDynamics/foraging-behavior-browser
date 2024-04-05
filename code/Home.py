@@ -388,14 +388,14 @@ def session_plot_settings(need_click=True):
 
 def plot_x_y_session():
             
-    cols = st.columns([4, 10])
+    cols = st.columns([1, 1, 1])
     
     with cols[0]:
-
         x_name, y_name, group_by, size_mapper = add_xy_selector(if_bonsai=True)
 
+    with cols[1]:
         (if_show_dots, if_aggr_each_group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group,
-        if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor,
+        if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor, if_show_diagonal,
         dot_size, dot_opacity, line_width, x_y_plot_figure_width, x_y_plot_figure_height, font_size_scale) = add_xy_setting()
     
     # If no sessions are selected, use all filtered entries
@@ -409,7 +409,7 @@ def plot_x_y_session():
     df_selected_from_plotly = pd.DataFrame()
     # for i, (title, (x_name, y_name)) in enumerate(names.items()):
         # with cols[i]:
-    with cols[1]:
+    with st.columns([1])[0]:
         fig = _plot_population_x_y(df=df_x_y_session.copy(), 
                                     x_name=x_name, y_name=y_name, 
                                     group_by=group_by,
@@ -425,6 +425,7 @@ def plot_x_y_session():
                                     q_quantiles_all=q_quantiles_all,
                                     title=names[(x_name, y_name)] if (x_name, y_name) in names else y_name,
                                     states = st.session_state.df_selected_from_plotly,
+                                    if_show_diagonal=if_show_diagonal,
                                     dot_size_base=dot_size,
                                     dot_size_mapping_name=size_mapper,
                                     dot_opacity=dot_opacity,

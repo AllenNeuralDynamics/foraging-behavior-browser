@@ -535,54 +535,60 @@ def add_xy_setting():
                                                                     or (if_aggr_all and aggr_method_all in ('running average', 'lowess')))
                                                     )
         
-        c = st.columns([1, 1, 1])
-        dot_size = slider_wrapper_for_url_query(c[0],
-                                                label='dot size', 
-                                                min_value=1, 
-                                                max_value=30, 
-                                                key='x_y_plot_dot_size', 
-                                                default=10)
+        if_show_diagonal = checkbox_wrapper_for_url_query(s_cols[0],
+                                                       label='Show diagonal line', 
+                                                       key='x_y_plot_if_show_diagonal', 
+                                                       default=False)
         
-        dot_opacity = slider_wrapper_for_url_query(c[1],
-                                                    label='opacity',
-                                                    min_value=0.0,
-                                                    max_value=1.0,
-                                                    step=0.05,
-                                                    key='x_y_plot_dot_opacity',
-                                                    default=0.5)
+        with st.expander('Misc', expanded=False):
+            c = st.columns([1, 1, 1])
+            dot_size = slider_wrapper_for_url_query(c[0],
+                                                    label='dot size', 
+                                                    min_value=1, 
+                                                    max_value=30, 
+                                                    key='x_y_plot_dot_size', 
+                                                    default=10)
+            
+            dot_opacity = slider_wrapper_for_url_query(c[1],
+                                                        label='opacity',
+                                                        min_value=0.0,
+                                                        max_value=1.0,
+                                                        step=0.05,
+                                                        key='x_y_plot_dot_opacity',
+                                                        default=0.5)
 
-        line_width = slider_wrapper_for_url_query(c[2],
-                                                    label='line width',
+            line_width = slider_wrapper_for_url_query(c[2],
+                                                        label='line width',
+                                                        min_value=0.0,
+                                                        max_value=5.0,
+                                                        step=0.25,
+                                                        key='x_y_plot_line_width',
+                                                        default=2.0)
+            
+            figure_width = slider_wrapper_for_url_query(c[0],
+                                                        label='figure width',
+                                                        min_value=500,
+                                                        max_value=2500,
+                                                        key='x_y_plot_figure_width',
+                                                        default=1300)
+            
+            figure_height = slider_wrapper_for_url_query(c[1],
+                                                        label='figure height',
+                                                        min_value=500,
+                                                        max_value=2500,
+                                                        key='x_y_plot_figure_height',
+                                                        default=900)
+            
+            font_size_scale = slider_wrapper_for_url_query(c[2],
+                                                    label='font size',
                                                     min_value=0.0,
-                                                    max_value=5.0,
-                                                    step=0.25,
-                                                    key='x_y_plot_line_width',
-                                                    default=2.0)
-        
-        figure_width = slider_wrapper_for_url_query(c[0],
-                                                    label='figure width',
-                                                    min_value=500,
-                                                    max_value=2500,
-                                                    key='x_y_plot_figure_width',
-                                                    default=1300)
-        
-        figure_height = slider_wrapper_for_url_query(c[1],
-                                                    label='figure height',
-                                                    min_value=500,
-                                                    max_value=2500,
-                                                    key='x_y_plot_figure_height',
-                                                    default=900)
-        
-        font_size_scale = slider_wrapper_for_url_query(c[2],
-                                                label='font size',
-                                                min_value=0.0,
-                                                max_value=2.0,
-                                                step=0.1,
-                                                key='x_y_plot_font_size_scale',
-                                                default=1.0)
+                                                    max_value=2.0,
+                                                    step=0.1,
+                                                    key='x_y_plot_font_size_scale',
+                                                    default=1.0)
 
     return  (if_show_dots, if_aggr_each_group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group,
-            if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor,
+            if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor, if_show_diagonal,
             dot_size, dot_opacity, line_width, figure_width, figure_height, font_size_scale)
 
 def data_selector():
@@ -712,6 +718,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                          if_use_x_quantile_all=False,
                          q_quantiles_all=20,
                          title='',
+                         if_show_diagonal=False,
                          dot_size_base=10,
                          dot_size_mapping_name='None',
                          dot_opacity=0.4,
