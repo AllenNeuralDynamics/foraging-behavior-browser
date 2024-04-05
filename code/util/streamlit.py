@@ -7,6 +7,7 @@ from pandas.api.types import (
     is_categorical_dtype,
     is_datetime64_any_dtype,
     is_numeric_dtype,
+    is_string_dtype,
     is_object_dtype,
 )
 import streamlit.components.v1 as components
@@ -838,10 +839,14 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
     else:
         df['dot_size'] = dot_size_base
         
+    # Turn column of group_by to string if it's not
+    if not is_string_dtype(df[group_by]):
+        df[group_by] = df[group_by].astype(str)
+        
     for i, group in enumerate(df.sort_values(group_by)[group_by].unique()):
         this_session = df.query(f'{group_by} == "{group}"').sort_values('session')
         col = col_map[i%len(col_map)]
-
+        
         if if_show_dots:
             if not len(st.session_state.df_selected_from_plotly):   
                 this_session['colors'] = col  # all use normal colors
