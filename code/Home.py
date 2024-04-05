@@ -339,7 +339,7 @@ def draw_mice_plots(df_to_draw_mice):
 
 def session_plot_settings(need_click=True):
     st.markdown('##### Show plots for individual sessions ')
-    cols = st.columns([2, 1])
+    cols = st.columns([2, 1, 6])
     
     session_plot_modes = [f'sessions selected from table or plot', f'all sessions filtered from sidebar']
     st.session_state.selected_draw_sessions = cols[0].selectbox(f'Which session(s) to draw?', 
@@ -355,7 +355,7 @@ def session_plot_settings(need_click=True):
     n_session_to_draw = len(st.session_state.df_selected_from_plotly) \
         if 'selected from table or plot' in st.session_state.selected_draw_sessions \
         else len(st.session_state.df_session_filtered) 
-    st.markdown(f'{n_session_to_draw} sessions to draw')
+    cols[0].markdown(f'{n_session_to_draw} sessions to draw')
     
     st.session_state.num_cols = cols[1].number_input('number of columns', 1, 10, 
                                                      3 if 'num_cols' not in st.session_state else st.session_state.num_cols)
@@ -369,46 +369,18 @@ def session_plot_settings(need_click=True):
     </style>""",
     unsafe_allow_html=True,
     )
-    st.session_state.selected_draw_types = st.multiselect('Which plot(s) to draw?', 
+    st.session_state.selected_draw_types = cols[2].multiselect('Which plot(s) to draw?', 
                                                           st.session_state.draw_type_mapper_session_level.keys(), 
                                                           default=st.session_state.draw_type_mapper_session_level.keys()
                                                           if 'selected_draw_types' not in st.session_state else 
                                                           st.session_state.selected_draw_types)
     if need_click:
-        draw_it = st.button(f'Show me all {n_session_to_draw} sessions!', use_container_width=True)
+        draw_it = st.button(f'Show me all {n_session_to_draw} sessions!', use_container_width=True, type="primary")
+        draw_it_now_override = cols[1].checkbox('Auto draw')
     else:
         draw_it = True
-    return draw_it
-
-def mouse_plot_settings(need_click=True):
-    st.markdown('##### Show plots for individual mice ')
-    cols = st.columns([2, 1])
-    st.session_state.selected_draw_mice = cols[0].selectbox('Which mice to draw?', 
-                                                           [f'selected from table/plot ({len(st.session_state.df_selected_from_plotly.h2o.unique())} mice)', 
-                                                            f'filtered from sidebar ({len(st.session_state.df_session_filtered.h2o.unique())} mice)'], 
-                                                           index=0
-                                                           )
-    st.session_state.num_cols_mice = cols[1].number_input('Number of columns', 1, 10, 
-                                                          3 if 'num_cols_mice' not in st.session_state else st.session_state.num_cols_mice)
-    st.markdown(
-        """
-        <style>
-            .stMultiSelect [data-baseweb=select] span{
-                max-width: 1000px;
-            }
-        </style>""",
-        unsafe_allow_html=True,
-        )
-    st.session_state.selected_draw_types_mice = st.multiselect('Which plot(s) to draw?', 
-                                                          st.session_state.draw_type_mapper_mouse_level.keys(), 
-                                                          default=st.session_state.draw_type_mapper_mouse_level.keys()
-                                                          if 'selected_draw_types_mice' not in st.session_state else
-                                                          st.session_state.selected_draw_types_mice)
-    if need_click:
-        draw_it = st.button('Show me all mice!', use_container_width=True)
-    else:
-        draw_it = True
-    return draw_it
+        draw_it_now_override = True
+    return draw_it | draw_it_now_override
 
 
 def plot_x_y_session():
@@ -683,8 +655,8 @@ def app():
         with placeholder:
             df_selected_from_plotly, x_y_cols = plot_x_y_session()
             
-            with x_y_cols[0]:
-                for i in range(7): st.write('\n')
+            # Add session_plot_setting
+            with st.columns([1, 0.5])[0]:
                 st.markdown("***")
                 if_draw_all_sessions = session_plot_settings()
 
@@ -732,7 +704,7 @@ def app():
         
     elif chosen_id == "tab_session_inspector":
         with placeholder:
-            cols = st.columns([6, 3, 7])
+            cols = st.columns([1, 0.5])
             with cols[0]:
                 if_draw_all_sessions = session_plot_settings(need_click=False)
                 df_to_draw_sessions = st.session_state.df_selected_from_plotly if 'selected' in st.session_state.selected_draw_sessions else st.session_state.df_session_filtered
@@ -842,6 +814,8 @@ def app():
 
     # Add debug info
     if chosen_id != "tab_auto_train_curriculum":
+        for _ in range(10): st.write('\n')
+        st.markdown('---\n##### Debug zone')
         with st.expander('CO processing NWB errors', expanded=False):
             error_file = cache_folder + 'error_files.json'
             if fs.exists(error_file):
