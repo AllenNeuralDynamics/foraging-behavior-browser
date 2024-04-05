@@ -596,7 +596,6 @@ def app():
     cols = st.columns([1, 1.2])
     with cols[0]:
         st.markdown('## 🌳🪴 Foraging sessions from Bonsai 🌳🪴')
-        st.markdown('##### (still using a temporary workaround until AIND behavior metadata and pipeline are set up)')
 
     with st.sidebar:
         
@@ -624,14 +623,18 @@ def app():
         # with col1:
         # -- 1. unit dataframe --
         
-        cols = st.columns([2, 2, 2])
-        cols[0].markdown(f'### Filter the sessions on the sidebar ({len(st.session_state.df_session_filtered)} filtered)')
-        # if cols[1].button('Press this and then Ctrl + R to reload from S3'):
-        #     st.rerun()
-        if cols[1].button('Reload data '):
-            st.cache_data.clear()
-            init()
-            st.rerun()
+        cols = st.columns([2, 1, 4, 1])
+        cols[0].markdown(f'### Filter the sessions on the sidebar\n'
+                         f'#####  {len(st.session_state.df_session_filtered)} sessions, '
+                         f'{len(st.session_state.df_session_filtered.h2o.unique())} mice filtered')
+        with cols[1]:        
+            st.markdown('# ')
+            if st.button('  Reload data  ', type='primary'):
+                st.cache_data.clear()
+                init()
+                st.rerun()  
+              
+        table_height = cols[3].slider('Table height', 100, 2000, 400, 50, key='table_height')
     
         # aggrid_outputs = aggrid_interactive_table_units(df=df['ephys_units'])
         # st.session_state.df_session_filtered = aggrid_outputs['data']
@@ -643,7 +646,7 @@ def app():
         st.markdown('## No filtered results!')
         return
     
-    aggrid_outputs = aggrid_interactive_table_session(df=st.session_state.df_session_filtered)
+    aggrid_outputs = aggrid_interactive_table_session(df=st.session_state.df_session_filtered, table_height=table_height)
     
     if len(aggrid_outputs['selected_rows']) and not set(pd.DataFrame(aggrid_outputs['selected_rows']
                                                                  ).set_index(['h2o', 'session']).index
