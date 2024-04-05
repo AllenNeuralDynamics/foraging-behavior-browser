@@ -487,7 +487,8 @@ def plot_x_y_session():
     
     with cols[1]:
         st.markdown('#### 👀 Quick preview')
-        st.markdown('Click on one session to preview here (or Box/Lasso select multiple sessions to draw them in the section below)')
+        st.markdown('###### Click on one session to preview here, or Box/Lasso select multiple sessions to draw them in the section below')
+        st.markdown('(sometimes you have to click twice...)')
       
     if len(selected):
         df_selected_from_plotly = df_x_y_session.merge(pd.DataFrame(selected).rename({'x': x_name, 'y': y_name}, axis=1), 
