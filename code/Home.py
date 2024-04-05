@@ -576,6 +576,13 @@ def init():
     # map user_name
     st.session_state.df['sessions_bonsai']['user_name'] = st.session_state.df['sessions_bonsai']['user_name'].apply(_user_name_mapper)
     
+    # fill nan for autotrain fields
+    filled_values = {'curriculum_name': 'None', 
+                     'curriculum_version': 'None',
+                     'curriculum_schema_version': 'None',
+                     'current_stage_actual': 'None'}
+    st.session_state.df['sessions_bonsai'].fillna(filled_values, inplace=True)
+    
     # foraging performance = foraing_eff * finished_rate
     if 'foraging_performance' not in st.session_state.df['sessions_bonsai'].columns:
         st.session_state.df['sessions_bonsai']['foraging_performance'] = \

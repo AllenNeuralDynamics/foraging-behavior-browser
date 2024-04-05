@@ -1,4 +1,4 @@
-from email import header
+from collections import OrderedDict
 import pandas as pd
 import streamlit as st
 from st_aggrid import AgGrid, GridOptionsBuilder
@@ -392,6 +392,24 @@ def add_session_filter(if_bonsai=False, url_query={}):
                                                                     default_filters=['subject_id', 'task', 'session', 'finished_trials', 'foraging_eff'],
                                                                     url_query=url_query)
 
+@st.cache_data(ttl=3600*24)
+def _get_grouped_by_fields(if_bonsai):
+    if if_bonsai:
+        options = ['h2o', 'task', 'user_name', 'rig', 'weekday']
+        options += [col 
+                for col in st.session_state.df_session_filtered.columns
+                if is_categorical_dtype(st.session_state.df_session_filtered[col]) 
+                or st.session_state.df_session_filtered[col].nunique() < 20
+                and not any([exclude in col for exclude in 
+                             ('date', 'time', 'session', 'finished', 'foraging_eff')])
+        ]
+        options = list(list(OrderedDict.fromkeys(options))) # Remove duplicates
+    else:
+        options = ['h2o', 'task', 'photostim_location', 'weekday',
+                   'headbar', 'user_name', 'sex', 'rig']
+    return options
+
+
 def add_xy_selector(if_bonsai):
     with st.expander("Select axes", expanded=True):
         # with st.form("axis_selection"):
@@ -413,16 +431,11 @@ def add_xy_selector(if_bonsai):
             default=st.session_state.session_stats_names.index('foraging_eff')
         )
 
-        if if_bonsai:
-            options = ['h2o', 'task', 'user_name', 'rig', 'weekday']
-        else:
-            options = ['h2o', 'task', 'photostim_location', 'weekday',
-                       'headbar', 'user_name', 'sex', 'rig']
 
         group_by = selectbox_wrapper_for_url_query(
             cols[0],
             label="grouped by",
-            options=options,
+            options=_get_grouped_by_fields(if_bonsai),
             key="x_y_plot_group_by",
             default=0,
         )
@@ -431,7 +444,7 @@ def add_xy_selector(if_bonsai):
         available_size_cols = ['None'] + [
             col
             for col in st.session_state.session_stats_names
-            if is_numeric_dtype(st.session_state.df["sessions_bonsai"][col])
+            if is_numeric_dtype(st.session_state.df_session_filtered[col])
         ]
 
         size_mapper = selectbox_wrapper_for_url_query(
@@ -663,12 +676,6 @@ def add_auto_train_manager():
     with st.expander('Automatic training manager', expanded=True):
         st.dataframe(df_training_manager, height=3000)
 
-def _create_autotrain_string(row):
-    if pd.notna(row['curriculum_name']):
-        return f"{row['current_stage_actual']} @ {row['curriculum_name']}"
-    else:
-        return "None"
-
 @st.cache_data(ttl=3600*24)                
 def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='h2o',
                          smooth_factor=5, 
@@ -831,8 +838,6 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
     else:
         df['dot_size'] = dot_size_base
         
-    df['auto_train_string'] = df.apply(_create_autotrain_string, axis=1)
-
     for i, group in enumerate(df.sort_values(group_by)[group_by].unique()):
         this_session = df.query(f'{group_by} == "{group}"').sort_values('session')
         col = col_map[i%len(col_map)]
@@ -861,10 +866,10 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                             hovertemplate =  '<b>%{customdata[0]}, %{customdata[1]}, Session %{customdata[2]}'
                                              '<br>%{customdata[3]}, %{customdata[4]}'
                                              '<br>Task: %{customdata[5]}'
-                                             '<br>AutoTrain: %{customdata[6]}</b>'
+                                             '<br>AutoTrain: %{customdata[7]} @ %{customdata[6]}</b>'
                                              f'<br>{"-"*10}<br><b>X: </b>{x_name} = %{{x}}'
                                              f'<br><b>Y: </b>{y_name} = %{{y}}' 
-                                             + (f'<br><b>Size: </b>{dot_size_mapping_name} = %{{customdata[7]}}' 
+                                             + (f'<br><b>Size: </b>{dot_size_mapping_name} = %{{customdata[8]}}' 
                                                    if dot_size_mapping_name !='None' 
                                                    else '') 
                                              + '<extra></extra>',
@@ -874,10 +879,15 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                                                  this_session.rig, # 3
                                                  this_session.user_name, # 4
                                                  this_session.task, # 5
-                                                 this_session.auto_train_string, # 6
+                                                 this_session.curriculum_name
+                                                    if 'curriculum_name' in this_session.columns
+                                                    else ['None'] * len(this_session.h2o), # 6
+                                                 this_session.current_stage_actual
+                                                    if 'current_stage_actual' in this_session.columns
+                                                    else ['None'] * len(this_session.h2o), # 7
                                                  this_session[dot_size_mapping_name] 
                                                     if dot_size_mapping_name !='None' 
-                                                    else [np.nan] * len(this_session.h2o), # 7
+                                                    else [np.nan] * len(this_session.h2o), # 8
                                                  ), axis=-1),
                             unselected=dict(marker_color='lightgrey')
                             ))
