@@ -81,7 +81,7 @@ to_sync_with_url_query = {
     'x_y_plot_q_quantiles_all': 20,
     'x_y_plot_if_show_diagonal': False,
     'x_y_plot_dot_size': 10,
-    'x_y_plot_dot_opacity': 0.5,
+    'x_y_plot_dot_opacity': 0.3,
     'x_y_plot_line_width': 2.0,
     'x_y_plot_figure_width': 1300,
     'x_y_plot_figure_height': 900,
@@ -89,7 +89,7 @@ to_sync_with_url_query = {
     
     'x_y_plot_size_mapper': 'finished_trials',
     'x_y_plot_size_mapper_gamma': 1.0,
-    'x_y_plot_size_mapper_range': [5, 30],
+    'x_y_plot_size_mapper_range': [3, 20],
     
     'session_plot_mode': 'sessions selected from table or plot',
 
