@@ -20,6 +20,8 @@ import plotly.graph_objects as go
 import statsmodels.api as sm
 from scipy.stats import linregress
 
+from .url_query_helper import checkbox_wrapper_for_url_query, selectbox_wrapper_for_url_query, slider_wrapper_for_url_query
+
 
 custom_css = {
 ".ag-root.ag-unselectable.ag-layout-normal": {"font-size": "15px !important",
@@ -176,7 +178,7 @@ def cache_widget(field, clear=None):
     # Clear cache if needed
     if clear:
         if clear in st.session_state: del st.session_state[clear]
-        
+
 # def dec_cache_widget_state(widget, ):
 
 
@@ -430,133 +432,109 @@ def add_xy_selector(if_bonsai):
             # st.form_submit_button("update axes")
     return x_name, y_name, group_by
 
-def _checkbox_wrapper_for_url_query(st_prefix, label, key, default_value, **kwargs):
-    return st_prefix.checkbox(
-        label,
-        value=st.session_state[key]
-                if key in st.session_state else 
-                st.query_params[key].lower()=='true' 
-                if key in st.query_params 
-                else default_value,
-        key=key,
-        **kwargs,
-    )
-
 def add_xy_setting():
     with st.expander('Plot settings', expanded=True):            
         s_cols = st.columns([1, 1, 1])
         # if_plot_only_selected_from_dataframe = s_cols[0].checkbox('Only selected', False)
-        if_show_dots = _checkbox_wrapper_for_url_query(s_cols[0], 
+        if_show_dots = checkbox_wrapper_for_url_query(s_cols[0], 
                                                       label='Show data points', 
                                                       key='x_y_plot_if_show_dots', 
-                                                      default_value=True)        
+                                                      default=True)        
 
-        if_aggr_each_group = _checkbox_wrapper_for_url_query(s_cols[1],
+        if_aggr_each_group = checkbox_wrapper_for_url_query(s_cols[1],
                                                             label='Aggr each group', 
                                                             key='x_y_plot_if_aggr_each_group', 
-                                                            default_value=True)
+                                                            default=True)
         
         aggr_methods =  ['mean', 'mean +/- sem', 'lowess', 'running average', 'linear fit']
-        aggr_method_group = s_cols[1].selectbox('aggr method group', 
-                                                options=aggr_methods, 
-                                                index=aggr_methods.index(st.session_state['x_y_plot_aggr_method_group'])
-                                                      if 'x_y_plot_aggr_method_group' in st.session_state else
-                                                      aggr_methods.index(st.query_params['x_y_plot_aggr_method_group'])
-                                                      if 'x_y_plot_aggr_method_group' in st.query_params
-                                                      else 2,
-                                                key='x_y_plot_aggr_method_group', 
-                                                disabled=not if_aggr_each_group)
+        aggr_method_group = selectbox_wrapper_for_url_query(s_cols[1],
+                                                            label='aggr method group', 
+                                                            options=aggr_methods, 
+                                                            key='x_y_plot_aggr_method_group', 
+                                                            default=2,
+                                                            disabled=not if_aggr_each_group)
         
-        if_use_x_quantile_group = _checkbox_wrapper_for_url_query(s_cols[1],
+        if_use_x_quantile_group = checkbox_wrapper_for_url_query(s_cols[1],
                                                                   label='Use quantiles of x', 
                                                                   key='x_y_plot_if_use_x_quantile_group', 
-                                                                  default_value=False,
+                                                                  default=False,
                                                                   disabled='mean' not in aggr_method_group)
             
-        q_quantiles_group = s_cols[1].slider('Number of quantiles ', 1, 100,
-                                             value=st.session_state['x_y_plot_q_quantiles_group']
-                                                   if 'x_y_plot_q_quantiles_group' in st.session_state else
-                                                   int(st.query_params['x_y_plot_q_quantiles_group'])
-                                                   if 'x_y_plot_q_quantiles_group' in st.query_params
-                                                   else 20,
-                                             key='x_y_plot_q_quantiles_group',
-                                             disabled=not if_use_x_quantile_group
-                                             )
+        q_quantiles_group = slider_wrapper_for_url_query(s_cols[1],
+                                                        label='Number of quantiles ', 
+                                                        min_value=1, 
+                                                        max_value=100, 
+                                                        key='x_y_plot_q_quantiles_group', 
+                                                        default=20,
+                                                        disabled=not if_use_x_quantile_group
+                                                        )
         
-        if_aggr_all = _checkbox_wrapper_for_url_query(s_cols[2],
+        if_aggr_all = checkbox_wrapper_for_url_query(s_cols[2],
                                                     label='Aggr all', 
                                                     key='x_y_plot_if_aggr_all', 
-                                                    default_value=True)
+                                                    default=True)
         
         # st.session_state.if_aggr_all_cache = if_aggr_all  # Have to use another variable to store this explicitly (my cache_widget somehow doesn't work with checkbox)
-        aggr_method_all = s_cols[2].selectbox('aggr method all', aggr_methods, 
-                                                index=aggr_methods.index(st.session_state['x_y_plot_aggr_method_all'])
-                                                      if 'x_y_plot_aggr_method_all' in st.session_state else
-                                                      aggr_methods.index(st.query_params['x_y_plot_aggr_method_all'])
-                                                      if 'x_y_plot_aggr_method_all' in st.query_params
-                                                      else 1, 
-                                                key='x_y_plot_aggr_method_all',
-                                                disabled=not if_aggr_all)
+        aggr_method_all = selectbox_wrapper_for_url_query(s_cols[2],
+                                                            label='aggr method all', 
+                                                            options=aggr_methods, 
+                                                            key='x_y_plot_aggr_method_all', 
+                                                            default=1,
+                                                            disabled=not if_aggr_all)
 
-        if_use_x_quantile_all = _checkbox_wrapper_for_url_query(s_cols[2],
+        if_use_x_quantile_all = checkbox_wrapper_for_url_query(s_cols[2],
                                                                 label='Use quantiles of x', 
                                                                 key='x_y_plot_if_use_x_quantile_all', 
-                                                                default_value=False,
+                                                                default=False,
                                                                 disabled='mean' not in aggr_method_all)
 
         
-        q_quantiles_all = s_cols[2].slider('number of quantiles', 1, 100, 
-                                           value=st.session_state['x_y_plot_q_quantiles_all']
-                                                 if 'x_y_plot_q_quantiles_all' in st.session_state else
-                                                 int(st.query_params['x_y_plot_q_quantiles_all'])
-                                                 if 'x_y_plot_q_quantiles_all' in st.query_params
-                                                 else 20,
-                                           key='x_y_plot_q_quantiles_all',
-                                           disabled=not if_use_x_quantile_all
-                                           )
+        q_quantiles_all = slider_wrapper_for_url_query(s_cols[2],
+                                                        label='Number of quantiles', 
+                                                        min_value=1, 
+                                                        max_value=100, 
+                                                        key='x_y_plot_q_quantiles_all', 
+                                                        default=20,
+                                                        disabled=not if_use_x_quantile_all
+                                                        )
 
-        smooth_factor = s_cols[0].slider('smooth factor', 1, 20,
-                                            value=st.session_state['x_y_plot_smooth_factor']
-                                                  if 'x_y_plot_smooth_factor' in st.session_state else
-                                                  int(st.query_params['x_y_plot_smooth_factor'])
-                                                  if 'x_y_plot_smooth_factor' in st.query_params
-                                                  else 5,
-                                            key='x_y_plot_smooth_factor',
-                                            disabled= not ((if_aggr_each_group and aggr_method_group in ('running average', 'lowess'))
-                                                                    or (if_aggr_all and aggr_method_all in ('running average', 'lowess'))) 
-        )
+        smooth_factor = slider_wrapper_for_url_query(s_cols[0],
+                                                    label='smooth factor',
+                                                    min_value=1,
+                                                    max_value=20,
+                                                    key='x_y_plot_smooth_factor',
+                                                    default=5,
+                                                    disabled= not ((if_aggr_each_group and aggr_method_group in ('running average', 'lowess'))
+                                                                    or (if_aggr_all and aggr_method_all in ('running average', 'lowess')))
+                                                    )
         
         c = st.columns([1, 1, 1])
-        dot_size = c[0].slider('dot size', 1, 30, 
-                                step=1,
-                                value=st.session_state['x_y_plot_dot_size']
-                                      if 'x_y_plot_dot_size' in st.session_state else
-                                      int(st.query_params['x_y_plot_dot_size'])
-                                      if 'x_y_plot_dot_size' in st.query_params
-                                      else 10,
-                                key='x_y_plot_dot_size'
-                                )
-        dot_opacity = c[1].slider('opacity', 0.0, 1.0, 
-                                    step=0.05, 
-                                    value=st.session_state['x_y_plot_dot_opacity']
-                                          if 'x_y_plot_dot_opacity' in st.session_state else
-                                          float(st.query_params['x_y_plot_dot_opacity'])
-                                          if 'x_y_plot_dot_opacity' in st.query_params
-                                          else 0.5,
-                                    key='x_y_plot_dot_opacity')
+        dot_size = slider_wrapper_for_url_query(c[0],
+                                                label='dot size', 
+                                                min_value=1, 
+                                                max_value=30, 
+                                                key='x_y_plot_dot_size', 
+                                                default=10)
+        
+        dot_opacity = slider_wrapper_for_url_query(c[1],
+                                                    label='opacity',
+                                                    min_value=0.0,
+                                                    max_value=1.0,
+                                                    step=0.05,
+                                                    key='x_y_plot_dot_opacity',
+                                                    default=0.5)
 
-        line_width = c[2].slider('line width', 0.0, 5.0, 
-                                    step=0.25, 
-                                    value=st.session_state['x_y_plot_line_width']
-                                          if 'x_y_plot_line_width' in st.session_state else
-                                          float(st.query_params['x_y_plot_line_width'])
-                                          if 'x_y_plot_line_width' in st.query_params
-                                          else 2.0,
-                                    key='x_y_plot_line_width')
+        line_width = slider_wrapper_for_url_query(c[2],
+                                                    label='line width',
+                                                    min_value=0.0,
+                                                    max_value=5.0,
+                                                    step=0.25,
+                                                    key='x_y_plot_line_width',
+                                                    default=2.0)
 
     return  (if_show_dots, if_aggr_each_group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group,
-        if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor,
-        dot_size, dot_opacity, line_width)
+            if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor,
+            dot_size, dot_opacity, line_width)
 
 def data_selector():
             
