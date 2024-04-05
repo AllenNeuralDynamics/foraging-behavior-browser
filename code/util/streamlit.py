@@ -410,7 +410,7 @@ def add_xy_selector(if_bonsai):
             label="y axis",
             options=st.session_state.session_stats_names,
             key="x_y_plot_yname",
-            default=st.session_state.session_stats_names.index('foraging_performance')
+            default=st.session_state.session_stats_names.index('foraging_eff')
         )
 
         if if_bonsai:
@@ -427,7 +427,20 @@ def add_xy_selector(if_bonsai):
             default=0,
         )
 
-        size_mapper = 1
+        # Get all columns that are numeric
+        available_size_cols = ['None'] + [
+            col
+            for col in st.session_state.session_stats_names
+            if is_numeric_dtype(st.session_state.df["sessions_bonsai"][col])
+        ]
+
+        size_mapper = selectbox_wrapper_for_url_query(
+            cols[0],
+            label="dot size mapper",
+            options=available_size_cols,
+            key='x_y_plot_size_mapper',
+            default=0,
+        )
 
         # st.form_submit_button("update axes")
     return x_name, y_name, group_by, size_mapper
@@ -664,7 +677,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                          q_quantiles_all=20,
                          title='',
                          dot_size_base=10,
-                         dot_size_mapping_name=None,
+                         dot_size_mapping_name='None',
                          dot_opacity=0.4,
                          line_width=2,
                          **kwarg):
@@ -801,7 +814,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
     fig = go.Figure()
     col_map = px.colors.qualitative.Plotly
     
-    if dot_size_mapping_name is not None and dot_size_mapping_name in df.columns:
+    if dot_size_mapping_name !='None' and dot_size_mapping_name in df.columns:
         df['dot_size'] = df[dot_size_mapping_name]
     else:
         df['dot_size'] = dot_size_base
@@ -872,5 +885,3 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                      title_standoff=40,
                      ticks = "outside", tickcolor='black', ticklen=10, tickwidth=2, ticksuffix=' ')
     return fig
-
-

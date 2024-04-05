@@ -63,7 +63,7 @@ to_sync_with_url_query = {
     
     'tab_id': 'tab_session_x_y',
     'x_y_plot_xname': 'session',
-    'x_y_plot_yname': 'foraging_eff',
+    'x_y_plot_yname': 'foraging_performance_random_seed',
     'x_y_plot_group_by': 'h2o',
     'x_y_plot_if_show_dots': True,
     'x_y_plot_if_aggr_each_group': True,
@@ -78,6 +78,8 @@ to_sync_with_url_query = {
     'x_y_plot_dot_size': 10,
     'x_y_plot_dot_opacity': 0.5,
     'x_y_plot_line_width': 2.0,
+    
+    'x_y_plot_size_mapper': 'None',
     
     'session_plot_mode': 'sessions selected from table or plot',
 
@@ -420,8 +422,6 @@ def plot_x_y_session():
         (if_show_dots, if_aggr_each_group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group,
         if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor,
         dot_size, dot_opacity, line_width) = add_xy_setting()
-        
-
     
     # If no sessions are selected, use all filtered entries
     # df_x_y_session = st.session_state.df_selected_from_dataframe if if_plot_only_selected_from_dataframe else st.session_state.df_session_filtered
@@ -451,7 +451,7 @@ def plot_x_y_session():
                                         title=names[(x_name, y_name)] if (x_name, y_name) in names else y_name,
                                         states = st.session_state.df_selected_from_plotly,
                                         dot_size_base=dot_size,
-                                        dot_size_mapping_name='session',
+                                        dot_size_mapping_name=size_mapper,
                                         dot_opacity=dot_opacity,
                                         line_width=line_width)
         
