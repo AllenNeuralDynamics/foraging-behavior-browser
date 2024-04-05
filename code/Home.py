@@ -42,7 +42,9 @@ from util.streamlit import (filter_dataframe, aggrid_interactive_table_session,
                             aggrid_interactive_table_curriculum, add_session_filter, data_selector,
                             add_xy_selector, add_xy_setting, add_auto_train_manager,
                             _plot_population_x_y)
-from util.url_query_helper import sync_widget_with_query
+from util.url_query_helper import (
+    sync_widget_with_query, slider_wrapper_for_url_query,
+)
 
 import extra_streamlit_components as stx
 
@@ -60,6 +62,8 @@ to_sync_with_url_query = {
     'filter_finished_trials': [0.0, None],
     'filter_foraging_eff': [0.0, None],
     'filter_task': ['all'],
+    
+    'table_height': 300,
     
     'tab_id': 'tab_session_x_y',
     'x_y_plot_xname': 'session',
@@ -625,8 +629,15 @@ def app():
                 init()
                 st.rerun()  
               
-        table_height = cols[3].slider('Table height', 100, 2000, 400, 50, key='table_height')
-    
+        table_height = slider_wrapper_for_url_query(st_prefix=cols[3],
+                                                    label='Table height',
+                                                    min_value=0,
+                                                    max_value=2000,
+                                                    default=300,
+                                                    step=50,
+                                                    key='table_height',
+        )
+            
         # aggrid_outputs = aggrid_interactive_table_units(df=df['ephys_units'])
         # st.session_state.df_session_filtered = aggrid_outputs['data']
         
