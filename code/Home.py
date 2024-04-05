@@ -242,7 +242,7 @@ def get_pyg_renderer(df, spec="./gw_config.json", **kwargs) -> "StreamlitRendere
     return StreamlitRenderer(df, spec=spec, debug=False, **kwargs)
 
     
-def draw_session_plots(df_to_draw_session):
+def draw_session_plots(df_to_draw_session, if_quick_preview=False):
     
     # Setting up layout for each session
     layout_definition = [[1],   # columns in the first row
@@ -294,7 +294,42 @@ def draw_session_plots(df_to_draw_session):
                     
                 my_bar.progress(int((i + 1) / len(df_to_draw_session) * 100))
                 
+def draw_session_plots_quick_preview(df_to_draw_session):
+    
+    # Setting up layout for each session
+    layout_definition = [[1],   # columns in the first row
+                         [1, 1],
+                         ]  
+    draw_types_quick_preview = ['1. Choice history', '2. Logistic regression (Su2022)']
+    
+    container_session_all_in_one = st.container()
+    
+    key = df_to_draw_session.to_dict(orient='records')[0]
+    
+    with container_session_all_in_one:
+        try:
+            date_str = key["session_date"].strftime('%Y-%m-%d')
+        except:
+            date_str = key["session_date"].split("T")[0]
+        
+        st.markdown(f'''<h4 style='text-align: center; color: orange;'>{key["h2o"]}, Session {int(key["session"])}, {date_str}''',
+                    unsafe_allow_html=True)
+        
+        rows = []
+        for row, column_setting in enumerate(layout_definition):
+            rows.append(st.columns(column_setting))
+
+        for draw_type in draw_types_quick_preview:
+            if draw_type not in st.session_state.selected_draw_types: continue  # To keep the draw order defined by st.session_state.draw_type_mapper_session_level
+            prefix, position, setting = st.session_state.draw_type_mapper_session_level[draw_type]
+            this_col = rows[position[0]][position[1]] if len(st.session_state.selected_draw_types) > 1 else rows[0]
+            show_session_level_img_by_key_and_prefix(key, 
+                                        column=this_col,
+                                        prefix=prefix, 
+                                        **setting)
+            
                 
+             
                 
 def draw_mice_plots(df_to_draw_mice):
     
@@ -414,7 +449,9 @@ def plot_x_y_session():
     df_selected_from_plotly = pd.DataFrame()
     # for i, (title, (x_name, y_name)) in enumerate(names.items()):
         # with cols[i]:
-    with st.columns([1])[0]:
+    
+    cols = st.columns([1, 0.7])
+    with cols[0]:
         fig = _plot_population_x_y(df=df_x_y_session.copy(), 
                                     x_name=x_name, y_name=y_name, 
                                     group_by=group_by,
@@ -443,10 +480,17 @@ def plot_x_y_session():
         # st.plotly_chart(fig)
         selected = plotly_events(fig, click_event=True, hover_event=False, select_event=True, 
                                  override_height=fig.layout.height * 1.1, override_width=fig.layout.width)
+    
+    with cols[1]:
+        st.markdown('#### 👀 Quick preview')
+        st.markdown('Click on one session to preview here (or Box/Lasso select multiple sessions to draw them in the section below)')
       
     if len(selected):
         df_selected_from_plotly = df_x_y_session.merge(pd.DataFrame(selected).rename({'x': x_name, 'y': y_name}, axis=1), 
                                                     on=[x_name, y_name], how='inner')
+    if len(st.session_state.df_selected_from_plotly) == 1:
+        with cols[1]:
+            draw_session_plots_quick_preview(st.session_state.df_selected_from_plotly)
 
     return df_selected_from_plotly, cols
 
