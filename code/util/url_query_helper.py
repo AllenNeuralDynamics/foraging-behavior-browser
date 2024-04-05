@@ -35,7 +35,7 @@ def slider_wrapper_for_url_query(st_prefix, label, min_value, max_value, key, de
         value=(
             st.session_state[key]
             if key in st.session_state
-            else int(st.query_params[key]) 
+            else type(min_value)(st.query_params[key]) 
             if key in st.query_params 
             else default
         ),
