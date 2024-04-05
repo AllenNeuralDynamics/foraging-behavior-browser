@@ -19,8 +19,10 @@ import streamlit_nested_layout
 from streamlit_plotly_events import plotly_events
 
 from util.streamlit import (filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector, 
-                            add_xy_selector, _sync_widget_with_query, add_xy_setting, add_auto_train_manager,
+                            add_xy_selector, add_xy_setting, add_auto_train_manager,
                             _plot_population_x_y)
+from util.url_query_helper import sync_widget_with_query
+
 import extra_streamlit_components as stx
 
 from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
@@ -41,7 +43,7 @@ to_sync_with_url_query = {
     
     'tab_id': 'tab_session_x_y',
     'x_y_plot_xname': 'session',
-    'x_y_plot_yname': 'foraging_eff',
+    'x_y_plot_yname': 'foraging_performance',
     'x_y_plot_group_by': 'h2o',
     'x_y_plot_if_show_dots': True,
     'x_y_plot_if_aggr_each_group': True,
@@ -354,8 +356,8 @@ def plot_x_y_session():
         x_name, y_name, group_by = add_xy_selector(if_bonsai=False)
         
         (if_show_dots, if_aggr_each_group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group,
-        if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor,
-        dot_size, dot_opacity, line_width) = add_xy_setting()
+        if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor, if_show_diagonal,
+        dot_size, dot_opacity, line_width, _, _, _) = add_xy_setting()
 
     
     # If no sessions are selected, use all filtered entries
@@ -385,7 +387,7 @@ def plot_x_y_session():
                                         q_quantiles_all=q_quantiles_all,
                                         title=names[(x_name, y_name)] if (x_name, y_name) in names else y_name,
                                         states = st.session_state.df_selected_from_plotly,
-                                        dot_size=dot_size,
+                                        dot_size_base=dot_size,
                                         dot_opacity=dot_opacity,
                                         line_width=line_width)
         
@@ -410,7 +412,7 @@ def init():
 
     # Set session state from URL
     for key, default in to_sync_with_url_query.items():
-        _sync_widget_with_query(key, default)
+        sync_widget_with_query(key, default)
 
     df = load_data(['sessions', 
                     'logistic_regression_hattori', 
