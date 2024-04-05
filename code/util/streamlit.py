@@ -39,7 +39,7 @@ custom_css = {
 "padding": "4px !important"},
 }
 
-def aggrid_interactive_table_session(df: pd.DataFrame):
+def aggrid_interactive_table_session(df: pd.DataFrame, table_height: int = 400):
     """Creates an st-aggrid interactive table based on a dataframe.
 
     Args:
@@ -92,7 +92,7 @@ def aggrid_interactive_table_session(df: pd.DataFrame):
         theme="balham",
         update_mode=GridUpdateMode.SELECTION_CHANGED,
         allow_unsafe_jscode=True,
-        height=400,
+        height=table_height,
         columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
         custom_css=custom_css,
     )

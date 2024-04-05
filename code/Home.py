@@ -160,12 +160,31 @@ def _fetch_img(glob_patterns, crop=None):
     
     return img, file[0]
 
+def _user_name_mapper(user_name):
+    user_mapper = {  # tuple of key words --> user name
+        ('Avalon',): 'Avalon Amaya',
+        ('Ella',): 'Ella Hilton',
+        ('Katrina',): 'Katrina Nguyen',
+        ('Lucas',): 'Lucas Kinsey',
+        ('Travis',): 'Travis Ramirez',
+        ('Xinxin', 'the ghost'): 'Xinxin Yin',
+        }
+    for key_words, name in user_mapper.items():
+        for key_word in key_words:
+            if key_word in user_name:
+                return name
+    else:
+        return user_name
 
 # @st.cache_data(ttl=24*3600, max_entries=20)
 def show_session_level_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], crop=None, caption=True, **kwargs):
+    try:
+        date_str = key["session_date"].strftime(r'%Y-%m-%d')
+    except:
+        date_str = key["session_date"].split("T")[0]
     
     # Convert session_date to 2024-04-01 format
-    subject_session_date_str = f"{key['subject_id']}_{key['session_date'].strftime(r'%Y-%m-%d')}_{key['nwb_suffix']}".split('_0')[0]
+    subject_session_date_str = f"{key['subject_id']}_{date_str}_{key['nwb_suffix']}".split('_0')[0]
     glob_patterns = [cache_folder + f"{subject_session_date_str}/{subject_session_date_str}_{prefix}*"]
     
     img, f_name = _fetch_img(glob_patterns, crop)
@@ -319,7 +338,7 @@ def session_plot_settings(need_click=True):
     cols = st.columns([2, 1])
     
     session_plot_modes = [f'sessions selected from table or plot', f'all sessions filtered from sidebar']
-    st.session_state.selected_draw_sessions = cols[0].selectbox('Which session(s) to draw?', 
+    st.session_state.selected_draw_sessions = cols[0].selectbox(f'Which session(s) to draw?', 
                                                                 session_plot_modes,
                                                                 index=session_plot_modes.index(st.session_state['session_plot_mode'])
                                                                     if 'session_plot_mode' in st.session_state else 
@@ -329,7 +348,12 @@ def session_plot_settings(need_click=True):
                                                                 key='session_plot_mode',
                                                                )
     
-    st.session_state.num_cols = cols[1].number_input('Number of columns', 1, 10, 
+    n_session_to_draw = len(st.session_state.df_selected_from_plotly) \
+        if 'selected from table or plot' in st.session_state.selected_draw_sessions \
+        else len(st.session_state.df_session_filtered) 
+    st.markdown(f'{n_session_to_draw} sessions to draw')
+    
+    st.session_state.num_cols = cols[1].number_input('number of columns', 1, 10, 
                                                      3 if 'num_cols' not in st.session_state else st.session_state.num_cols)
     
     st.markdown(
@@ -347,7 +371,7 @@ def session_plot_settings(need_click=True):
                                                           if 'selected_draw_types' not in st.session_state else 
                                                           st.session_state.selected_draw_types)
     if need_click:
-        draw_it = st.button('Show me all sessions!', use_container_width=True)
+        draw_it = st.button(f'Show me all {n_session_to_draw} sessions!', use_container_width=True)
     else:
         draw_it = True
     return draw_it
@@ -544,7 +568,10 @@ def init():
         
     # weekday
     st.session_state.df['sessions_bonsai'].session_date = pd.to_datetime(st.session_state.df['sessions_bonsai'].session_date)
-    st.session_state.df['sessions_bonsai']['weekday'] = st.session_state.df['sessions_bonsai'].session_date.dt.day_name()
+    st.session_state.df['sessions_bonsai']['weekday'] = st.session_state.df['sessions_bonsai'].session_date.dt.dayofweek + 1
+    
+    # map user_name
+    st.session_state.df['sessions_bonsai']['user_name'] = st.session_state.df['sessions_bonsai']['user_name'].apply(_user_name_mapper)
     
     # foraging performance = foraing_eff * finished_rate
     if 'foraging_performance' not in st.session_state.df['sessions_bonsai'].columns:
@@ -569,7 +596,6 @@ def app():
     cols = st.columns([1, 1.2])
     with cols[0]:
         st.markdown('## 🌳🪴 Foraging sessions from Bonsai 🌳🪴')
-        st.markdown('##### (still using a temporary workaround until AIND behavior metadata and pipeline are set up)')
 
     with st.sidebar:
         
@@ -597,14 +623,18 @@ def app():
         # with col1:
         # -- 1. unit dataframe --
         
-        cols = st.columns([2, 2, 2])
-        cols[0].markdown(f'### Filter the sessions on the sidebar ({len(st.session_state.df_session_filtered)} filtered)')
-        # if cols[1].button('Press this and then Ctrl + R to reload from S3'):
-        #     st.rerun()
-        if cols[1].button('Reload data '):
-            st.cache_data.clear()
-            init()
-            st.rerun()
+        cols = st.columns([2, 1, 4, 1])
+        cols[0].markdown(f'### Filter the sessions on the sidebar\n'
+                         f'#####  {len(st.session_state.df_session_filtered)} sessions, '
+                         f'{len(st.session_state.df_session_filtered.h2o.unique())} mice filtered')
+        with cols[1]:        
+            st.markdown('# ')
+            if st.button('  Reload data  ', type='primary'):
+                st.cache_data.clear()
+                init()
+                st.rerun()  
+              
+        table_height = cols[3].slider('Table height', 100, 2000, 400, 50, key='table_height')
     
         # aggrid_outputs = aggrid_interactive_table_units(df=df['ephys_units'])
         # st.session_state.df_session_filtered = aggrid_outputs['data']
@@ -616,7 +646,7 @@ def app():
         st.markdown('## No filtered results!')
         return
     
-    aggrid_outputs = aggrid_interactive_table_session(df=st.session_state.df_session_filtered)
+    aggrid_outputs = aggrid_interactive_table_session(df=st.session_state.df_session_filtered, table_height=table_height)
     
     if len(aggrid_outputs['selected_rows']) and not set(pd.DataFrame(aggrid_outputs['selected_rows']
                                                                  ).set_index(['h2o', 'session']).index
