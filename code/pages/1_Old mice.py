@@ -353,7 +353,7 @@ def plot_x_y_session():
     cols = st.columns([4, 10])
     
     with cols[0]:
-        x_name, y_name, group_by, size_mapper = add_xy_selector(if_bonsai=False)
+        x_name, y_name, group_by = add_xy_selector(if_bonsai=False)
         
         (if_show_dots, if_aggr_each_group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group,
         if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor, if_show_diagonal,

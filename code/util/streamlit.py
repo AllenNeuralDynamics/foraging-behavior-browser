@@ -441,23 +441,8 @@ def add_xy_selector(if_bonsai):
             default=0,
         )
 
-        # Get all columns that are numeric
-        available_size_cols = ['None'] + [
-            col
-            for col in st.session_state.session_stats_names
-            if is_numeric_dtype(st.session_state.df_session_filtered[col])
-        ]
-
-        size_mapper = selectbox_wrapper_for_url_query(
-            cols[0],
-            label="dot size mapper",
-            options=available_size_cols,
-            key='x_y_plot_size_mapper',
-            default=0,
-        )
-
         # st.form_submit_button("update axes")
-    return x_name, y_name, group_by, size_mapper
+    return x_name, y_name, group_by
 
 def add_xy_setting():
     with st.expander('Plot settings', expanded=True):            
@@ -591,6 +576,60 @@ def add_xy_setting():
             if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor, if_show_diagonal,
             dot_size, dot_opacity, line_width, figure_width, figure_height, font_size_scale)
 
+@st.cache_data(ttl=24*3600)
+def _get_min_max(x, size_mapper_gamma):
+    x_gamma_all = x ** size_mapper_gamma
+    return np.percentile(x_gamma_all, 5), np.percentile(x_gamma_all, 95)
+
+def _size_mapping(x, size_mapper_range, size_mapper_gamma):
+    x = x / np.quantile(x[~np.isnan(x)], 0.95)
+    x_gamma = x**size_mapper_gamma
+    min_x, max_x = _get_min_max(x, size_mapper_gamma)
+    sizes = size_mapper_range[0] + x_gamma / (max_x - min_x) * (size_mapper_range[1] - size_mapper_range[0])
+    sizes[np.isnan(sizes)] = 0
+    return sizes
+
+def add_dot_property_mapper():
+    with st.expander('Data point property mapper', expanded=True):            
+        cols = st.columns([2, 1, 1])
+        
+        # Get all columns that are numeric
+        available_size_cols = ['None'] + [
+            col
+            for col in st.session_state.session_stats_names
+            if is_numeric_dtype(st.session_state.df_session_filtered[col])
+        ]
+        
+        size_mapper = selectbox_wrapper_for_url_query(
+                cols[0],
+                label="dot size mapper",
+                options=available_size_cols,
+                key='x_y_plot_size_mapper',
+                default=0,
+            )
+        
+        if st.session_state.x_y_plot_size_mapper != 'None':
+            size_mapper_range = slider_wrapper_for_url_query(cols[1],
+                                                    label="size range",
+                                                    min_value=0,
+                                                    max_value=100,
+                                                    key='x_y_plot_size_mapper_range',
+                                                    default=(0, 50),
+                                                    )
+            
+            size_mapper_gamma = slider_wrapper_for_url_query(cols[2],
+                                                    label="size gamma",
+                                                    min_value=0.0,
+                                                    max_value=2.0,
+                                                    key='x_y_plot_size_mapper_gamma',
+                                                    default=1.0,
+                                                    step=0.1)
+        else:
+            size_mapper_range, size_mapper_gamma = None, None
+        
+    return size_mapper, size_mapper_range, size_mapper_gamma
+
+
 def data_selector():
             
     with st.expander(f'Session selector', expanded=True):
@@ -721,6 +760,8 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                          if_show_diagonal=False,
                          dot_size_base=10,
                          dot_size_mapping_name='None',
+                         dot_size_mapping_range=None,
+                         dot_size_mapping_gamma=None,
                          dot_opacity=0.4,
                          line_width=2,
                          x_y_plot_figure_width=1300,
@@ -867,7 +908,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
 
     # Add some more columns
     if dot_size_mapping_name !='None' and dot_size_mapping_name in df.columns:
-        df['dot_size'] = df[dot_size_mapping_name]
+        df['dot_size'] = _size_mapping(df[dot_size_mapping_name], dot_size_mapping_range, dot_size_mapping_gamma)
     else:
         df['dot_size'] = dot_size_base
 

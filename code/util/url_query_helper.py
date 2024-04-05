@@ -28,6 +28,11 @@ def selectbox_wrapper_for_url_query(st_prefix, label, options, key, default, **k
     )
 
 def slider_wrapper_for_url_query(st_prefix, label, min_value, max_value, key, default, **kwargs):
+    
+    # Parse range from URL, compatible with both one or two values
+    if key in st.query_params:
+        parse_range_from_url = [type(min_value)(v) for v in st.query_params.get_all(key)]
+    
     return st_prefix.slider(
         label,
         min_value,
@@ -35,7 +40,7 @@ def slider_wrapper_for_url_query(st_prefix, label, min_value, max_value, key, de
         value=(
             st.session_state[key]
             if key in st.session_state
-            else type(min_value)(st.query_params[key]) 
+            else parse_range_from_url
             if key in st.query_params 
             else default
         ),

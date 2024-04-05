@@ -40,7 +40,7 @@ _shown_default_value_warning = False
 
 from util.streamlit import (filter_dataframe, aggrid_interactive_table_session,
                             aggrid_interactive_table_curriculum, add_session_filter, data_selector,
-                            add_xy_selector, add_xy_setting, add_auto_train_manager,
+                            add_xy_selector, add_xy_setting, add_auto_train_manager, add_dot_property_mapper,
                             _plot_population_x_y)
 from util.url_query_helper import (
     sync_widget_with_query, slider_wrapper_for_url_query,
@@ -88,6 +88,8 @@ to_sync_with_url_query = {
     'x_y_plot_font_size_scale': 1.0,
     
     'x_y_plot_size_mapper': 'None',
+    'x_y_plot_size_mapper_gamma': 1.0,
+    'x_y_plot_size_mapper_range': [0, 50],
     
     'session_plot_mode': 'sessions selected from table or plot',
 
@@ -431,12 +433,19 @@ def plot_x_y_session():
     cols = st.columns([1, 1, 1])
     
     with cols[0]:
-        x_name, y_name, group_by, size_mapper = add_xy_selector(if_bonsai=True)
+        x_name, y_name, group_by = add_xy_selector(if_bonsai=True)
 
     with cols[1]:
         (if_show_dots, if_aggr_each_group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group,
         if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor, if_show_diagonal,
         dot_size, dot_opacity, line_width, x_y_plot_figure_width, x_y_plot_figure_height, font_size_scale) = add_xy_setting()
+    
+    if st.session_state.x_y_plot_if_show_dots:
+        with cols[2]:
+            size_mapper, size_mapper_range, size_mapper_gamma = add_dot_property_mapper()
+    else:
+        size_mapper = 'None'
+        size_mapper_range, size_mapper_gamma = None, None
     
     # If no sessions are selected, use all filtered entries
     # df_x_y_session = st.session_state.df_selected_from_dataframe if if_plot_only_selected_from_dataframe else st.session_state.df_session_filtered
@@ -474,6 +483,8 @@ def plot_x_y_session():
                                     if_show_diagonal=if_show_diagonal,
                                     dot_size_base=dot_size,
                                     dot_size_mapping_name=size_mapper,
+                                    dot_size_mapping_range=size_mapper_range,
+                                    dot_size_mapping_gamma=size_mapper_gamma,
                                     dot_opacity=dot_opacity,
                                     line_width=line_width,
                                     x_y_plot_figure_width=x_y_plot_figure_width,
