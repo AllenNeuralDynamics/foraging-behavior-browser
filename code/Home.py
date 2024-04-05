@@ -242,7 +242,7 @@ def get_pyg_renderer(df, spec="./gw_config.json", **kwargs) -> "StreamlitRendere
     return StreamlitRenderer(df, spec=spec, debug=False, **kwargs)
 
     
-def draw_session_plots(df_to_draw_session, if_quick_preview=False):
+def draw_session_plots(df_to_draw_session):
     
     # Setting up layout for each session
     layout_definition = [[1],   # columns in the first row
@@ -450,7 +450,11 @@ def plot_x_y_session():
     # for i, (title, (x_name, y_name)) in enumerate(names.items()):
         # with cols[i]:
     
-    cols = st.columns([1, 0.7])
+    if hasattr(st.session_state, 'x_y_plot_figure_width'):
+        _x_y_plot_scale = st.session_state.x_y_plot_figure_width / 1300
+        cols = st.columns([1 * _x_y_plot_scale, 0.7])
+    else:
+        cols = st.columns([1, 0.7])
     with cols[0]:
         fig = _plot_population_x_y(df=df_x_y_session.copy(), 
                                     x_name=x_name, y_name=y_name, 
