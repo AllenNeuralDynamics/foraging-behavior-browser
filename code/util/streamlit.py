@@ -558,10 +558,32 @@ def add_xy_setting():
                                                     step=0.25,
                                                     key='x_y_plot_line_width',
                                                     default=2.0)
+        
+        figure_width = slider_wrapper_for_url_query(c[0],
+                                                    label='figure width',
+                                                    min_value=500,
+                                                    max_value=2500,
+                                                    key='x_y_plot_figure_width',
+                                                    default=1300)
+        
+        figure_height = slider_wrapper_for_url_query(c[1],
+                                                    label='figure height',
+                                                    min_value=500,
+                                                    max_value=2500,
+                                                    key='x_y_plot_figure_height',
+                                                    default=900)
+        
+        font_size_scale = slider_wrapper_for_url_query(c[2],
+                                                label='font size',
+                                                min_value=0.0,
+                                                max_value=2.0,
+                                                step=0.1,
+                                                key='x_y_plot_font_size_scale',
+                                                default=1.0)
 
     return  (if_show_dots, if_aggr_each_group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group,
             if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor,
-            dot_size, dot_opacity, line_width)
+            dot_size, dot_opacity, line_width, figure_width, figure_height, font_size_scale)
 
 def data_selector():
             
@@ -694,6 +716,9 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                          dot_size_mapping_name='None',
                          dot_opacity=0.4,
                          line_width=2,
+                         x_y_plot_figure_width=1300,
+                         x_y_plot_figure_height=900,
+                         font_size_scale=1.0,
                          **kwarg):
 
     def _add_agg(df_this, x_name, y_name, group, aggr_method, if_use_x_quantile, q_quantiles, col, line_width, **kwarg):
@@ -907,18 +932,22 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
     n_sessions = len(df.groupby(['h2o', 'session']).count())
 
     fig.update_layout(
-        width=1300,
-        height=900,
+        width=x_y_plot_figure_width,
+        height=x_y_plot_figure_height,
         xaxis_title=x_name,
         yaxis_title=y_name,
-        font=dict(size=25),
+        font=dict(size=24 * font_size_scale),
         hovermode="closest",
-        hoverlabel=dict(font_size=17),
+        hoverlabel=dict(font_size=17 * font_size_scale),
         legend={"traceorder": "reversed"},
-        legend_font_size=15,
+        legend_font_size=20 * font_size_scale,
         title=f"{title}, {n_mice} mice, {n_sessions} sessions",
         dragmode="zoom",  # 'select',
-        margin=dict(l=130, r=50, b=130, t=100),
+        margin=dict(l=130 * font_size_scale, 
+                    r=50 * font_size_scale, 
+                    b=130 * font_size_scale, 
+                    t=100 * font_size_scale,
+                    ),
     )
     fig.update_xaxes(showline=True, linewidth=2, linecolor='black', 
                     #  range=[1, min(100, df[x_name].max())],

@@ -78,6 +78,9 @@ to_sync_with_url_query = {
     'x_y_plot_dot_size': 10,
     'x_y_plot_dot_opacity': 0.5,
     'x_y_plot_line_width': 2.0,
+    'x_y_plot_figure_width': 1300,
+    'x_y_plot_figure_height': 900,
+    'x_y_plot_font_size_scale': 1.0,
     
     'x_y_plot_size_mapper': 'None',
     
@@ -393,7 +396,7 @@ def plot_x_y_session():
 
         (if_show_dots, if_aggr_each_group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group,
         if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor,
-        dot_size, dot_opacity, line_width) = add_xy_setting()
+        dot_size, dot_opacity, line_width, x_y_plot_figure_width, x_y_plot_figure_height, font_size_scale) = add_xy_setting()
     
     # If no sessions are selected, use all filtered entries
     # df_x_y_session = st.session_state.df_selected_from_dataframe if if_plot_only_selected_from_dataframe else st.session_state.df_session_filtered
@@ -425,7 +428,11 @@ def plot_x_y_session():
                                     dot_size_base=dot_size,
                                     dot_size_mapping_name=size_mapper,
                                     dot_opacity=dot_opacity,
-                                    line_width=line_width)
+                                    line_width=line_width,
+                                    x_y_plot_figure_width=x_y_plot_figure_width,
+                                    x_y_plot_figure_height=x_y_plot_figure_height,
+                                    font_size_scale=font_size_scale,
+                                    )
         
         # st.plotly_chart(fig)
         selected = plotly_events(fig, click_event=True, hover_event=False, select_event=True, 
