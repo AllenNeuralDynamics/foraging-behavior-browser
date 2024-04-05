@@ -663,6 +663,12 @@ def add_auto_train_manager():
     with st.expander('Automatic training manager', expanded=True):
         st.dataframe(df_training_manager, height=3000)
 
+def _create_autotrain_string(row):
+    if pd.notna(row['curriculum_name']):
+        return f"{row['current_stage_actual']} @ {row['curriculum_name']}"
+    else:
+        return "None"
+
 @st.cache_data(ttl=3600*24)                
 def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='h2o',
                          smooth_factor=5, 
@@ -681,11 +687,11 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                          dot_opacity=0.4,
                          line_width=2,
                          **kwarg):
-    
-    def _add_agg(df_this, x_name, y_name, group, aggr_method, if_use_x_quantile, q_quantiles, col, line_width):
+
+    def _add_agg(df_this, x_name, y_name, group, aggr_method, if_use_x_quantile, q_quantiles, col, line_width, **kwarg):
         x = df_this.sort_values(x_name)[x_name].astype(float)
         y = df_this.sort_values(x_name)[y_name].astype(float)
-        
+
         n_mice = len(df_this['h2o'].unique())
         n_sessions = len(df_this.groupby(['h2o', 'session']).count())
         n_str = f' ({n_mice} mice, {n_sessions} sessions)' if group_by !='h2o' else f' ({n_sessions} sessions)' 
@@ -701,12 +707,14 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                         line_width=line_width,
                         opacity=1,
                         hoveron='points+fills',   # Scattergl doesn't support this
+                        hoverinfo='skip',
+                        **kwarg,
                         ))
-            
+
         elif aggr_method == 'lowess':
             x_new = np.linspace(x.min(), x.max(), 200)
             lowess = sm.nonparametric.lowess(y, x, frac=smooth_factor/20)
-            
+
             fig.add_trace(go.Scatter(    
                         x=lowess[:, 0], 
                         y=lowess[:, 1], 
@@ -717,25 +725,27 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                         marker_color=col,
                         opacity=1,
                         hoveron='points+fills',   # Scattergl doesn't support this
+                        hoverinfo='skip',
+                        **kwarg,
                         ))
-            
+
         elif aggr_method in ('mean +/- sem', 'mean'):
-            
+
             # Re-bin x if use quantiles of x
             if if_use_x_quantile:
                 df_this[f'{x_name}_quantile'] = pd.qcut(df_this[x_name], q=q_quantiles, labels=False, duplicates='drop')
- 
+
                 mean = df_this.groupby(f'{x_name}_quantile')[y_name].mean()
                 sem = df_this.groupby(f'{x_name}_quantile')[y_name].sem()
                 valid_y = mean.notna()
                 mean = mean[valid_y]
                 sem = sem[valid_y]
                 sem[~sem.notna()] = 0
-                
+
                 x = df_this.groupby(f'{x_name}_quantile')[x_name].median()  # Use median of x in each quantile as x
                 y_upper = mean + sem
                 y_lower = mean - sem
-                
+
             else:    
                 # mean and sem groupby x_name
                 mean = df_this.groupby(x_name)[y_name].mean()
@@ -744,11 +754,11 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                 mean = mean[valid_y]
                 sem = sem[valid_y]
                 sem[~sem.notna()] = 0
-                
+
                 x = mean.index
                 y_upper = mean + sem
                 y_lower = mean - sem
-            
+
             fig.add_trace(go.Scatter(    
                         x=x, 
                         y=mean, 
@@ -762,8 +772,10 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                         marker_color=col,
                         opacity=1,
                         hoveron='points+fills',   # Scattergl doesn't support this
+                        hoverinfo='skip',
+                        **kwarg,                        
                         ))
-            
+
             if 'sem' in aggr_method:
                 fig.add_trace(go.Scatter(
                                 # name='Upper Bound',
@@ -789,7 +801,6 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                                 showlegend=False,
                                 hoverinfo='skip'
                             ))                                            
-            
 
         elif aggr_method == 'linear fit':
             # perform linear regression
@@ -805,24 +816,27 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                                         line=dict(dash='dot' if p_value > 0.05 else 'solid',
                                                   width=line_width if p_value > 0.05 else line_width*1.5),
                                         legendgroup=f'group_{group}',
-                                        # hoverinfo='skip'
+                                        hoverinfo='skip'
                                         )
                 )            
             except:
                 pass
-                
+
     fig = go.Figure()
     col_map = px.colors.qualitative.Plotly
-    
+
+    # Add some more columns
     if dot_size_mapping_name !='None' and dot_size_mapping_name in df.columns:
         df['dot_size'] = df[dot_size_mapping_name]
     else:
         df['dot_size'] = dot_size_base
-    
+        
+    df['auto_train_string'] = df.apply(_create_autotrain_string, axis=1)
+
     for i, group in enumerate(df.sort_values(group_by)[group_by].unique()):
         this_session = df.query(f'{group_by} == "{group}"').sort_values('session')
         col = col_map[i%len(col_map)]
-        
+
         if if_show_dots:
             if not len(st.session_state.df_selected_from_plotly):   
                 this_session['colors'] = col  # all use normal colors
@@ -832,7 +846,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                 merged.loc[merged.subject_id_y.notna(), 'colors'] = col   # only use normal colors for the selected dots 
                 this_session['colors'] = merged.colors.values
                 this_session = pd.concat([this_session.query('colors != "lightgrey"'), this_session.query('colors == "lightgrey"')])  # make sure the real color goes first
-                
+
             fig.add_trace(go.Scattergl(
                             x=this_session[x_name], 
                             y=this_session[y_name], 
@@ -843,44 +857,58 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                             line_width=line_width,
                             marker_size=this_session['dot_size'],
                             marker_color=this_session['colors'],
-                            opacity=dot_opacity, # 0.5 if if_aggr_each_group else 0.8,
-                            text=this_session['session'],
-                            hovertemplate =   '<br>%{customdata[0]}, Session %{text}' +
-                                            '<br>%s = %%{x}' % (x_name) +
-                                            '<br>%s = %%{y}' % (y_name),
-                                            #   '<extra>%{name}</extra>',
-                            customdata=np.stack((this_session.h2o, this_session.session), axis=-1),
+                            opacity=dot_opacity,
+                            hovertemplate =  '<b>%{customdata[0]}, %{customdata[1]}, Session %{customdata[2]}'
+                                             '<br>%{customdata[3]}, %{customdata[4]}'
+                                             '<br>Task: %{customdata[5]}'
+                                             '<br>AutoTrain: %{customdata[6]}</b>'
+                                             f'<br>{"-"*10}<br><b>X: </b>{x_name} = %{{x}}'
+                                             f'<br><b>Y: </b>{y_name} = %{{y}}' 
+                                             + (f'<br><b>Size: </b>{dot_size_mapping_name} = %{{customdata[7]}}' 
+                                                   if dot_size_mapping_name !='None' 
+                                                   else '') 
+                                             + '<extra></extra>',
+                            customdata=np.stack((this_session.h2o, # 0
+                                                 this_session.session_date.dt.strftime('%Y-%m-%d'), # 1
+                                                 this_session.session, # 2
+                                                 this_session.rig, # 3
+                                                 this_session.user_name, # 4
+                                                 this_session.task, # 5
+                                                 this_session.auto_train_string, # 6
+                                                 this_session[dot_size_mapping_name] 
+                                                    if dot_size_mapping_name !='None' 
+                                                    else [np.nan] * len(this_session.h2o), # 7
+                                                 ), axis=-1),
                             unselected=dict(marker_color='lightgrey')
                             ))
-            
+
         if if_aggr_each_group:
             _add_agg(this_session, x_name, y_name, group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group, col, line_width=line_width)
-        
 
     if if_aggr_all:
         _add_agg(df, x_name, y_name, 'all', aggr_method_all, if_use_x_quantile_all, q_quantiles_all, 'rgb(0, 0, 0)', line_width=line_width*1.5)
-        
 
     n_mice = len(df['h2o'].unique())
     n_sessions = len(df.groupby(['h2o', 'session']).count())
-    
+
     fig.update_layout(
-                    width=1300, 
-                    height=900,
-                    xaxis_title=x_name,
-                    yaxis_title=y_name,
-                    font=dict(size=25),
-                    hovermode='closest',
-                    legend={'traceorder':'reversed'},
-                    legend_font_size=15,
-                    title=f'{title}, {n_mice} mice, {n_sessions} sessions',
-                    dragmode='zoom', # 'select',
-                    margin=dict(l=130, r=50, b=130, t=100),
-                    )
+        width=1300,
+        height=900,
+        xaxis_title=x_name,
+        yaxis_title=y_name,
+        font=dict(size=25),
+        hovermode="closest",
+        hoverlabel=dict(font_size=17),
+        legend={"traceorder": "reversed"},
+        legend_font_size=15,
+        title=f"{title}, {n_mice} mice, {n_sessions} sessions",
+        dragmode="zoom",  # 'select',
+        margin=dict(l=130, r=50, b=130, t=100),
+    )
     fig.update_xaxes(showline=True, linewidth=2, linecolor='black', 
                     #  range=[1, min(100, df[x_name].max())],
                      ticks = "outside", tickcolor='black', ticklen=10, tickwidth=2, ticksuffix=' ')
-    
+
     fig.update_yaxes(showline=True, linewidth=2, linecolor='black',
                      title_standoff=40,
                      ticks = "outside", tickcolor='black', ticklen=10, tickwidth=2, ticksuffix=' ')
