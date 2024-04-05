@@ -87,9 +87,9 @@ to_sync_with_url_query = {
     'x_y_plot_figure_height': 900,
     'x_y_plot_font_size_scale': 1.0,
     
-    'x_y_plot_size_mapper': 'None',
+    'x_y_plot_size_mapper': 'finished_trials',
     'x_y_plot_size_mapper_gamma': 1.0,
-    'x_y_plot_size_mapper_range': [0, 50],
+    'x_y_plot_size_mapper_range': [5, 30],
     
     'session_plot_mode': 'sessions selected from table or plot',
 
