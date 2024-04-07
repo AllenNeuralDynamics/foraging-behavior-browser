@@ -125,19 +125,7 @@ except:
 if 'selected_points' not in st.session_state:
     st.session_state['selected_points'] = []
 
-    
 
-def _get_urls():
-    cache_folder = 'aind-behavior-data/Han/ephys/report/st_cache/'
-    cache_session_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_sessions/'
-    cache_mouse_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_subjects/'
-    
-    fs = s3fs.S3FileSystem(anon=False)
-   
-    with fs.open('aind-behavior-data/Han/streamlit_CO_url.json', 'r') as f:
-        data = json.load(f)
-    
-    return data['behavior'], data['ephys']
                     
 @st.cache_data(ttl=24*3600)
 def load_data(tables=['sessions']):
