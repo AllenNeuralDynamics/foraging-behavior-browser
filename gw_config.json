@@ -198,6 +198,70 @@
           "basename": "weekday",
           "dragId": "GW_k5CoqSta",
           "offset": 0
+        },
+        {
+          "fid": "has_video",
+          "name": "has_video",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "has_video",
+          "dragId": "GW_2WFpZTxq"
+        },
+        {
+          "fid": "has_ephys",
+          "name": "has_ephys",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "has_ephys",
+          "dragId": "GW_zEX6LQVa"
+        },
+        {
+          "fid": "old_bpod_session",
+          "name": "old_bpod_session",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "old_bpod_session",
+          "dragId": "GW_CxAuDhVz"
+        },
+        {
+          "fid": "institute",
+          "name": "institute",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "institute",
+          "dragId": "GW_kZ3nBOU9"
+        },
+        {
+          "fid": "rig_type",
+          "name": "rig_type",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "rig_type",
+          "dragId": "GW_qhiUSQPC"
+        },
+        {
+          "fid": "room",
+          "name": "room",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "room",
+          "dragId": "GW_vN6TegxB"
+        },
+        {
+          "fid": "hardware",
+          "name": "hardware",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "hardware",
+          "dragId": "GW_7vKJHUYO"
+        },
+        {
+          "fid": "data_source",
+          "name": "data_source",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "data_source",
+          "dragId": "GW_B1xgPbEL"
         }
       ],
       "measures": [
@@ -1795,6 +1859,70 @@
           "basename": "weekday",
           "dragId": "GW_xzAdpGWI",
           "offset": 0
+        },
+        {
+          "fid": "has_video",
+          "name": "has_video",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "has_video",
+          "dragId": "GW_Cdfo8s0e"
+        },
+        {
+          "fid": "has_ephys",
+          "name": "has_ephys",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "has_ephys",
+          "dragId": "GW_E7NCF4ya"
+        },
+        {
+          "fid": "old_bpod_session",
+          "name": "old_bpod_session",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "old_bpod_session",
+          "dragId": "GW_TIlKiJW1"
+        },
+        {
+          "fid": "institute",
+          "name": "institute",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "institute",
+          "dragId": "GW_GiIbtKYo"
+        },
+        {
+          "fid": "rig_type",
+          "name": "rig_type",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "rig_type",
+          "dragId": "GW_309LpyUt"
+        },
+        {
+          "fid": "room",
+          "name": "room",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "room",
+          "dragId": "GW_PO5RApT8"
+        },
+        {
+          "fid": "hardware",
+          "name": "hardware",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "hardware",
+          "dragId": "GW_JD8sn7fz"
+        },
+        {
+          "fid": "data_source",
+          "name": "data_source",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "data_source",
+          "dragId": "GW_ts9aSd4z"
         }
       ],
       "measures": [
@@ -3292,6 +3420,70 @@
           "analyticType": "dimension",
           "semanticType": "nominal",
           "offset": 0
+        },
+        {
+          "fid": "has_video",
+          "name": "has_video",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "has_video",
+          "dragId": "GW_xvZNz6ly"
+        },
+        {
+          "fid": "has_ephys",
+          "name": "has_ephys",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "has_ephys",
+          "dragId": "GW_LfaGjIzQ"
+        },
+        {
+          "fid": "old_bpod_session",
+          "name": "old_bpod_session",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "old_bpod_session",
+          "dragId": "GW_Gufaj7xo"
+        },
+        {
+          "fid": "institute",
+          "name": "institute",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "institute",
+          "dragId": "GW_z1pxDdrJ"
+        },
+        {
+          "fid": "rig_type",
+          "name": "rig_type",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "rig_type",
+          "dragId": "GW_aP9S0HbF"
+        },
+        {
+          "fid": "room",
+          "name": "room",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "room",
+          "dragId": "GW_VwiJzWey"
+        },
+        {
+          "fid": "hardware",
+          "name": "hardware",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "hardware",
+          "dragId": "GW_ITK4MUEk"
+        },
+        {
+          "fid": "data_source",
+          "name": "data_source",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "data_source",
+          "dragId": "GW_8VmNjt1i"
         }
       ],
       "measures": [
@@ -4642,6 +4834,70 @@
           "analyticType": "dimension",
           "semanticType": "nominal",
           "offset": 0
+        },
+        {
+          "fid": "has_video",
+          "name": "has_video",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "has_video",
+          "dragId": "GW_d0snox9X"
+        },
+        {
+          "fid": "has_ephys",
+          "name": "has_ephys",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "has_ephys",
+          "dragId": "GW_Un7Ab4aD"
+        },
+        {
+          "fid": "old_bpod_session",
+          "name": "old_bpod_session",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "old_bpod_session",
+          "dragId": "GW_0CRgMaA5"
+        },
+        {
+          "fid": "institute",
+          "name": "institute",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "institute",
+          "dragId": "GW_3OcDsx8W"
+        },
+        {
+          "fid": "rig_type",
+          "name": "rig_type",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "rig_type",
+          "dragId": "GW_X89EDH2b"
+        },
+        {
+          "fid": "room",
+          "name": "room",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "room",
+          "dragId": "GW_8P3IN1fy"
+        },
+        {
+          "fid": "hardware",
+          "name": "hardware",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "hardware",
+          "dragId": "GW_i0LKsTka"
+        },
+        {
+          "fid": "data_source",
+          "name": "data_source",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "data_source",
+          "dragId": "GW_ovQlp534"
         }
       ],
       "measures": [
@@ -5755,23 +6011,12 @@
       ],
       "color": [
         {
-          "analyticType": "dimension",
-          "dragId": "gw_skdI",
-          "fid": "gw_87w6",
-          "name": "rig_type",
+          "fid": "data_source",
+          "name": "data_source",
           "semanticType": "nominal",
-          "computed": true,
-          "expression": {
-            "op": "expr",
-            "as": "gw_87w6",
-            "params": [
-              {
-                "type": "sql",
-                "value": "CASE \n    WHEN lower(rig) LIKE '%ephys%' THEN 'Ephys' \n    WHEN rig LIKE '%447%' THEN '447'\n    ELSE '347' \nEND"
-              }
-            ]
-          },
-          "offset": 0
+          "analyticType": "dimension",
+          "basename": "data_source",
+          "dragId": "gw_Xjam"
         }
       ],
       "opacity": [],
@@ -5794,8 +6039,8 @@
       "zeroScale": true,
       "size": {
         "mode": "fixed",
-        "width": 1400,
-        "height": 350
+        "width": 1772,
+        "height": 563
       },
       "format": {},
       "geoKey": "name",
@@ -5806,6 +6051,13 @@
         "opacity": false,
         "shape": false,
         "size": false
+      },
+      "scaleIncludeUnmatchedChoropleth": false,
+      "colorPalette": "tableau20",
+      "useSvg": false,
+      "scale": {
+        "opacity": {},
+        "size": {}
       }
     },
     "visId": "gw_zWlp",
@@ -5981,7 +6233,72 @@
           "fid": "gw_mea_key_fid",
           "name": "Measure names",
           "analyticType": "dimension",
-          "semanticType": "nominal"
+          "semanticType": "nominal",
+          "offset": 0
+        },
+        {
+          "fid": "has_video",
+          "name": "has_video",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "has_video",
+          "dragId": "GW_bqFCZrpy"
+        },
+        {
+          "fid": "has_ephys",
+          "name": "has_ephys",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "has_ephys",
+          "dragId": "GW_4xjIydG8"
+        },
+        {
+          "fid": "old_bpod_session",
+          "name": "old_bpod_session",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "old_bpod_session",
+          "dragId": "GW_Xm5RBDsM"
+        },
+        {
+          "fid": "institute",
+          "name": "institute",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "institute",
+          "dragId": "GW_Rzr945a3"
+        },
+        {
+          "fid": "rig_type",
+          "name": "rig_type",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "rig_type",
+          "dragId": "GW_LUV0XbSs"
+        },
+        {
+          "fid": "room",
+          "name": "room",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "room",
+          "dragId": "GW_ThuEasrW"
+        },
+        {
+          "fid": "hardware",
+          "name": "hardware",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "hardware",
+          "dragId": "GW_lIN7svPj"
+        },
+        {
+          "fid": "data_source",
+          "name": "data_source",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "data_source",
+          "dragId": "GW_eUVoHIi3"
         }
       ],
       "measures": [
@@ -7057,7 +7374,8 @@
             "op": "one",
             "params": [],
             "as": "gw_count_fid"
-          }
+          },
+          "offset": 0
         },
         {
           "dragId": "gw_mea_val_fid",
@@ -7065,7 +7383,8 @@
           "name": "Measure values",
           "analyticType": "measure",
           "semanticType": "quantitative",
-          "aggName": "sum"
+          "aggName": "sum",
+          "offset": 0
         }
       ],
       "rows": [
@@ -7122,8 +7441,8 @@
       "zeroScale": true,
       "size": {
         "mode": "fixed",
-        "width": 1464,
-        "height": 324
+        "width": 1733,
+        "height": 507
       },
       "format": {},
       "geoKey": "name",
@@ -7316,7 +7635,72 @@
           "fid": "gw_mea_key_fid",
           "name": "Measure names",
           "analyticType": "dimension",
-          "semanticType": "nominal"
+          "semanticType": "nominal",
+          "offset": 0
+        },
+        {
+          "fid": "has_video",
+          "name": "has_video",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "has_video",
+          "dragId": "GW_cIj0CiSl"
+        },
+        {
+          "fid": "has_ephys",
+          "name": "has_ephys",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "has_ephys",
+          "dragId": "GW_SJwOhAXu"
+        },
+        {
+          "fid": "old_bpod_session",
+          "name": "old_bpod_session",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "old_bpod_session",
+          "dragId": "GW_qFLmGBcS"
+        },
+        {
+          "fid": "institute",
+          "name": "institute",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "institute",
+          "dragId": "GW_lK7zi5Vs"
+        },
+        {
+          "fid": "rig_type",
+          "name": "rig_type",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "rig_type",
+          "dragId": "GW_6G7cNkPO"
+        },
+        {
+          "fid": "room",
+          "name": "room",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "room",
+          "dragId": "GW_IzBiWfqh"
+        },
+        {
+          "fid": "hardware",
+          "name": "hardware",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "hardware",
+          "dragId": "GW_4uXa8HfP"
+        },
+        {
+          "fid": "data_source",
+          "name": "data_source",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "data_source",
+          "dragId": "GW_FTWywrJo"
         }
       ],
       "measures": [
@@ -8392,7 +8776,8 @@
             "op": "one",
             "params": [],
             "as": "gw_count_fid"
-          }
+          },
+          "offset": 0
         },
         {
           "dragId": "gw_mea_val_fid",
@@ -8400,7 +8785,8 @@
           "name": "Measure values",
           "analyticType": "measure",
           "semanticType": "quantitative",
-          "aggName": "sum"
+          "aggName": "sum",
+          "offset": 0
         }
       ],
       "rows": [
@@ -8457,8 +8843,8 @@
       "zeroScale": true,
       "size": {
         "mode": "fixed",
-        "width": 1448,
-        "height": 299
+        "width": 1735,
+        "height": 521
       },
       "format": {},
       "geoKey": "name",
@@ -8469,6 +8855,13 @@
         "opacity": false,
         "shape": false,
         "size": false
+      },
+      "scaleIncludeUnmatchedChoropleth": false,
+      "colorPalette": "tableau20",
+      "useSvg": false,
+      "scale": {
+        "opacity": {},
+        "size": {}
       }
     },
     "visId": "gw_9Q9L",
