@@ -953,7 +953,8 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                             marker_color=this_session['colors'],
                             opacity=dot_opacity,
                             hovertemplate =  '<b>%{customdata[0]}, %{customdata[1]}, Session %{customdata[2]}'
-                                             '<br>%{customdata[3]}, %{customdata[4]}'
+                                             '<br>%{customdata[4]} @ %{customdata[9]}'
+                                             '<br>Rig: %{customdata[3]}'
                                              '<br>Task: %{customdata[5]}'
                                              '<br>AutoTrain: %{customdata[7]} @ %{customdata[6]}</b>'
                                              f'<br>{"-"*10}<br><b>X: </b>{x_name} = %{{x}}'
@@ -977,6 +978,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                                                  this_session[dot_size_mapping_name] 
                                                     if dot_size_mapping_name !='None' 
                                                     else [np.nan] * len(this_session.h2o), # 8
+                                                 this_session.data_source if 'data_source' in this_session else '', # 9
                                                  ), axis=-1),
                             unselected=dict(marker_color='lightgrey')
                             ))
