@@ -602,6 +602,34 @@ def init():
         _df['user_name'] = np.where(_df['bpod_backup_user_name'].notnull(), _df['bpod_backup_user_name'], _df['user_name'])
     else:
         _df['h2o'] = _df['subject_id']
+        
+        
+    def _get_data_source(rig):
+        """From rig string, return "{institute}_{rig_type}_{room}_{hardware}"
+        """
+        institute = 'Janelia' if ('bpod' in rig) and not ('AIND' in rig) else 'AIND'
+        hardware = 'bpod' if ('bpod' in rig) else 'bonsai'
+        rig_type = 'ephys' if ('ephys' in rig.lower()) else 'training'
+        
+        # This is a mess...
+        if institute == 'Janelia':
+            room = 'NA'
+        elif 'Ephys-Han' in rig:
+            room = '321'
+        elif hardware == 'bpod':
+            room = '347'
+        elif '447' in rig:
+            room = '447'
+        elif '323' in rig:
+            room = '323'
+        elif rig_type == 'ephys':
+            room = '323'
+        else:
+            room = '447'
+        return institute, rig_type, room, hardware, '_'.join([institute, rig_type, room, hardware])
+        
+    # Add data source (Room + Hardware etc)
+    _df[['institute', 'rig_type', 'room', 'hardware', 'data_source']] = _df['rig'].apply(lambda x: pd.Series(_get_data_source(x)))
     
     # Handle session number
     _df.dropna(subset=['session'], inplace=True) # Remove rows with no session number (only leave the nwb file with the largest finished_trials for now)
@@ -631,7 +659,8 @@ def init():
                      'curriculum_schema_version': 'None',
                      'current_stage_actual': 'None',
                      'has_video': False,
-                     'has_ephys': False,}
+                     'has_ephys': False,
+                     }
     _df.fillna(filled_values, inplace=True)
     
     # foraging performance = foraing_eff * finished_rate
