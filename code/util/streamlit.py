@@ -396,7 +396,7 @@ def add_session_filter(if_bonsai=False, url_query={}):
 @st.cache_data(ttl=3600*24)
 def _get_grouped_by_fields(if_bonsai):
     if if_bonsai:
-        options = ['h2o', 'task', 'user_name', 'rig', 'weekday', 'data_source']
+        options = ['h2o', 'task', 'user_name', 'rig', 'data_source', 'weekday']
         options += [col 
                 for col in st.session_state.df_session_filtered.columns
                 if is_categorical_dtype(st.session_state.df_session_filtered[col]) 
