@@ -58,7 +58,7 @@ def aggrid_interactive_table_session(df: pd.DataFrame, table_height: int = 400):
     options.configure_side_bar()
     
     if 'session_end_time' in df.columns:
-        df = df.sort_values('session_end_time', ascending=False)
+        df = df.sort_values('session_start_time', ascending=False)
     else:
         df = df.sort_values('session_date', ascending=False)
     

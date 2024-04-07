@@ -517,8 +517,10 @@ def init():
 
     df = load_data(['sessions'], data_source='bonsai')
     
+    # --- Perform any data source-dependent preprocessing here ---
     if st.session_state.if_load_bpod_sessions:
         df_bpod = load_data(['sessions'], data_source='bpod')
+        
         # For historial reason, the suffix of df['sessions_bonsai'] just mean the data of the Home.py page
         df['sessions_bonsai'] = pd.concat([df['sessions_bonsai'], df_bpod['sessions_bonsai']], axis=0)
                 
@@ -588,51 +590,62 @@ def init():
    
    
     # Some ad-hoc modifications on df_sessions
-    st.session_state.df['sessions_bonsai'].columns = st.session_state.df['sessions_bonsai'].columns.get_level_values(1)
-    st.session_state.df['sessions_bonsai'].sort_values(['session_end_time'], ascending=False, inplace=True)
-    st.session_state.df['sessions_bonsai'] = st.session_state.df['sessions_bonsai'].reset_index().query('subject_id != "0"')
-    st.session_state.df['sessions_bonsai']['h2o'] = st.session_state.df['sessions_bonsai']['subject_id']
-    st.session_state.df['sessions_bonsai'].dropna(subset=['session'], inplace=True) # Remove rows with no session number (only leave the nwb file with the largest finished_trials for now)
-    st.session_state.df['sessions_bonsai'].drop(st.session_state.df['sessions_bonsai'].query('session < 1').index, inplace=True)
+    _df = st.session_state.df['sessions_bonsai']  # temporary df alias
+    
+    _df.columns = _df.columns.get_level_values(1)
+    _df.sort_values(['session_start_time'], ascending=False, inplace=True)
+    _df = _df.reset_index().query('subject_id != "0"')
+ 
+    # Fill in h2o (water restriction number, or mouse alias)
+    if 'bpod_backup_h2o' in _df.columns:
+        _df['h2o'] = np.where(_df['bpod_backup_h2o'].notnull(), _df['bpod_backup_h2o'], _df['subject_id'])
+    else:
+        _df['h2o'] = _df['subject_id']
+    
+    # Handle session number
+    _df.dropna(subset=['session'], inplace=True) # Remove rows with no session number (only leave the nwb file with the largest finished_trials for now)
+    _df.drop(_df.query('session < 1').index, inplace=True)
     
     # # add something else
     # add abs(bais) to all terms that have 'bias' in name
-    for col in st.session_state.df['sessions_bonsai'].columns:
+    for col in _df.columns:
         if 'bias' in col:
-            st.session_state.df['sessions_bonsai'][f'abs({col})'] = np.abs(st.session_state.df['sessions_bonsai'][col])
+            _df[f'abs({col})'] = np.abs(_df[col])
         
     # # delta weight
-    # diff_relative_weight_next_day = st.session_state.df['sessions_bonsai'].set_index(
+    # diff_relative_weight_next_day = _df.set_index(
     #     ['session']).sort_values('session', ascending=True).groupby('h2o').apply(
     #         lambda x: - x.relative_weight.diff(periods=-1)).rename("diff_relative_weight_next_day")
         
     # weekday
-    st.session_state.df['sessions_bonsai'].session_date = pd.to_datetime(st.session_state.df['sessions_bonsai'].session_date)
-    st.session_state.df['sessions_bonsai']['weekday'] = st.session_state.df['sessions_bonsai'].session_date.dt.dayofweek + 1
+    _df.session_date = pd.to_datetime(_df.session_date)
+    _df['weekday'] = _df.session_date.dt.dayofweek + 1
     
     # map user_name
-    st.session_state.df['sessions_bonsai']['user_name'] = st.session_state.df['sessions_bonsai']['user_name'].apply(_user_name_mapper)
+    _df['user_name'] = _df['user_name'].apply(_user_name_mapper)
     
     # fill nan for autotrain fields
     filled_values = {'curriculum_name': 'None', 
                      'curriculum_version': 'None',
                      'curriculum_schema_version': 'None',
                      'current_stage_actual': 'None'}
-    st.session_state.df['sessions_bonsai'].fillna(filled_values, inplace=True)
+    _df.fillna(filled_values, inplace=True)
     
     # foraging performance = foraing_eff * finished_rate
-    if 'foraging_performance' not in st.session_state.df['sessions_bonsai'].columns:
-        st.session_state.df['sessions_bonsai']['foraging_performance'] = \
-            st.session_state.df['sessions_bonsai']['foraging_eff'] \
-            * st.session_state.df['sessions_bonsai']['finished_rate']
-        st.session_state.df['sessions_bonsai']['foraging_performance_random_seed'] = \
-            st.session_state.df['sessions_bonsai']['foraging_eff_random_seed'] \
-            * st.session_state.df['sessions_bonsai']['finished_rate']
+    if 'foraging_performance' not in _df.columns:
+        _df['foraging_performance'] = \
+            _df['foraging_eff'] \
+            * _df['finished_rate']
+        _df['foraging_performance_random_seed'] = \
+            _df['foraging_eff_random_seed'] \
+            * _df['finished_rate']
 
-    # st.session_state.df['sessions_bonsai'] = st.session_state.df['sessions_bonsai'].merge(
+    # _df = _df.merge(
     #     diff_relative_weight_next_day, how='left', on=['h2o', 'session'])
 
-    st.session_state.session_stats_names = [keys for keys in st.session_state.df['sessions_bonsai'].keys()]
+    st.session_state.df['sessions_bonsai'] = _df  # Somehow _df loses the reference to the original dataframe
+    
+    st.session_state.session_stats_names = [keys for keys in _df.keys()]
        
     # Establish communication between pygwalker and streamlit
     init_streamlit_comm()
