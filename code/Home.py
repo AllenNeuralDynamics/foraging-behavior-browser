@@ -596,9 +596,10 @@ def init():
     _df.sort_values(['session_start_time'], ascending=False, inplace=True)
     _df = _df.reset_index().query('subject_id != "0"')
  
-    # Fill in h2o (water restriction number, or mouse alias)
+    # Handle mouse and user name
     if 'bpod_backup_h2o' in _df.columns:
         _df['h2o'] = np.where(_df['bpod_backup_h2o'].notnull(), _df['bpod_backup_h2o'], _df['subject_id'])
+        _df['user_name'] = np.where(_df['bpod_backup_user_name'].notnull(), _df['bpod_backup_user_name'], _df['user_name'])
     else:
         _df['h2o'] = _df['subject_id']
     
@@ -628,7 +629,9 @@ def init():
     filled_values = {'curriculum_name': 'None', 
                      'curriculum_version': 'None',
                      'curriculum_schema_version': 'None',
-                     'current_stage_actual': 'None'}
+                     'current_stage_actual': 'None',
+                     'has_video': False,
+                     'has_ephys': False,}
     _df.fillna(filled_values, inplace=True)
     
     # foraging performance = foraing_eff * finished_rate
