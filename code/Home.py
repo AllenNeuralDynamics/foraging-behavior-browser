@@ -12,7 +12,7 @@ Example queries:
 
 """
 
-#%%
+# %%
 import pandas as pd
 import streamlit as st
 from pathlib import Path
@@ -57,7 +57,7 @@ from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
 # dict of "key": default pairs
 # Note: When creating the widget, add argument "value"/"index" as well as "key" for all widgets you want to sync with URL
 to_sync_with_url_query = {
-    'if_load_bpod_sessions': True,
+    'if_load_bpod_sessions': False,
     
     'filter_subject_id': '',
     'filter_session': [0.0, None],
@@ -126,7 +126,7 @@ except:
 
 if 'selected_points' not in st.session_state:
     st.session_state['selected_points'] = []
-                    
+
 @st.cache_data(ttl=24*3600)
 def load_data(tables=['sessions'], data_source = 'bonsai'):
     df = {}
@@ -179,7 +179,7 @@ def _user_name_mapper(user_name):
         return user_name
 
 # @st.cache_data(ttl=24*3600, max_entries=20)
-def show_session_level_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], crop=None, caption=True, **kwargs):
+def show_session_level_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], crop=None, caption=True, data_source='bonsai', **kwargs):
     try:
         date_str = key["session_date"].strftime(r'%Y-%m-%d')
     except:
@@ -187,7 +187,7 @@ def show_session_level_img_by_key_and_prefix(key, prefix, column=None, other_pat
     
     # Convert session_date to 2024-04-01 format
     subject_session_date_str = f"{key['subject_id']}_{date_str}_{key['nwb_suffix']}".split('_0')[0]
-    glob_patterns = [s3_processed_nwb_folder['bonsai'] + f"{subject_session_date_str}/{subject_session_date_str}_{prefix}*"]
+    glob_patterns = [s3_processed_nwb_folder[data_source] + f"{subject_session_date_str}/{subject_session_date_str}_{prefix}*"]
     
     img, f_name = _fetch_img(glob_patterns, crop)
 
@@ -231,7 +231,7 @@ def show_mouse_level_img_by_key_and_prefix(key, prefix, column=None, other_patte
 def get_pyg_renderer(df, spec="./gw_config.json", **kwargs) -> "StreamlitRenderer":
     return StreamlitRenderer(df, spec=spec, debug=False, **kwargs)
 
-    
+
 def draw_session_plots(df_to_draw_session):
     
     # Setting up layout for each session
@@ -264,8 +264,9 @@ def draw_session_plots(df_to_draw_session):
                     except:
                         date_str = key["session_date"].split("T")[0]
                     
-                    st.markdown(f'''<h4 style='text-align: center; color: orange;'>{key["h2o"]}, Session {int(key["session"])}, {date_str}''',
-                              unsafe_allow_html=True)
+                    st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["h2o"]}, Session {int(key["session"])}, {date_str} '''
+                                f'''({key["user_name"]}@{key["data_source"]})''',
+                                unsafe_allow_html=True)
                     if len(st.session_state.selected_draw_types) > 1:  # more than one types, use the pre-defined layout
                         for row, column_setting in enumerate(layout_definition):
                             rows.append(this_major_col.columns(column_setting))
@@ -278,33 +279,35 @@ def draw_session_plots(df_to_draw_session):
                     prefix, position, setting = st.session_state.draw_type_mapper_session_level[draw_type]
                     this_col = rows[position[0]][position[1]] if len(st.session_state.selected_draw_types) > 1 else rows[0]
                     show_session_level_img_by_key_and_prefix(key, 
-                                                column=this_col,
-                                                prefix=prefix, 
-                                                **setting)
+                                                            column=this_col,
+                                                            prefix=prefix,
+                                                            data_source=key['hardware'],
+                                                            **setting)
                     
                 my_bar.progress(int((i + 1) / len(df_to_draw_session) * 100))
-                
+
 def draw_session_plots_quick_preview(df_to_draw_session):
-    
+
     # Setting up layout for each session
     layout_definition = [[1],   # columns in the first row
                          [1, 1],
                          ]  
     draw_types_quick_preview = ['1. Choice history', '2. Logistic regression (Su2022)']
-    
+
     container_session_all_in_one = st.container()
-    
+
     key = df_to_draw_session.to_dict(orient='records')[0]
-    
+
     with container_session_all_in_one:
         try:
             date_str = key["session_date"].strftime('%Y-%m-%d')
         except:
             date_str = key["session_date"].split("T")[0]
-        
-        st.markdown(f'''<h4 style='text-align: center; color: orange;'>{key["h2o"]}, Session {int(key["session"])}, {date_str}''',
+
+        st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["h2o"]}, Session {int(key["session"])}, {date_str} '''
+                    f'''({key["user_name"]}@{key["data_source"]})''',
                     unsafe_allow_html=True)
-        
+
         rows = []
         for row, column_setting in enumerate(layout_definition):
             rows.append(st.columns(column_setting))
@@ -313,14 +316,15 @@ def draw_session_plots_quick_preview(df_to_draw_session):
             if draw_type not in st.session_state.selected_draw_types: continue  # To keep the draw order defined by st.session_state.draw_type_mapper_session_level
             prefix, position, setting = st.session_state.draw_type_mapper_session_level[draw_type]
             this_col = rows[position[0]][position[1]] if len(st.session_state.selected_draw_types) > 1 else rows[0]
-            show_session_level_img_by_key_and_prefix(key, 
-                                        column=this_col,
-                                        prefix=prefix, 
-                                        **setting)
-            
-                
-             
-                
+            show_session_level_img_by_key_and_prefix(
+                key,
+                column=this_col,
+                prefix=prefix,
+                data_source=key["hardware"],
+                **setting,
+            )
+
+
 def draw_mice_plots(df_to_draw_mice):
     
     # Setting up layout for each session
@@ -364,11 +368,7 @@ def draw_mice_plots(df_to_draw_mice):
                                                         **setting)
                     
                 my_bar.progress(int((i + 1) / len(df_to_draw_mice) * 100))
-                
 
-
-
-  
 
 def session_plot_settings(need_click=True):
     st.markdown('##### Show plots for individual sessions ')
@@ -499,11 +499,10 @@ def plot_x_y_session():
     return df_selected_from_plotly, cols
 
 
-
 def show_curriculums():
     pass
 
-# ------- Layout starts here -------- #    
+# ------- Layout starts here -------- #
 def init():
     
     # Clear specific session state and all filters
@@ -672,6 +671,9 @@ def init():
             _df['foraging_eff_random_seed'] \
             * _df['finished_rate']
 
+    # drop 'bpod_backup_' columns
+    _df.drop([col for col in _df.columns if 'bpod_backup_' in col], axis=1, inplace=True)
+    
     # _df = _df.merge(
     #     diff_relative_weight_next_day, how='left', on=['h2o', 'session'])
 
@@ -681,7 +683,7 @@ def init():
        
     # Establish communication between pygwalker and streamlit
     init_streamlit_comm()
-    
+
 
 def app():
     
@@ -715,16 +717,16 @@ def app():
         # with col1:
         # -- 1. unit dataframe --
         
-        cols = st.columns([2, 1, 4, 1])
+        cols = st.columns([2, 2, 4, 1])
         cols[0].markdown(f'### Filter the sessions on the sidebar\n'
                          f'#####  {len(st.session_state.df_session_filtered)} sessions, '
                          f'{len(st.session_state.df_session_filtered.h2o.unique())} mice filtered')
     
         if_load_bpod_sessions = checkbox_wrapper_for_url_query(
             st_prefix=cols[1],
-            label='Include old Bpod sessions',
+            label='Include old Bpod sessions (reload after change)',
             key='if_load_bpod_sessions',
-            default=True,
+            default=False,
         )
                                                                    
         with cols[1]:        
@@ -972,6 +974,5 @@ def app():
 
 if 'df' not in st.session_state or 'sessions_bonsai' not in st.session_state.df.keys(): 
     init()
-    
-app()
 
+app()
