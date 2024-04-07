@@ -769,7 +769,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                          font_size_scale=1.0,
                          **kwarg):
 
-    def _add_agg(df_this, x_name, y_name, group, aggr_method, if_use_x_quantile, q_quantiles, col, line_width, **kwarg):
+    def _add_agg(df_this, x_name, y_name, group, aggr_method, if_use_x_quantile, q_quantiles, col, line_width, hoverinfo='skip', **kwarg):
         x = df_this.sort_values(x_name)[x_name].astype(float)
         y = df_this.sort_values(x_name)[y_name].astype(float)
 
@@ -788,7 +788,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                         line_width=line_width,
                         opacity=1,
                         hoveron='points+fills',   # Scattergl doesn't support this
-                        hoverinfo='skip',
+                        hoverinfo=hoverinfo,
                         **kwarg,
                         ))
 
@@ -806,7 +806,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                         marker_color=col,
                         opacity=1,
                         hoveron='points+fills',   # Scattergl doesn't support this
-                        hoverinfo='skip',
+                        hoverinfo=hoverinfo,
                         **kwarg,
                         ))
 
@@ -853,7 +853,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                         marker_color=col,
                         opacity=1,
                         hoveron='points+fills',   # Scattergl doesn't support this
-                        hoverinfo='skip',
+                        hoverinfo=hoverinfo,
                         **kwarg,                        
                         ))
 
@@ -867,7 +867,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                                 line=dict(width=0),
                                 legendgroup=f'group_{group}',
                                 showlegend=False,
-                                hoverinfo='skip',
+                                hoverinfo=hoverinfo,
                             ))
                 fig.add_trace(go.Scatter(
                                 # name='Upper Bound',
@@ -880,7 +880,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                                 fillcolor=f'rgba({plotly.colors.convert_colors_to_same_type(col)[0][0].split("(")[-1][:-1]}, 0.2)',
                                 legendgroup=f'group_{group}',
                                 showlegend=False,
-                                hoverinfo='skip'
+                                hoverinfo=hoverinfo
                             ))                                            
 
         elif aggr_method == 'linear fit':
@@ -897,7 +897,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                                         line=dict(dash='dot' if p_value > 0.05 else 'solid',
                                                   width=line_width if p_value > 0.05 else line_width*1.5),
                                         legendgroup=f'group_{group}',
-                                        hoverinfo='skip'
+                                        hoverinfo=hoverinfo
                                         )
                 )            
             except:
@@ -982,10 +982,13 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                             ))
 
         if if_aggr_each_group:
-            _add_agg(this_session, x_name, y_name, group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group, col, line_width=line_width)
+            _add_agg(this_session, x_name, y_name, group, aggr_method_group, 
+                     if_use_x_quantile_group, q_quantiles_group, col, line_width=line_width,
+                     hoverinfo='all' if not if_show_dots else 'skip')
 
     if if_aggr_all:
-        _add_agg(df, x_name, y_name, 'all', aggr_method_all, if_use_x_quantile_all, q_quantiles_all, 'rgb(0, 0, 0)', line_width=line_width*1.5)
+        _add_agg(df, x_name, y_name, 'all', aggr_method_all, if_use_x_quantile_all, q_quantiles_all, 'rgb(0, 0, 0)', line_width=line_width*1.5,
+                 hoverinfo='all' if not if_show_dots else 'skip')
 
     n_mice = len(df['h2o'].unique())
     n_sessions = len(df.groupby(['h2o', 'session']).count())
