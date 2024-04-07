@@ -43,7 +43,7 @@ from util.streamlit import (filter_dataframe, aggrid_interactive_table_session,
                             add_xy_selector, add_xy_setting, add_auto_train_manager, add_dot_property_mapper,
                             _plot_population_x_y)
 from util.url_query_helper import (
-    sync_widget_with_query, slider_wrapper_for_url_query,
+    sync_widget_with_query, slider_wrapper_for_url_query, checkbox_wrapper_for_url_query
 )
 
 import extra_streamlit_components as stx
@@ -57,6 +57,8 @@ from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
 # dict of "key": default pairs
 # Note: When creating the widget, add argument "value"/"index" as well as "key" for all widgets you want to sync with URL
 to_sync_with_url_query = {
+    'if_load_bpod_sessions': True,
+    
     'filter_subject_id': '',
     'filter_session': [0.0, None],
     'filter_finished_trials': [0.0, None],
@@ -102,10 +104,10 @@ to_sync_with_url_query = {
     }
 
 
-raw_nwb_folder = 'aind-behavior-data/foraging_nwb_bonsai/'
-cache_folder = 'aind-behavior-data/foraging_nwb_bonsai_processed/'
-# cache_session_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_sessions/'
-# cache_mouse_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_subjects/'
+data_sources = ['bonsai', 'bpod']
+
+s3_nwb_folder = {data: f'aind-behavior-data/foraging_nwb_{data}/' for data in data_sources}
+s3_processed_nwb_folder = {data: f'aind-behavior-data/foraging_nwb_{data}_processed/' for data in data_sources}
 
 fs = s3fs.S3FileSystem(anon=False)
 st.session_state.use_s3 = True
@@ -124,14 +126,12 @@ except:
 
 if 'selected_points' not in st.session_state:
     st.session_state['selected_points'] = []
-
-
                     
 @st.cache_data(ttl=24*3600)
-def load_data(tables=['sessions']):
+def load_data(tables=['sessions'], data_source = 'bonsai'):
     df = {}
     for table in tables:
-        file_name = cache_folder + f'df_{table}.pkl'
+        file_name = s3_processed_nwb_folder[data_source] + f'df_{table}.pkl'
         if st.session_state.use_s3:
             with fs.open(file_name) as f:
                 df[table + '_bonsai'] = pd.read_pickle(f)
@@ -139,7 +139,7 @@ def load_data(tables=['sessions']):
             df[table + '_bonsai'] = pd.read_pickle(file_name)
     return df
 
-def _fetch_img(glob_patterns, crop=None):
+def _fetch_img(glob_patterns, crop=None): 
     # Fetch the img that first matches the patterns
     for pattern in glob_patterns:
         file = fs.glob(pattern) if st.session_state.use_s3 else glob.glob(pattern)
@@ -187,7 +187,7 @@ def show_session_level_img_by_key_and_prefix(key, prefix, column=None, other_pat
     
     # Convert session_date to 2024-04-01 format
     subject_session_date_str = f"{key['subject_id']}_{date_str}_{key['nwb_suffix']}".split('_0')[0]
-    glob_patterns = [cache_folder + f"{subject_session_date_str}/{subject_session_date_str}_{prefix}*"]
+    glob_patterns = [s3_processed_nwb_folder['bonsai'] + f"{subject_session_date_str}/{subject_session_date_str}_{prefix}*"]
     
     img, f_name = _fetch_img(glob_patterns, crop)
 
@@ -515,8 +515,12 @@ def init():
     for key, default in to_sync_with_url_query.items():
         sync_widget_with_query(key, default)
 
-    df = load_data(['sessions', 
-                   ])
+    df = load_data(['sessions'], data_source='bonsai')
+    
+    if st.session_state.if_load_bpod_sessions:
+        df_bpod = load_data(['sessions'], data_source='bpod')
+        # For historial reason, the suffix of df['sessions_bonsai'] just mean the data of the Home.py page
+        df['sessions_bonsai'] = pd.concat([df['sessions_bonsai'], df_bpod['sessions_bonsai']], axis=0)
                 
     st.session_state.df = df
     st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
@@ -638,7 +642,7 @@ def app():
     
     cols = st.columns([1, 1.2])
     with cols[0]:
-        st.markdown('## 🌳🪴 Foraging sessions from Bonsai 🌳🪴')
+        st.markdown('## 🌳🪴 Dynamic Foraging Sessions 🌳🪴')
 
     with st.sidebar:
         
@@ -670,8 +674,15 @@ def app():
         cols[0].markdown(f'### Filter the sessions on the sidebar\n'
                          f'#####  {len(st.session_state.df_session_filtered)} sessions, '
                          f'{len(st.session_state.df_session_filtered.h2o.unique())} mice filtered')
+    
+        if_load_bpod_sessions = checkbox_wrapper_for_url_query(
+            st_prefix=cols[1],
+            label='Include old Bpod sessions',
+            key='if_load_bpod_sessions',
+            default=True,
+        )
+                                                                   
         with cols[1]:        
-            st.markdown('# ')
             if st.button('  Reload data  ', type='primary'):
                 st.cache_data.clear()
                 init()
@@ -885,7 +896,7 @@ def app():
         for _ in range(10): st.write('\n')
         st.markdown('---\n##### Debug zone')
         with st.expander('CO processing NWB errors', expanded=False):
-            error_file = cache_folder + 'error_files.json'
+            error_file = s3_processed_nwb_folder['bonsai'] + 'error_files.json'
             if fs.exists(error_file):
                 with fs.open(error_file) as file:
                     st.json(json.load(file))
@@ -893,13 +904,13 @@ def app():
                 st.write('No NWB error files')
                 
         with st.expander('CO Pipeline log', expanded=False):
-            with fs.open(cache_folder + 'pipeline.log') as file:
+            with fs.open(s3_processed_nwb_folder['bonsai'] + 'pipeline.log') as file:
                 log_content = file.read().decode('utf-8')
             log_content = log_content.replace('\\n', '\n')
             st.text(log_content)
             
         with st.expander('NWB convertion and upload log', expanded=False):
-            with fs.open(raw_nwb_folder + 'bonsai_pipeline.log') as file:
+            with fs.open(s3_nwb_folder['bonsai'] + 'bonsai_pipeline.log') as file:
                 log_content = file.read().decode('utf-8')
             st.text(log_content)
 
