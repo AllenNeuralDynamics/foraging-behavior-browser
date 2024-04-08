@@ -88,6 +88,7 @@ to_sync_with_url_query = {
     'x_y_plot_figure_width': 1300,
     'x_y_plot_figure_height': 900,
     'x_y_plot_font_size_scale': 1.0,
+    'x_y_plot_selected_color_map': 'Plotly',
     
     'x_y_plot_size_mapper': 'finished_trials',
     'x_y_plot_size_mapper_gamma': 1.0,
@@ -426,7 +427,8 @@ def plot_x_y_session():
     with cols[1]:
         (if_show_dots, if_aggr_each_group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group,
         if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor, if_show_diagonal,
-        dot_size, dot_opacity, line_width, x_y_plot_figure_width, x_y_plot_figure_height, font_size_scale) = add_xy_setting()
+        dot_size, dot_opacity, line_width, x_y_plot_figure_width, x_y_plot_figure_height, 
+        font_size_scale, color_map) = add_xy_setting()
     
     if st.session_state.x_y_plot_if_show_dots:
         with cols[2]:
@@ -478,6 +480,7 @@ def plot_x_y_session():
                                     x_y_plot_figure_width=x_y_plot_figure_width,
                                     x_y_plot_figure_height=x_y_plot_figure_height,
                                     font_size_scale=font_size_scale,
+                                    color_map=color_map,
                                     )
         
         # st.plotly_chart(fig)
