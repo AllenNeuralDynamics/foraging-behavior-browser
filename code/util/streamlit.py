@@ -927,13 +927,14 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
         
     # Add a diagonal line first
     if if_show_diagonal:
-        _min = df[x_name].values.ravel().min()
-        _max = df[y_name].values.ravel().max()
+        _min = np.nanmin(df[x_name].values.ravel())
+        _max = np.nanmax(df[y_name].values.ravel())
         fig.add_trace(go.Scattergl(x=[_min, _max], 
                                    y=[_min, _max], 
                                    mode='lines',
                                    line=dict(dash='dash', color='black', width=2),
-                                   showlegend=False)
+                                   name='x=y',
+                                   showlegend=True)
                       )
 
     for i, group in enumerate(df.sort_values(group_by)[group_by].unique()):
