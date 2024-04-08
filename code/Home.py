@@ -662,6 +662,9 @@ def init():
                      }
     _df.fillna(filled_values, inplace=True)
     
+    # Remove abnormal values
+    _df.loc[_df['weight_after'] > 100, ['weight_after', 'weight_after_ratio']] = np.nan
+    
     # foraging performance = foraing_eff * finished_rate
     if 'foraging_performance' not in _df.columns:
         _df['foraging_performance'] = \
