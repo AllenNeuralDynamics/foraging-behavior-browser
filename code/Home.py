@@ -12,7 +12,7 @@ Example queries:
 
 """
 
-#%%
+# %%
 import pandas as pd
 import streamlit as st
 from pathlib import Path
@@ -43,7 +43,7 @@ from util.streamlit import (filter_dataframe, aggrid_interactive_table_session,
                             add_xy_selector, add_xy_setting, add_auto_train_manager, add_dot_property_mapper,
                             _plot_population_x_y)
 from util.url_query_helper import (
-    sync_widget_with_query, slider_wrapper_for_url_query,
+    sync_widget_with_query, slider_wrapper_for_url_query, checkbox_wrapper_for_url_query
 )
 
 import extra_streamlit_components as stx
@@ -57,6 +57,8 @@ from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
 # dict of "key": default pairs
 # Note: When creating the widget, add argument "value"/"index" as well as "key" for all widgets you want to sync with URL
 to_sync_with_url_query = {
+    'if_load_bpod_sessions': False,
+    
     'filter_subject_id': '',
     'filter_session': [0.0, None],
     'filter_finished_trials': [0.0, None],
@@ -86,6 +88,7 @@ to_sync_with_url_query = {
     'x_y_plot_figure_width': 1300,
     'x_y_plot_figure_height': 900,
     'x_y_plot_font_size_scale': 1.0,
+    'x_y_plot_selected_color_map': 'Plotly',
     
     'x_y_plot_size_mapper': 'finished_trials',
     'x_y_plot_size_mapper_gamma': 1.0,
@@ -102,10 +105,10 @@ to_sync_with_url_query = {
     }
 
 
-raw_nwb_folder = 'aind-behavior-data/foraging_nwb_bonsai/'
-cache_folder = 'aind-behavior-data/foraging_nwb_bonsai_processed/'
-# cache_session_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_sessions/'
-# cache_mouse_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_subjects/'
+data_sources = ['bonsai', 'bpod']
+
+s3_nwb_folder = {data: f'aind-behavior-data/foraging_nwb_{data}/' for data in data_sources}
+s3_processed_nwb_folder = {data: f'aind-behavior-data/foraging_nwb_{data}_processed/' for data in data_sources}
 
 fs = s3fs.S3FileSystem(anon=False)
 st.session_state.use_s3 = True
@@ -125,25 +128,11 @@ except:
 if 'selected_points' not in st.session_state:
     st.session_state['selected_points'] = []
 
-    
-
-def _get_urls():
-    cache_folder = 'aind-behavior-data/Han/ephys/report/st_cache/'
-    cache_session_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_sessions/'
-    cache_mouse_level_fig_folder = 'aind-behavior-data/Han/ephys/report/all_subjects/'
-    
-    fs = s3fs.S3FileSystem(anon=False)
-   
-    with fs.open('aind-behavior-data/Han/streamlit_CO_url.json', 'r') as f:
-        data = json.load(f)
-    
-    return data['behavior'], data['ephys']
-                    
 @st.cache_data(ttl=24*3600)
-def load_data(tables=['sessions']):
+def load_data(tables=['sessions'], data_source = 'bonsai'):
     df = {}
     for table in tables:
-        file_name = cache_folder + f'df_{table}.pkl'
+        file_name = s3_processed_nwb_folder[data_source] + f'df_{table}.pkl'
         if st.session_state.use_s3:
             with fs.open(file_name) as f:
                 df[table + '_bonsai'] = pd.read_pickle(f)
@@ -151,7 +140,7 @@ def load_data(tables=['sessions']):
             df[table + '_bonsai'] = pd.read_pickle(file_name)
     return df
 
-def _fetch_img(glob_patterns, crop=None):
+def _fetch_img(glob_patterns, crop=None): 
     # Fetch the img that first matches the patterns
     for pattern in glob_patterns:
         file = fs.glob(pattern) if st.session_state.use_s3 else glob.glob(pattern)
@@ -191,7 +180,7 @@ def _user_name_mapper(user_name):
         return user_name
 
 # @st.cache_data(ttl=24*3600, max_entries=20)
-def show_session_level_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], crop=None, caption=True, **kwargs):
+def show_session_level_img_by_key_and_prefix(key, prefix, column=None, other_patterns=[''], crop=None, caption=True, data_source='bonsai', **kwargs):
     try:
         date_str = key["session_date"].strftime(r'%Y-%m-%d')
     except:
@@ -199,7 +188,7 @@ def show_session_level_img_by_key_and_prefix(key, prefix, column=None, other_pat
     
     # Convert session_date to 2024-04-01 format
     subject_session_date_str = f"{key['subject_id']}_{date_str}_{key['nwb_suffix']}".split('_0')[0]
-    glob_patterns = [cache_folder + f"{subject_session_date_str}/{subject_session_date_str}_{prefix}*"]
+    glob_patterns = [s3_processed_nwb_folder[data_source] + f"{subject_session_date_str}/{subject_session_date_str}_{prefix}*"]
     
     img, f_name = _fetch_img(glob_patterns, crop)
 
@@ -243,7 +232,7 @@ def show_mouse_level_img_by_key_and_prefix(key, prefix, column=None, other_patte
 def get_pyg_renderer(df, spec="./gw_config.json", **kwargs) -> "StreamlitRenderer":
     return StreamlitRenderer(df, spec=spec, debug=False, **kwargs)
 
-    
+
 def draw_session_plots(df_to_draw_session):
     
     # Setting up layout for each session
@@ -276,8 +265,9 @@ def draw_session_plots(df_to_draw_session):
                     except:
                         date_str = key["session_date"].split("T")[0]
                     
-                    st.markdown(f'''<h4 style='text-align: center; color: orange;'>{key["h2o"]}, Session {int(key["session"])}, {date_str}''',
-                              unsafe_allow_html=True)
+                    st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["h2o"]}, Session {int(key["session"])}, {date_str} '''
+                                f'''({key["user_name"]}@{key["data_source"]})''',
+                                unsafe_allow_html=True)
                     if len(st.session_state.selected_draw_types) > 1:  # more than one types, use the pre-defined layout
                         for row, column_setting in enumerate(layout_definition):
                             rows.append(this_major_col.columns(column_setting))
@@ -290,33 +280,35 @@ def draw_session_plots(df_to_draw_session):
                     prefix, position, setting = st.session_state.draw_type_mapper_session_level[draw_type]
                     this_col = rows[position[0]][position[1]] if len(st.session_state.selected_draw_types) > 1 else rows[0]
                     show_session_level_img_by_key_and_prefix(key, 
-                                                column=this_col,
-                                                prefix=prefix, 
-                                                **setting)
+                                                            column=this_col,
+                                                            prefix=prefix,
+                                                            data_source=key['hardware'],
+                                                            **setting)
                     
                 my_bar.progress(int((i + 1) / len(df_to_draw_session) * 100))
-                
+
 def draw_session_plots_quick_preview(df_to_draw_session):
-    
+
     # Setting up layout for each session
     layout_definition = [[1],   # columns in the first row
                          [1, 1],
                          ]  
     draw_types_quick_preview = ['1. Choice history', '2. Logistic regression (Su2022)']
-    
+
     container_session_all_in_one = st.container()
-    
+
     key = df_to_draw_session.to_dict(orient='records')[0]
-    
+
     with container_session_all_in_one:
         try:
             date_str = key["session_date"].strftime('%Y-%m-%d')
         except:
             date_str = key["session_date"].split("T")[0]
-        
-        st.markdown(f'''<h4 style='text-align: center; color: orange;'>{key["h2o"]}, Session {int(key["session"])}, {date_str}''',
+
+        st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["h2o"]}, Session {int(key["session"])}, {date_str} '''
+                    f'''({key["user_name"]}@{key["data_source"]})''',
                     unsafe_allow_html=True)
-        
+
         rows = []
         for row, column_setting in enumerate(layout_definition):
             rows.append(st.columns(column_setting))
@@ -325,14 +317,15 @@ def draw_session_plots_quick_preview(df_to_draw_session):
             if draw_type not in st.session_state.selected_draw_types: continue  # To keep the draw order defined by st.session_state.draw_type_mapper_session_level
             prefix, position, setting = st.session_state.draw_type_mapper_session_level[draw_type]
             this_col = rows[position[0]][position[1]] if len(st.session_state.selected_draw_types) > 1 else rows[0]
-            show_session_level_img_by_key_and_prefix(key, 
-                                        column=this_col,
-                                        prefix=prefix, 
-                                        **setting)
-            
-                
-             
-                
+            show_session_level_img_by_key_and_prefix(
+                key,
+                column=this_col,
+                prefix=prefix,
+                data_source=key["hardware"],
+                **setting,
+            )
+
+
 def draw_mice_plots(df_to_draw_mice):
     
     # Setting up layout for each session
@@ -376,11 +369,7 @@ def draw_mice_plots(df_to_draw_mice):
                                                         **setting)
                     
                 my_bar.progress(int((i + 1) / len(df_to_draw_mice) * 100))
-                
 
-
-
-  
 
 def session_plot_settings(need_click=True):
     st.markdown('##### Show plots for individual sessions ')
@@ -438,7 +427,8 @@ def plot_x_y_session():
     with cols[1]:
         (if_show_dots, if_aggr_each_group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group,
         if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor, if_show_diagonal,
-        dot_size, dot_opacity, line_width, x_y_plot_figure_width, x_y_plot_figure_height, font_size_scale) = add_xy_setting()
+        dot_size, dot_opacity, line_width, x_y_plot_figure_width, x_y_plot_figure_height, 
+        font_size_scale, color_map) = add_xy_setting()
     
     if st.session_state.x_y_plot_if_show_dots:
         with cols[2]:
@@ -490,6 +480,7 @@ def plot_x_y_session():
                                     x_y_plot_figure_width=x_y_plot_figure_width,
                                     x_y_plot_figure_height=x_y_plot_figure_height,
                                     font_size_scale=font_size_scale,
+                                    color_map=color_map,
                                     )
         
         # st.plotly_chart(fig)
@@ -511,11 +502,10 @@ def plot_x_y_session():
     return df_selected_from_plotly, cols
 
 
-
 def show_curriculums():
     pass
 
-# ------- Layout starts here -------- #    
+# ------- Layout starts here -------- #
 def init():
     
     # Clear specific session state and all filters
@@ -527,8 +517,14 @@ def init():
     for key, default in to_sync_with_url_query.items():
         sync_widget_with_query(key, default)
 
-    df = load_data(['sessions', 
-                   ])
+    df = load_data(['sessions'], data_source='bonsai')
+    
+    # --- Perform any data source-dependent preprocessing here ---
+    if st.session_state.if_load_bpod_sessions:
+        df_bpod = load_data(['sessions'], data_source='bpod')
+        
+        # For historial reason, the suffix of df['sessions_bonsai'] just mean the data of the Home.py page
+        df['sessions_bonsai'] = pd.concat([df['sessions_bonsai'], df_bpod['sessions_bonsai']], axis=0)
                 
     st.session_state.df = df
     st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
@@ -596,61 +592,115 @@ def init():
    
    
     # Some ad-hoc modifications on df_sessions
-    st.session_state.df['sessions_bonsai'].columns = st.session_state.df['sessions_bonsai'].columns.get_level_values(1)
-    st.session_state.df['sessions_bonsai'].sort_values(['session_end_time'], ascending=False, inplace=True)
-    st.session_state.df['sessions_bonsai'] = st.session_state.df['sessions_bonsai'].reset_index().query('subject_id != "0"')
-    st.session_state.df['sessions_bonsai']['h2o'] = st.session_state.df['sessions_bonsai']['subject_id']
-    st.session_state.df['sessions_bonsai'].dropna(subset=['session'], inplace=True) # Remove rows with no session number (only leave the nwb file with the largest finished_trials for now)
-    st.session_state.df['sessions_bonsai'].drop(st.session_state.df['sessions_bonsai'].query('session < 1').index, inplace=True)
+    _df = st.session_state.df['sessions_bonsai']  # temporary df alias
+    
+    _df.columns = _df.columns.get_level_values(1)
+    _df.sort_values(['session_start_time'], ascending=False, inplace=True)
+    _df = _df.reset_index().query('subject_id != "0"')
+ 
+    # Handle mouse and user name
+    if 'bpod_backup_h2o' in _df.columns:
+        _df['h2o'] = np.where(_df['bpod_backup_h2o'].notnull(), _df['bpod_backup_h2o'], _df['subject_id'])
+        _df['user_name'] = np.where(_df['bpod_backup_user_name'].notnull(), _df['bpod_backup_user_name'], _df['user_name'])
+    else:
+        _df['h2o'] = _df['subject_id']
+        
+        
+    def _get_data_source(rig):
+        """From rig string, return "{institute}_{rig_type}_{room}_{hardware}"
+        """
+        institute = 'Janelia' if ('bpod' in rig) and not ('AIND' in rig) else 'AIND'
+        hardware = 'bpod' if ('bpod' in rig) else 'bonsai'
+        rig_type = 'ephys' if ('ephys' in rig.lower()) else 'training'
+        
+        # This is a mess...
+        if institute == 'Janelia':
+            room = 'NA'
+        elif 'Ephys-Han' in rig:
+            room = '321'
+        elif hardware == 'bpod':
+            room = '347'
+        elif '447' in rig:
+            room = '447'
+        elif '323' in rig:
+            room = '323'
+        elif rig_type == 'ephys':
+            room = '323'
+        else:
+            room = '447'
+        return institute, rig_type, room, hardware, '_'.join([institute, rig_type, room, hardware])
+        
+    # Add data source (Room + Hardware etc)
+    _df[['institute', 'rig_type', 'room', 'hardware', 'data_source']] = _df['rig'].apply(lambda x: pd.Series(_get_data_source(x)))
+    
+    # Handle session number
+    _df.dropna(subset=['session'], inplace=True) # Remove rows with no session number (only leave the nwb file with the largest finished_trials for now)
+    _df.drop(_df.query('session < 1').index, inplace=True)
     
     # # add something else
     # add abs(bais) to all terms that have 'bias' in name
-    for col in st.session_state.df['sessions_bonsai'].columns:
+    for col in _df.columns:
         if 'bias' in col:
-            st.session_state.df['sessions_bonsai'][f'abs({col})'] = np.abs(st.session_state.df['sessions_bonsai'][col])
+            _df[f'abs({col})'] = np.abs(_df[col])
         
     # # delta weight
-    # diff_relative_weight_next_day = st.session_state.df['sessions_bonsai'].set_index(
+    # diff_relative_weight_next_day = _df.set_index(
     #     ['session']).sort_values('session', ascending=True).groupby('h2o').apply(
     #         lambda x: - x.relative_weight.diff(periods=-1)).rename("diff_relative_weight_next_day")
         
     # weekday
-    st.session_state.df['sessions_bonsai'].session_date = pd.to_datetime(st.session_state.df['sessions_bonsai'].session_date)
-    st.session_state.df['sessions_bonsai']['weekday'] = st.session_state.df['sessions_bonsai'].session_date.dt.dayofweek + 1
+    _df.session_date = pd.to_datetime(_df.session_date)
+    _df['weekday'] = _df.session_date.dt.dayofweek + 1
     
     # map user_name
-    st.session_state.df['sessions_bonsai']['user_name'] = st.session_state.df['sessions_bonsai']['user_name'].apply(_user_name_mapper)
+    _df['user_name'] = _df['user_name'].apply(_user_name_mapper)
     
     # fill nan for autotrain fields
     filled_values = {'curriculum_name': 'None', 
                      'curriculum_version': 'None',
                      'curriculum_schema_version': 'None',
-                     'current_stage_actual': 'None'}
-    st.session_state.df['sessions_bonsai'].fillna(filled_values, inplace=True)
+                     'current_stage_actual': 'None',
+                     'has_video': False,
+                     'has_ephys': False,
+                     }
+    _df.fillna(filled_values, inplace=True)
+    
+    # Remove abnormal values
+    _df.loc[_df['weight_after'] > 100, 
+            ['weight_after', 'weight_after_ratio', 'water_in_session_total', 'water_after_session', 'water_day_total']
+            ] = np.nan
+
+    _df.loc[_df['water_in_session_manual'] > 100, 
+            ['water_in_session_manual', 'water_in_session_total', 'water_after_session']] = np.nan
     
     # foraging performance = foraing_eff * finished_rate
-    if 'foraging_performance' not in st.session_state.df['sessions_bonsai'].columns:
-        st.session_state.df['sessions_bonsai']['foraging_performance'] = \
-            st.session_state.df['sessions_bonsai']['foraging_eff'] \
-            * st.session_state.df['sessions_bonsai']['finished_rate']
-        st.session_state.df['sessions_bonsai']['foraging_performance_random_seed'] = \
-            st.session_state.df['sessions_bonsai']['foraging_eff_random_seed'] \
-            * st.session_state.df['sessions_bonsai']['finished_rate']
+    if 'foraging_performance' not in _df.columns:
+        _df['foraging_performance'] = \
+            _df['foraging_eff'] \
+            * _df['finished_rate']
+        _df['foraging_performance_random_seed'] = \
+            _df['foraging_eff_random_seed'] \
+            * _df['finished_rate']
 
-    # st.session_state.df['sessions_bonsai'] = st.session_state.df['sessions_bonsai'].merge(
+    # drop 'bpod_backup_' columns
+    _df.drop([col for col in _df.columns if 'bpod_backup_' in col], axis=1, inplace=True)
+    
+    # _df = _df.merge(
     #     diff_relative_weight_next_day, how='left', on=['h2o', 'session'])
 
-    st.session_state.session_stats_names = [keys for keys in st.session_state.df['sessions_bonsai'].keys()]
+    st.session_state.df['sessions_bonsai'] = _df  # Somehow _df loses the reference to the original dataframe
+    
+    st.session_state.session_stats_names = [keys for keys in _df.keys()]
        
     # Establish communication between pygwalker and streamlit
     init_streamlit_comm()
-    
+
 
 def app():
     
     cols = st.columns([1, 1.2])
     with cols[0]:
-        st.markdown('## 🌳🪴 Foraging sessions from Bonsai 🌳🪴')
+        st.markdown('## 🌳🪴 Dynamic Foraging Sessions 🌳🪴')
 
     with st.sidebar:
         
@@ -678,12 +728,19 @@ def app():
         # with col1:
         # -- 1. unit dataframe --
         
-        cols = st.columns([2, 1, 4, 1])
+        cols = st.columns([2, 2, 4, 1])
         cols[0].markdown(f'### Filter the sessions on the sidebar\n'
                          f'#####  {len(st.session_state.df_session_filtered)} sessions, '
                          f'{len(st.session_state.df_session_filtered.h2o.unique())} mice filtered')
+    
+        if_load_bpod_sessions = checkbox_wrapper_for_url_query(
+            st_prefix=cols[1],
+            label='Include old Bpod sessions (reload after change)',
+            key='if_load_bpod_sessions',
+            default=False,
+        )
+                                                                   
         with cols[1]:        
-            st.markdown('# ')
             if st.button('  Reload data  ', type='primary'):
                 st.cache_data.clear()
                 init()
@@ -897,7 +954,7 @@ def app():
         for _ in range(10): st.write('\n')
         st.markdown('---\n##### Debug zone')
         with st.expander('CO processing NWB errors', expanded=False):
-            error_file = cache_folder + 'error_files.json'
+            error_file = s3_processed_nwb_folder['bonsai'] + 'error_files.json'
             if fs.exists(error_file):
                 with fs.open(error_file) as file:
                     st.json(json.load(file))
@@ -905,13 +962,13 @@ def app():
                 st.write('No NWB error files')
                 
         with st.expander('CO Pipeline log', expanded=False):
-            with fs.open(cache_folder + 'pipeline.log') as file:
+            with fs.open(s3_processed_nwb_folder['bonsai'] + 'pipeline.log') as file:
                 log_content = file.read().decode('utf-8')
             log_content = log_content.replace('\\n', '\n')
             st.text(log_content)
             
         with st.expander('NWB convertion and upload log', expanded=False):
-            with fs.open(raw_nwb_folder + 'bonsai_pipeline.log') as file:
+            with fs.open(s3_nwb_folder['bonsai'] + 'bonsai_pipeline.log') as file:
                 log_content = file.read().decode('utf-8')
             st.text(log_content)
 
@@ -928,6 +985,5 @@ def app():
 
 if 'df' not in st.session_state or 'sessions_bonsai' not in st.session_state.df.keys(): 
     init()
-    
-app()
 
+app()
