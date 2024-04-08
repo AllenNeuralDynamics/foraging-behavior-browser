@@ -356,8 +356,8 @@ def plot_x_y_session():
         x_name, y_name, group_by = add_xy_selector(if_bonsai=False)
         
         (if_show_dots, if_aggr_each_group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group,
-        if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor, if_show_diagonal,
-        dot_size, dot_opacity, line_width, _, _, _) = add_xy_setting()
+            if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor, if_show_diagonal,
+            dot_size, dot_opacity, line_width, figure_width, figure_height, font_size_scale, color_map) = add_xy_setting()
 
     
     # If no sessions are selected, use all filtered entries
