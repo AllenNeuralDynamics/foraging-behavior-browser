@@ -55,9 +55,8 @@ def draw_session_plots_quick_preview(df_to_draw_session):
             rows.append(st.columns(column_setting))
 
         for draw_type in draw_types_quick_preview:
-            if draw_type not in st.session_state.selected_draw_types: continue  # To keep the draw order defined by st.session_state.draw_type_mapper_session_level
             prefix, position, setting = st.session_state.draw_type_mapper_session_level[draw_type]
-            this_col = rows[position[0]][position[1]] if len(st.session_state.selected_draw_types) > 1 else rows[0]
+            this_col = rows[position[0]][position[1]] if len(draw_types_quick_preview) > 1 else rows[0]
             show_session_level_img_by_key_and_prefix(
                 key,
                 column=this_col,
