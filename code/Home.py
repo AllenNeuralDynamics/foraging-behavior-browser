@@ -12,7 +12,6 @@ Example queries:
 
 """
 
-# %%
 __ver__ = 'v2.2.0'
 
 import pandas as pd
