@@ -9,23 +9,13 @@ from plotly.subplots import make_subplots
 from streamlit_plotly_events import plotly_events
 
 from util.streamlit import add_session_filter, data_selector
+from util.aws_s3 import load_data
 
 ss = st.session_state
 
 fs = s3fs.S3FileSystem(anon=False)
 cache_folder = 'aind-behavior-data/foraging_nwb_bonsai_processed/'
 
-@st.cache_data(ttl=24*3600)
-def load_data(tables=['sessions']):
-    df = {}
-    for table in tables:
-        file_name = cache_folder + f'df_{table}.pkl'
-        if st.session_state.use_s3:
-            with fs.open(file_name) as f:
-                df[table + '_bonsai'] = pd.read_pickle(f)
-        else:
-            df[table + '_bonsai'] = pd.read_pickle(file_name)
-    return df
 
 def app():
     
