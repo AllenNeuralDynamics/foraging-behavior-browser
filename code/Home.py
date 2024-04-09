@@ -662,6 +662,7 @@ def init():
                      'current_stage_actual': 'None',
                      'has_video': False,
                      'has_ephys': False,
+                     'if_overriden_by_trainer': False,
                      }
     _df.fillna(filled_values, inplace=True)
     
@@ -684,6 +685,9 @@ def init():
 
     # drop 'bpod_backup_' columns
     _df.drop([col for col in _df.columns if 'bpod_backup_' in col], axis=1, inplace=True)
+    
+    # fix if_overriden_by_trainer
+    _df['if_overriden_by_trainer'] = _df['if_overriden_by_trainer'].astype(bool)
     
     # _df = _df.merge(
     #     diff_relative_weight_next_day, how='left', on=['h2o', 'session'])
