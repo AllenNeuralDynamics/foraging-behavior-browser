@@ -13,6 +13,8 @@ Example queries:
 """
 
 # %%
+__ver__ = 'v2.2.0'
+
 import pandas as pd
 import streamlit as st
 import numpy as np
@@ -529,7 +531,7 @@ def app():
         data_selector()
     
         st.markdown('---')
-        st.markdown('#### Han Hou @ 2024 v2.0.0')
+        st.markdown(f'#### Han Hou @ 2024 {__ver__}')
         st.markdown('[bug report / feature request](https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues)')
         
         with st.expander('Debug', expanded=False):
