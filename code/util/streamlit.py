@@ -23,6 +23,8 @@ import statsmodels.api as sm
 from scipy.stats import linregress
 
 from .url_query_helper import checkbox_wrapper_for_url_query, selectbox_wrapper_for_url_query, slider_wrapper_for_url_query
+from .plot_autotrain_manager import plot_manager_all_progress
+
 from .aws_s3 import draw_session_plots_quick_preview
 
 custom_css = {
@@ -710,7 +712,8 @@ def add_auto_train_manager():
     else:
         highlight_subjects = []
                                 
-    fig_auto_train = st.session_state.auto_train_manager.plot_all_progress(
+    fig_auto_train = plot_manager_all_progress(
+        st.session_state.auto_train_manager,
         x_axis=x_axis,
         sort_by=sort_by,
         sort_order=sort_order,
