@@ -1,5 +1,4 @@
 from PIL import Image
-import glob
 import json
 
 import s3fs

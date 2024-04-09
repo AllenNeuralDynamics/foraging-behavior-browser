@@ -1,6 +1,7 @@
 from collections import OrderedDict
 import pandas as pd
 import streamlit as st
+from datetime import datetime
 from st_aggrid import AgGrid, GridOptionsBuilder
 from st_aggrid.shared import GridUpdateMode, ColumnsAutoSizeMode, DataReturnMode
 from pandas.api.types import (
@@ -22,7 +23,7 @@ import statsmodels.api as sm
 from scipy.stats import linregress
 
 from .url_query_helper import checkbox_wrapper_for_url_query, selectbox_wrapper_for_url_query, slider_wrapper_for_url_query
-
+from .aws_s3 import draw_session_plots_quick_preview
 
 custom_css = {
 ".ag-root.ag-unselectable.ag-layout-normal": {"font-size": "15px !important",
@@ -727,12 +728,28 @@ def add_auto_train_manager():
         height=30 * len(df_training_manager.subject_id.unique()),
     )            
     
-    selected_ = plotly_events(fig_auto_train,
-                                override_height=fig_auto_train.layout.height * 1.1, 
-                                override_width=fig_auto_train.layout.width,
-                                click_event=False,
-                                select_event=False,
-                                )
+    cols = st.columns([2, 1])
+    with cols[0]:
+        selected_ = plotly_events(fig_auto_train,
+                                    override_height=fig_auto_train.layout.height * 1.1, 
+                                    override_width=fig_auto_train.layout.width,
+                                    click_event=True,
+                                    select_event=False,
+                                    )
+    with cols[1]:
+        st.markdown('#### 👀 Quick preview')
+        st.markdown('###### Click on one session to preview here')
+        if selected_:
+            # Some hacks to get back selected data
+            curve_number = selected_[0]['curveNumber']
+            point_number = selected_[0]['pointNumber']
+            this_subject = fig_auto_train['data'][curve_number]
+            session_date = datetime.strptime(this_subject['customdata'][point_number][1], "%Y-%m-%d")
+            subject_id = fig_auto_train['data'][curve_number]['name'].split(' ')[1]
+            
+            df_selected = (st.session_state.df['sessions_bonsai'].query(
+                f'''subject_id == "{subject_id}" and session_date == "{session_date}"'''))
+            draw_session_plots_quick_preview(df_selected)
     
     # -- Show dataframe --
     # only show filtered subject
