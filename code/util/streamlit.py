@@ -672,37 +672,43 @@ def data_selector():
             st.rerun()
 
 def add_auto_train_manager():
-    
+
     st.session_state.auto_train_manager.df_manager = st.session_state.auto_train_manager.df_manager[
         st.session_state.auto_train_manager.df_manager.subject_id.astype(float) > 0]  # Remove dummy mouse 0
     df_training_manager = st.session_state.auto_train_manager.df_manager
-    
+
     # -- Show plotly chart --
     cols = st.columns([1, 1, 1, 0.7, 0.7, 3])
-    options=['session', 'date', 'relative_date']
-    x_axis = cols[0].selectbox('X axis', options=options, 
-                                index=options.index(st.session_state['auto_training_history_x_axis']),
-                                key="auto_training_history_x_axis")
-    
-    options=['subject_id', 
-            'first_date',
-            'last_date',
-            'progress_to_graduated']
-    sort_by = cols[1].selectbox('Sort by', 
-                                options=options,
-                                index=options.index(st.session_state['auto_training_history_sort_by']),
-                                key="auto_training_history_sort_by")
-    
-    options=['descending', 'ascending']
-    sort_order = cols[2].selectbox('Sort order', 
-                                    options=options,
-                                    index=options.index(st.session_state['auto_training_history_sort_order']),
-                                    key='auto_training_history_sort_order'
-                                    )
-    
+    options = ["session", "date", "relative_date"]
+    x_axis = selectbox_wrapper_for_url_query(
+        st_prefix=cols[0],
+        label="X axis",
+        options=options,
+        default=options.index(st.session_state["auto_training_history_x_axis"]),
+        key="auto_training_history_x_axis",
+    )
+
+    options = ["subject_id", "first_date", "last_date", "progress_to_graduated"]
+    sort_by = selectbox_wrapper_for_url_query(
+        st_prefix=cols[1],
+        label="Sort by",
+        options=options,
+        default=options.index(st.session_state["auto_training_history_sort_by"]),
+        key="auto_training_history_sort_by",
+    )
+
+    options = ["descending", "ascending"]
+    sort_order = selectbox_wrapper_for_url_query(
+        st_prefix=cols[2],
+        label="Sort order",
+        options=options,
+        default=options.index(st.session_state["auto_training_history_sort_order"]),
+        key="auto_training_history_sort_order",
+    )
+
     marker_size = cols[3].number_input('Marker size', value=15, step=1)
     marker_edge_width = cols[4].number_input('Marker edge width', value=3, step=1)
-    
+
     # Get highlighted subjects
     if ('filter_subject_id' in st.session_state and st.session_state['filter_subject_id']) or\
        ('filter_h2o' in st.session_state and st.session_state['filter_h2o']):   
@@ -711,7 +717,7 @@ def add_auto_train_manager():
         highlight_subjects = [str(x) for x in highlight_subjects]
     else:
         highlight_subjects = []
-                                
+
     fig_auto_train = plot_manager_all_progress(
         st.session_state.auto_train_manager,
         x_axis=x_axis,
@@ -722,7 +728,7 @@ def add_auto_train_manager():
         highlight_subjects=highlight_subjects,
         if_show_fig=False
     )
-    
+
     fig_auto_train.update_layout(
         hoverlabel=dict(
             font_size=20,
@@ -730,7 +736,7 @@ def add_auto_train_manager():
         font=dict(size=18),
         height=30 * len(df_training_manager.subject_id.unique()),
     )            
-    
+
     cols = st.columns([2, 1])
     with cols[0]:
         selected_ = plotly_events(fig_auto_train,
@@ -749,16 +755,16 @@ def add_auto_train_manager():
             this_subject = fig_auto_train['data'][curve_number]
             session_date = datetime.strptime(this_subject['customdata'][point_number][1], "%Y-%m-%d")
             subject_id = fig_auto_train['data'][curve_number]['name'].split(' ')[1]
-            
+
             df_selected = (st.session_state.df['sessions_bonsai'].query(
                 f'''subject_id == "{subject_id}" and session_date == "{session_date}"'''))
             draw_session_plots_quick_preview(df_selected)
-    
+
     # -- Show dataframe --
     # only show filtered subject
     df_training_manager = df_training_manager[df_training_manager['subject_id'].isin(
         st.session_state.df_session_filtered['subject_id'].unique().astype(str))]
-    
+
     # reorder columns
     df_training_manager = df_training_manager[['subject_id', 'session_date', 'session', 
                                                 'curriculum_name', 'curriculum_version', 'curriculum_schema_version',
@@ -768,7 +774,7 @@ def add_auto_train_manager():
                                                 'foraging_efficiency', 'finished_trials', 
                                                 'decision', 'next_stage_suggested'
                                                 ]]
-    
+
     with st.expander('Automatic training manager', expanded=True):
         st.dataframe(df_training_manager, height=3000)
 
