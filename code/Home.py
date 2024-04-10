@@ -12,7 +12,6 @@ Example queries:
 
 """
 
-# %%
 __ver__ = 'v2.2.0'
 
 import pandas as pd
@@ -452,6 +451,15 @@ def init():
     _df.dropna(subset=['session'], inplace=True) # Remove rows with no session number (only leave the nwb file with the largest finished_trials for now)
     _df.drop(_df.query('session < 1').index, inplace=True)
     
+    # Remove abnormal values
+    _df.loc[_df['weight_after'] > 100, 
+            ['weight_after', 'weight_after_ratio', 'water_in_session_total', 'water_after_session', 'water_day_total']
+            ] = np.nan
+
+    _df.loc[_df['water_in_session_manual'] > 100, 
+            ['water_in_session_manual', 'water_in_session_total', 'water_after_session']] = np.nan
+
+    
     # # add something else
     # add abs(bais) to all terms that have 'bias' in name
     for col in _df.columns:
@@ -470,6 +478,13 @@ def init():
     # map user_name
     _df['user_name'] = _df['user_name'].apply(_user_name_mapper)
     
+    # trial stats
+    _df['avg_trial_length_in_seconds'] = _df['session_run_time_in_min'] / _df['total_trials_with_autowater'] * 60
+    
+    # last day's total water
+    _df['water_day_total_last_session'] = _df.groupby('h2o')['water_day_total'].shift(1)
+    _df['water_after_session_last_session'] = _df.groupby('h2o')['water_after_session'].shift(1)    
+    
     # fill nan for autotrain fields
     filled_values = {'curriculum_name': 'None', 
                      'curriculum_version': 'None',
@@ -480,15 +495,7 @@ def init():
                      'if_overriden_by_trainer': False,
                      }
     _df.fillna(filled_values, inplace=True)
-    
-    # Remove abnormal values
-    _df.loc[_df['weight_after'] > 100, 
-            ['weight_after', 'weight_after_ratio', 'water_in_session_total', 'water_after_session', 'water_day_total']
-            ] = np.nan
-
-    _df.loc[_df['water_in_session_manual'] > 100, 
-            ['water_in_session_manual', 'water_in_session_total', 'water_after_session']] = np.nan
-    
+        
     # foraging performance = foraing_eff * finished_rate
     if 'foraging_performance' not in _df.columns:
         _df['foraging_performance'] = \
