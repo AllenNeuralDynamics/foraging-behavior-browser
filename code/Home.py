@@ -86,7 +86,7 @@ to_sync_with_url_query = {
     
     'session_plot_mode': 'sessions selected from table or plot',
 
-    'auto_training_history_x_axis': 'date',
+    'auto_training_history_x_axis': 'session',
     'auto_training_history_sort_by': 'subject_id',
     'auto_training_history_sort_order': 'descending',
     'auto_training_curriculum_name': 'Uncoupled Baiting',
