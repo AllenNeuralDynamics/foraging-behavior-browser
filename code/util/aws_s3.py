@@ -18,7 +18,6 @@ fs = s3fs.S3FileSystem(anon=False)
 if 'selected_points' not in st.session_state:
     st.session_state['selected_points'] = []
 
-@st.cache_data(ttl=24*3600)
 def load_data(tables=['sessions'], data_source = 'bonsai'):
     df = {}
     for table in tables:
