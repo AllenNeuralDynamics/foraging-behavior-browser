@@ -623,9 +623,9 @@ def add_dot_property_mapper():
             size_mapper_range = slider_wrapper_for_url_query(cols[1],
                                                     label="size range",
                                                     min_value=0,
-                                                    max_value=100,
+                                                    max_value=50,
                                                     key='x_y_plot_size_mapper_range',
-                                                    default=(0, 50),
+                                                    default=(0, 10),
                                                     )
             
             size_mapper_gamma = slider_wrapper_for_url_query(cols[2],
