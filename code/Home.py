@@ -186,49 +186,55 @@ def draw_session_plots(df_to_draw_session):
 
 
 def session_plot_settings(need_click=True):
-    st.markdown('##### Show plots for individual sessions ')
-    cols = st.columns([2, 1, 6])
+    with st.form(key='session_plot_settings'):
+        st.markdown('##### Show plots for individual sessions ')
+        cols = st.columns([2, 6, 1])
+        
+        session_plot_modes = [f'sessions selected from table or plot', f'all sessions filtered from sidebar']
+        st.session_state.selected_draw_sessions = cols[0].selectbox(f'Which session(s) to draw?', 
+                                                                    session_plot_modes,
+                                                                    index=session_plot_modes.index(st.session_state['session_plot_mode'])
+                                                                        if 'session_plot_mode' in st.session_state else 
+                                                                        session_plot_modes.index(st.query_params['session_plot_mode'])
+                                                                        if 'session_plot_mode' in st.query_params 
+                                                                        else 0, 
+                                                                    key='session_plot_mode',
+                                                                )
+        
+        n_session_to_draw = len(st.session_state.df_selected_from_plotly) \
+            if 'selected from table or plot' in st.session_state.selected_draw_sessions \
+            else len(st.session_state.df_session_filtered) 
+        
+        st.session_state.num_cols = cols[2].number_input('number of columns', 1, 10, 
+                                                        3 if 'num_cols' not in st.session_state else st.session_state.num_cols)
+        
+        st.markdown(
+        """
+        <style>
+            .stMultiSelect [data-baseweb=select] span{
+                max-width: 1000px;
+            }
+        </style>""",
+        unsafe_allow_html=True,
+        )
+        st.session_state.selected_draw_types = cols[1].multiselect('Which plot(s) to draw?', 
+                                                            st.session_state.draw_type_mapper_session_level.keys(), 
+                                                            default=st.session_state.draw_type_mapper_session_level.keys()
+                                                            if 'selected_draw_types' not in st.session_state else 
+                                                            st.session_state.selected_draw_types)
+        cols[0].markdown(f'{n_session_to_draw} sessions to draw')
+        draw_it_now_override = cols[2].checkbox('Auto show', value=not need_click, disabled=not need_click)
+        submitted = cols[0].form_submit_button("Update settings", type='primary')
+        
+        
+    if not need_click:
+        return True
+        
+    if draw_it_now_override:
+        return True
     
-    session_plot_modes = [f'sessions selected from table or plot', f'all sessions filtered from sidebar']
-    st.session_state.selected_draw_sessions = cols[0].selectbox(f'Which session(s) to draw?', 
-                                                                session_plot_modes,
-                                                                index=session_plot_modes.index(st.session_state['session_plot_mode'])
-                                                                    if 'session_plot_mode' in st.session_state else 
-                                                                    session_plot_modes.index(st.query_params['session_plot_mode'])
-                                                                    if 'session_plot_mode' in st.query_params 
-                                                                    else 0, 
-                                                                key='session_plot_mode',
-                                                               )
-    
-    n_session_to_draw = len(st.session_state.df_selected_from_plotly) \
-        if 'selected from table or plot' in st.session_state.selected_draw_sessions \
-        else len(st.session_state.df_session_filtered) 
-    cols[0].markdown(f'{n_session_to_draw} sessions to draw')
-    
-    st.session_state.num_cols = cols[1].number_input('number of columns', 1, 10, 
-                                                     3 if 'num_cols' not in st.session_state else st.session_state.num_cols)
-    
-    st.markdown(
-    """
-    <style>
-        .stMultiSelect [data-baseweb=select] span{
-            max-width: 1000px;
-        }
-    </style>""",
-    unsafe_allow_html=True,
-    )
-    st.session_state.selected_draw_types = cols[2].multiselect('Which plot(s) to draw?', 
-                                                          st.session_state.draw_type_mapper_session_level.keys(), 
-                                                          default=st.session_state.draw_type_mapper_session_level.keys()
-                                                          if 'selected_draw_types' not in st.session_state else 
-                                                          st.session_state.selected_draw_types)
-    if need_click:
-        draw_it = st.button(f'Show me all {n_session_to_draw} sessions!', use_container_width=True, type="primary")
-        draw_it_now_override = cols[1].checkbox('Auto draw')
-    else:
-        draw_it = True
-        draw_it_now_override = True
-    return draw_it | draw_it_now_override
+    draw_it = st.button(f'Show {n_session_to_draw} sessions!', use_container_width=False, type="primary")
+    return draw_it
 
 
 def plot_x_y_session():
