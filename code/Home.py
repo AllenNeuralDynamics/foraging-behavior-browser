@@ -238,24 +238,27 @@ def session_plot_settings(need_click=True):
 
 
 def plot_x_y_session():
+    with st.expander("X-Y plot settings", expanded=True):            
+        with st.form(key='x_y_plot_settings', border=False):
+            cols = st.columns([1, 1, 1])
             
-    cols = st.columns([1, 1, 1])
-    
-    with cols[0]:
-        x_name, y_name, group_by = add_xy_selector(if_bonsai=True)
+            with cols[0]:
+                x_name, y_name, group_by = add_xy_selector(if_bonsai=True)
 
-    with cols[1]:
-        (if_show_dots, if_aggr_each_group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group,
-        if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor, if_show_diagonal,
-        dot_size, dot_opacity, line_width, x_y_plot_figure_width, x_y_plot_figure_height, 
-        font_size_scale, color_map) = add_xy_setting()
-    
-    if st.session_state.x_y_plot_if_show_dots:
-        with cols[2]:
-            size_mapper, size_mapper_range, size_mapper_gamma = add_dot_property_mapper()
-    else:
-        size_mapper = 'None'
-        size_mapper_range, size_mapper_gamma = None, None
+            with cols[1]:
+                (if_show_dots, if_aggr_each_group, aggr_method_group, if_use_x_quantile_group, q_quantiles_group,
+                if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor, if_show_diagonal,
+                dot_size, dot_opacity, line_width, x_y_plot_figure_width, x_y_plot_figure_height, 
+                font_size_scale, color_map) = add_xy_setting()
+            
+            if st.session_state.x_y_plot_if_show_dots:
+                with cols[2]:
+                    size_mapper, size_mapper_range, size_mapper_gamma = add_dot_property_mapper()
+            else:
+                size_mapper = 'None'
+                size_mapper_range, size_mapper_gamma = None, None
+            
+            submitted = st.form_submit_button("👉 Update X-Y settings 👈", type='primary')
     
     # If no sessions are selected, use all filtered entries
     # df_x_y_session = st.session_state.df_selected_from_dataframe if if_plot_only_selected_from_dataframe else st.session_state.df_session_filtered
