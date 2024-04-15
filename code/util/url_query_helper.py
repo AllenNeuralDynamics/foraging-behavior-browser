@@ -153,10 +153,11 @@ def sync_URL_to_session_state():
                 default = [0.0, 1.0]
             elif filter_type == 'reg_ex':
                 default = ''
+            elif filter_type == 'multiselect':
+                default = ['a', 'b']
             else:
                 print('sync_URL_to_session_state: Unrecognized filter type')
                 continue
-            
             
         if key in st.query_params:
             # always get all query params as a list
@@ -216,7 +217,8 @@ def sync_session_state_to_URL():
             
 def get_filter_type(df, column):
     if (is_categorical_dtype(df[column]) 
-        or df[column].nunique() < 10 
+        or df[column].nunique() < 10
+        or column in ('user_name') # pin to multiselect
         and column not in ('finished', 'foraging_eff', 'session', 'finished_trials')):
         return 'multiselect'
     
