@@ -1,5 +1,58 @@
 import streamlit as st
 
+# Sync widgets with URL query params
+# https://blog.streamlit.io/how-streamlit-uses-streamlit-sharing-contextual-apps/
+# dict of "key": default pairs
+# Note: When creating the widget, add argument "value"/"index" as well as "key" for all widgets you want to sync with URL
+to_sync_with_url_query = {
+    'if_load_bpod_sessions': False,
+    
+    'to_filter_columns': ['subject_id', 'task', 'session', 'finished_trials', 'foraging_eff'],
+    'filter_subject_id': '',
+    'filter_session': [0.0, None],
+    'filter_finished_trials': [0.0, None],
+    'filter_foraging_eff': [0.0, None],
+    'filter_task': ['all'],
+    
+    'table_height': 300,
+    
+    'tab_id': 'tab_session_x_y',
+    'x_y_plot_xname': 'session',
+    'x_y_plot_yname': 'foraging_performance_random_seed',
+    'x_y_plot_group_by': 'h2o',
+    'x_y_plot_if_show_dots': True,
+    'x_y_plot_if_aggr_each_group': True,
+    'x_y_plot_aggr_method_group': 'lowess',
+    'x_y_plot_if_aggr_all': True,
+    'x_y_plot_aggr_method_all': 'mean +/- sem',
+    'x_y_plot_smooth_factor': 5,
+    'x_y_plot_if_use_x_quantile_group': False,
+    'x_y_plot_q_quantiles_group': 20,
+    'x_y_plot_if_use_x_quantile_all': False,
+    'x_y_plot_q_quantiles_all': 20,
+    'x_y_plot_if_show_diagonal': False,
+    'x_y_plot_dot_size': 10,
+    'x_y_plot_dot_opacity': 0.3,
+    'x_y_plot_line_width': 2.0,
+    'x_y_plot_figure_width': 1300,
+    'x_y_plot_figure_height': 900,
+    'x_y_plot_font_size_scale': 1.0,
+    'x_y_plot_selected_color_map': 'Plotly',
+    
+    'x_y_plot_size_mapper': 'finished_trials',
+    'x_y_plot_size_mapper_gamma': 1.0,
+    'x_y_plot_size_mapper_range': [3, 20],
+    
+    'session_plot_mode': 'sessions selected from table or plot',
+
+    'auto_training_history_x_axis': 'session',
+    'auto_training_history_sort_by': 'subject_id',
+    'auto_training_history_sort_order': 'descending',
+    'auto_training_curriculum_name': 'Uncoupled Baiting',
+    'auto_training_curriculum_version': '1.0',
+    'auto_training_curriculum_schema_version': '1.0',
+    }
+
 def checkbox_wrapper_for_url_query(st_prefix, label, key, default, **kwargs):
     return st_prefix.checkbox(
         label,
@@ -66,37 +119,59 @@ def slider_wrapper_for_url_query(st_prefix, label, min_value, max_value, key, de
     )
     
     
-def sync_widget_with_query(key, default):
+def sync_URL_to_session_state():
     """Assign session_state to sync with URL"""
     
-    if key in st.query_params:
-        # always get all query params as a list
-        q_all = st.query_params.get_all(key)
-        
-        # convert type according to default
-        list_default = default if isinstance(default, list) else [default]
-        for d in list_default:
-            _type = type(d)
-            if _type: break  # The first non-None type
+    for key, default in to_sync_with_url_query.items():
+        if key in st.query_params:
+            # always get all query params as a list
+            q_all = st.query_params.get_all(key)
             
-        if _type == bool:
-            q_all_correct_type = [q.lower() == 'true' for q in q_all]
+            # convert type according to default
+            list_default = default if isinstance(default, list) else [default]
+            for d in list_default:
+                _type = type(d)
+                if _type: break  # The first non-None type
+                
+            if _type == bool:
+                q_all_correct_type = [q.lower() == 'true' for q in q_all]
+            else:
+                q_all_correct_type = [_type(q) 
+                                    if q.lower() != 'none'
+                                    else None
+                                    for q in q_all]
+            
+            # flatten list if only one element
+            if not isinstance(default, list):
+                q_all_correct_type = q_all_correct_type[0]
+            
+            try:
+                st.session_state[key] = q_all_correct_type
+            except:
+                print(f'Failed to set {key} to {q_all_correct_type}')
         else:
-            q_all_correct_type = [_type(q) 
-                                  if q.lower() != 'none'
-                                  else None
-                                  for q in q_all]
-        
-        # flatten list if only one element
-        if not isinstance(default, list):
-            q_all_correct_type = q_all_correct_type[0]
-        
+            try:
+                st.session_state[key] = default
+            except:
+                print(f'Failed to set {key} to {default}')
+            
+
+def sync_session_state_to_URL():
+    to_sync_with_url_query_all_filters_added = list(
+        set(
+            list(to_sync_with_url_query.keys()) + 
+                [
+                    filter_name for filter_name in st.session_state 
+                    if (
+                        filter_name.startswith('filter_') 
+                        and not (filter_name.endswith('_changed'))
+                    )
+                ]
+                )
+        )
+    
+    for key in to_sync_with_url_query_all_filters_added:
         try:
-            st.session_state[key] = q_all_correct_type
+            st.query_params.update({key: st.session_state[key]})
         except:
-            print(f'Failed to set {key} to {q_all_correct_type}')
-    else:
-        try:
-            st.session_state[key] = default
-        except:
-            print(f'Failed to set {key} to {default}')
+            print(f'Failed to update {key} to URL query')

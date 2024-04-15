@@ -35,65 +35,12 @@ from util.aws_s3 import (
     show_debug_info,
 )
 from util.url_query_helper import (
-    sync_widget_with_query, slider_wrapper_for_url_query, checkbox_wrapper_for_url_query
+    sync_URL_to_session_state, sync_session_state_to_URL,
+    slider_wrapper_for_url_query, checkbox_wrapper_for_url_query
 )
 
 from aind_auto_train.curriculum_manager import CurriculumManager
 from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
-
-
-# Sync widgets with URL query params
-# https://blog.streamlit.io/how-streamlit-uses-streamlit-sharing-contextual-apps/
-# dict of "key": default pairs
-# Note: When creating the widget, add argument "value"/"index" as well as "key" for all widgets you want to sync with URL
-to_sync_with_url_query = {
-    'if_load_bpod_sessions': False,
-    
-    'to_filter_columns': ['subject_id', 'task', 'session', 'finished_trials', 'foraging_eff'],
-    'filter_subject_id': '',
-    'filter_session': [0.0, None],
-    'filter_finished_trials': [0.0, None],
-    'filter_foraging_eff': [0.0, None],
-    'filter_task': ['all'],
-    
-    'table_height': 300,
-    
-    'tab_id': 'tab_session_x_y',
-    'x_y_plot_xname': 'session',
-    'x_y_plot_yname': 'foraging_performance_random_seed',
-    'x_y_plot_group_by': 'h2o',
-    'x_y_plot_if_show_dots': True,
-    'x_y_plot_if_aggr_each_group': True,
-    'x_y_plot_aggr_method_group': 'lowess',
-    'x_y_plot_if_aggr_all': True,
-    'x_y_plot_aggr_method_all': 'mean +/- sem',
-    'x_y_plot_smooth_factor': 5,
-    'x_y_plot_if_use_x_quantile_group': False,
-    'x_y_plot_q_quantiles_group': 20,
-    'x_y_plot_if_use_x_quantile_all': False,
-    'x_y_plot_q_quantiles_all': 20,
-    'x_y_plot_if_show_diagonal': False,
-    'x_y_plot_dot_size': 10,
-    'x_y_plot_dot_opacity': 0.3,
-    'x_y_plot_line_width': 2.0,
-    'x_y_plot_figure_width': 1300,
-    'x_y_plot_figure_height': 900,
-    'x_y_plot_font_size_scale': 1.0,
-    'x_y_plot_selected_color_map': 'Plotly',
-    
-    'x_y_plot_size_mapper': 'finished_trials',
-    'x_y_plot_size_mapper_gamma': 1.0,
-    'x_y_plot_size_mapper_range': [3, 20],
-    
-    'session_plot_mode': 'sessions selected from table or plot',
-
-    'auto_training_history_x_axis': 'session',
-    'auto_training_history_sort_by': 'subject_id',
-    'auto_training_history_sort_order': 'descending',
-    'auto_training_curriculum_name': 'Uncoupled Baiting',
-    'auto_training_curriculum_version': '1.0',
-    'auto_training_curriculum_schema_version': '1.0',
-    }
 
 
 try:
@@ -338,9 +285,8 @@ def init():
             del st.session_state[key]
             
     # Set session state from URL
-    for key, default in to_sync_with_url_query.items():
-        sync_widget_with_query(key, default)
-
+    sync_URL_to_session_state()
+    
     df = load_data(['sessions'], data_source='bonsai')
     
     # --- Perform any data source-dependent preprocessing here ---
@@ -793,24 +739,7 @@ def app():
 
     
     # Update back to URL
-    to_sync_with_url_query_all_filters_added = list(
-        set(
-            list(to_sync_with_url_query.keys()) + 
-                [
-                    filter_name for filter_name in st.session_state 
-                    if (
-                        filter_name.startswith('filter_') 
-                        and not (filter_name.endswith('_changed'))
-                    )
-                ]
-                )
-        )
-        
-    for key in to_sync_with_url_query_all_filters_added:
-        try:
-            st.query_params.update({key: st.session_state[key]})
-        except:
-            print(f'Failed to update {key} to URL query')
+    sync_session_state_to_URL()
     
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
 

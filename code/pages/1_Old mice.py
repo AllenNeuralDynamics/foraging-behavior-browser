@@ -21,7 +21,7 @@ from streamlit_plotly_events import plotly_events
 from util.streamlit import (filter_dataframe, aggrid_interactive_table_session, add_session_filter, data_selector, 
                             add_xy_selector, add_xy_setting, add_auto_train_manager,
                             _plot_population_x_y)
-from util.url_query_helper import sync_widget_with_query
+from util.url_query_helper import sync_URL_to_session_state
 
 import extra_streamlit_components as stx
 
@@ -412,7 +412,7 @@ def init():
 
     # Set session state from URL
     for key, default in to_sync_with_url_query.items():
-        sync_widget_with_query(key, default)
+        sync_URL_to_session_state(key, default)
 
     df = load_data(['sessions', 
                     'logistic_regression_hattori', 
