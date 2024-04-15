@@ -253,6 +253,7 @@ def filter_dataframe(df: pd.DataFrame,
                 else:
                     default_value = list(df[column].unique())  
                 
+                default_value = [v for v in default_value if v in list(df[column].unique())]
                 st.session_state[f'filter_{column}'] = default_value           
                 
                 selected = right.multiselect(
