@@ -216,14 +216,14 @@ def sync_session_state_to_URL():
             
             
 def get_filter_type(df, column):
+    if is_numeric_dtype(df[column]):
+        return 'slider_range_float'
+    
     if (is_categorical_dtype(df[column]) 
         or df[column].nunique() < 10
         or column in ('user_name') # pin to multiselect
-        and column not in ('finished', 'foraging_eff', 'session', 'finished_trials')):
+        ):
         return 'multiselect'
-    
-    if is_numeric_dtype(df[column]):
-        return 'slider_range_float'
 
     if is_datetime64_any_dtype(df[column]):
         return 'slider_range_date'
