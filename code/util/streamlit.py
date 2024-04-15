@@ -22,7 +22,7 @@ import plotly.graph_objects as go
 import statsmodels.api as sm
 from scipy.stats import linregress
 
-from .url_query_helper import checkbox_wrapper_for_url_query, selectbox_wrapper_for_url_query, slider_wrapper_for_url_query
+from .url_query_helper import checkbox_wrapper_for_url_query, selectbox_wrapper_for_url_query, slider_wrapper_for_url_query, multiselect_wrapper_for_url_query
 from .plot_autotrain_manager import plot_manager_all_progress
 
 from .aws_s3 import draw_session_plots_quick_preview
@@ -214,14 +214,16 @@ def filter_dataframe(df: pd.DataFrame,
         cols = st.columns([1, 1.5])
         cols[0].markdown(f"Add filters")
         if_reset_filters = cols[1].button(label="Reset filters")
-        to_filter_columns = st.multiselect("Filter dataframe on", df.columns,
-                                                            label_visibility='collapsed',
-                                                            default=st.session_state.to_filter_columns_changed 
-                                                                    if 'to_filter_columns_changed' in st.session_state
-                                                                    else default_filters,
-                                                            key='to_filter_columns',
-                                                            on_change=cache_widget,
-                                                            args=['to_filter_columns'])
+        
+        to_filter_columns = multiselect_wrapper_for_url_query(
+            st_prefix=st,
+            label="Filter dataframe on",
+            options=df.columns,
+            default=['subject_id', 'session', 'finished_trials', 'foraging_eff', 'task'],
+            key='to_filter_columns',
+            label_visibility='collapsed',
+        )
+
         for column in to_filter_columns:
             if not len(df): break
             

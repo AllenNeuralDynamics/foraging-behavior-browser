@@ -49,6 +49,7 @@ from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
 to_sync_with_url_query = {
     'if_load_bpod_sessions': False,
     
+    'to_filter_columns': ['subject_id', 'task', 'session', 'finished_trials', 'foraging_eff'],
     'filter_subject_id': '',
     'filter_session': [0.0, None],
     'filter_finished_trials': [0.0, None],

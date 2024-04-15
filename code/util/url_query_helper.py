@@ -26,6 +26,21 @@ def selectbox_wrapper_for_url_query(st_prefix, label, options, key, default, **k
         key=key,
         **kwargs,
     )
+    
+def multiselect_wrapper_for_url_query(st_prefix, label, options, key, default, **kwargs):
+    return st_prefix.multiselect(
+        label,
+        options=options,
+        default=(
+            st.session_state[key]
+            if key in st.session_state
+            else st.query_params[key]
+            if key in st.query_params 
+            else default
+        ),
+        key=key,
+        **kwargs,
+    )
 
 def slider_wrapper_for_url_query(st_prefix, label, min_value, max_value, key, default, **kwargs):
     
@@ -52,6 +67,8 @@ def slider_wrapper_for_url_query(st_prefix, label, min_value, max_value, key, de
     
     
 def sync_widget_with_query(key, default):
+    """Assign session_state to sync with URL"""
+    
     if key in st.query_params:
         # always get all query params as a list
         q_all = st.query_params.get_all(key)
@@ -65,7 +82,10 @@ def sync_widget_with_query(key, default):
         if _type == bool:
             q_all_correct_type = [q.lower() == 'true' for q in q_all]
         else:
-            q_all_correct_type = [_type(q) for q in q_all]
+            q_all_correct_type = [_type(q) 
+                                  if q.lower() != 'none'
+                                  else None
+                                  for q in q_all]
         
         # flatten list if only one element
         if not isinstance(default, list):
