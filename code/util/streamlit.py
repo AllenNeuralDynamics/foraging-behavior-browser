@@ -288,9 +288,9 @@ def filter_dataframe(df: pd.DataFrame,
                     else:
                         x = df[column]               
                         
-                    _min = float(x.min())
-                    _max = float(x.max())
-                    step = (_max - _min) / 100
+                    _min = float(x.min() - 0.05 * abs(x.min()))  # Avoid collapsing the range
+                    _max = float(x.max() + 0.05 * abs(x.max()))
+                    step = (_max - _min) / min(100, len(np.unique(x)) + 1) # Avoid too many steps
 
                     c_hist = st.container()  # Histogram
                     
@@ -306,10 +306,12 @@ def filter_dataframe(df: pd.DataFrame,
                                         zip(st.session_state[f'filter_{column}'], (_min, _max))]
                     else:
                         default_value = (_min, _max)
-                        
+                    
+                    default_value = list(default_value)
+                    default_value[0] = max(_min, default_value[0])
+                    default_value[1] = min(_max, default_value[1])
                     st.session_state[f'filter_{column}'] = default_value
 
-                    
                     user_num_input = st.slider(
                         f"Values for {column}",
                         label_visibility='collapsed',
