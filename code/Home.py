@@ -12,7 +12,7 @@ Example queries:
 
 """
 
-__ver__ = 'v2.2.2'
+__ver__ = 'v2.3.0'
 
 import pandas as pd
 import streamlit as st
