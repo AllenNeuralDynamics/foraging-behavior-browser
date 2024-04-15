@@ -791,10 +791,22 @@ def app():
         st.markdown('---\n##### Debug zone')
         show_debug_info()
 
-
     
     # Update back to URL
-    for key in to_sync_with_url_query:
+    to_sync_with_url_query_all_filters_added = list(
+        set(
+            list(to_sync_with_url_query.keys()) + 
+                [
+                    filter_name for filter_name in st.session_state 
+                    if (
+                        filter_name.startswith('filter_') 
+                        and not (filter_name.endswith('_changed'))
+                    )
+                ]
+                )
+        )
+        
+    for key in to_sync_with_url_query_all_filters_added:
         try:
             st.query_params.update({key: st.session_state[key]})
         except:
