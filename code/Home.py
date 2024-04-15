@@ -24,6 +24,8 @@ from streamlit_plotly_events import plotly_events
 from pygwalker.api.streamlit import StreamlitRenderer, init_streamlit_comm
 import extra_streamlit_components as stx
 
+from util.settings import draw_type_mapper_session_level
+
 from util.streamlit import (aggrid_interactive_table_session,
                             aggrid_interactive_table_curriculum, add_session_filter, data_selector,
                             add_xy_selector, add_xy_setting, add_auto_train_manager, add_dot_property_mapper,
@@ -36,7 +38,8 @@ from util.aws_s3 import (
 )
 from util.url_query_helper import (
     sync_URL_to_session_state, sync_session_state_to_URL,
-    slider_wrapper_for_url_query, checkbox_wrapper_for_url_query
+    slider_wrapper_for_url_query, checkbox_wrapper_for_url_query,
+    multiselect_wrapper_for_url_query,
 )
 
 from aind_auto_train.curriculum_manager import CurriculumManager
@@ -113,17 +116,17 @@ def draw_session_plots(df_to_draw_session):
                     st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["h2o"]}, Session {int(key["session"])}, {date_str} '''
                                 f'''({key["user_name"]}@{key["data_source"]})''',
                                 unsafe_allow_html=True)
-                    if len(st.session_state.selected_draw_types) > 1:  # more than one types, use the pre-defined layout
+                    if len(st.session_state.session_plot_selected_draw_types) > 1:  # more than one types, use the pre-defined layout
                         for row, column_setting in enumerate(layout_definition):
                             rows.append(this_major_col.columns(column_setting))
                     else:    # else, put it in the whole column
                         rows = this_major_col.columns([1])
                     st.markdown("---")
 
-                for draw_type in st.session_state.draw_type_mapper_session_level:
-                    if draw_type not in st.session_state.selected_draw_types: continue  # To keep the draw order defined by st.session_state.draw_type_mapper_session_level
-                    prefix, position, setting = st.session_state.draw_type_mapper_session_level[draw_type]
-                    this_col = rows[position[0]][position[1]] if len(st.session_state.selected_draw_types) > 1 else rows[0]
+                for draw_type in draw_type_mapper_session_level:
+                    if draw_type not in st.session_state.session_plot_selected_draw_types: continue  # To keep the draw order defined by draw_type_mapper_session_level
+                    prefix, position, setting = draw_type_mapper_session_level[draw_type]
+                    this_col = rows[position[0]][position[1]] if len(st.session_state.session_plot_selected_draw_types) > 1 else rows[0]
                     show_session_level_img_by_key_and_prefix(key, 
                                                             column=this_col,
                                                             prefix=prefix,
@@ -165,11 +168,14 @@ def session_plot_settings(need_click=True):
         </style>""",
         unsafe_allow_html=True,
         )
-        st.session_state.selected_draw_types = cols[1].multiselect('Which plot(s) to draw?', 
-                                                            st.session_state.draw_type_mapper_session_level.keys(), 
-                                                            default=st.session_state.draw_type_mapper_session_level.keys()
-                                                            if 'selected_draw_types' not in st.session_state else 
-                                                            st.session_state.selected_draw_types)
+        _ = multiselect_wrapper_for_url_query(
+            cols[1],
+            label='Which plot(s) to draw?',
+            options=draw_type_mapper_session_level.keys(),
+            default=draw_type_mapper_session_level.keys(),
+            key='session_plot_selected_draw_types',
+        )
+                
         cols[0].markdown(f'{n_session_to_draw} sessions to draw')
         draw_it_now_override = cols[2].checkbox('Auto show', value=not need_click, disabled=not need_click)
         submitted = cols[0].form_submit_button("Update settings", type='primary')
@@ -287,7 +293,14 @@ def init():
     df = load_data(['sessions'], data_source='bonsai')
     
     # --- Perform any data source-dependent preprocessing here ---
-    if (st.session_state.if_load_bpod_sessions if 'if_load_bpod_sessions' in st.session_state else False):
+    # Because sync_URL_to_session_state() needs df to be loaded (for dynamic column filtering),
+    # 'if_load_bpod_sessions' has not been synced from URL to session state yet.
+    # So here we need to manually get it from URL or session state.
+    if (st.query_params['if_load_bpod_sessions'].lower() == 'true'
+        if 'if_load_bpod_sessions' in st.query_params
+        else st.session_state.if_load_bpod_sessions 
+        if 'if_load_bpod_sessions' in st.session_state
+        else False):
         df_bpod = load_data(['sessions'], data_source='bpod')
         
         # For historial reason, the suffix of df['sessions_bonsai'] just mean the data of the Home.py page
@@ -313,50 +326,7 @@ def init():
         df_manager_root_on_s3=dict(bucket='aind-behavior-data',
                                 root='foraging_auto_training/')
     )
-    
-    logistic_regression_models = ['Su2022', 'Bari2019', 'Hattori2019', 'Miller2021']
-    
-    
-    st.session_state.draw_type_mapper_session_level = {'1. Choice history': ('choice_history',   # prefix
-                                                            (0, 0),     # location (row_idx, column_idx)
-                                                            dict()),
-                                                       **{f'{n + 2}. Logistic regression ({model})': (f'logistic_regression_{model}',   # prefix
-                                                            (1 + int(n/2), n%2),     # location (row_idx, column_idx)
-                                                            dict()) for n, model in enumerate(logistic_regression_models)},
-        
-                                        # '1. Choice history': ('fitted_choice',   # prefix
-                                        #                     (0, 0),     # location (row_idx, column_idx)
-                                        #                     dict(other_patterns=['model_best', 'model_None'])),
-                                        # '2. Lick times': ('lick_psth',  
-                                        #                 (1, 0), 
-                                        #                 {}),            
-                                        # '3. Win-stay-lose-shift prob.': ('wsls', 
-                                        #                                 (1, 1), 
-                                        #                                 dict(crop=(0, 0, 1200, 600))),
-                                        # '4. Linear regression on RT': ('linear_regression_rt', 
-                                        #                                 (1, 1), 
-                                        #                                 dict()),
-                                        # '5. Logistic regression on choice (Hattori)': ('logistic_regression_hattori', 
-                                        #                                                 (2, 0), 
-                                        #                                                 dict(crop=(0, 0, 1200, 2000))),
-                                        # '6. Logistic regression on choice (Su)': ('logistic_regression_su', 
-                                        #                                                 (2, 1), 
-                                        #                                                 dict(crop=(0, 0, 1200, 2000))),
-                    }
-    
-    # st.session_state.draw_type_mapper_mouse_level = {'1. Model comparison': ('model_all_sessions',   # prefix
-    #                                                                          (0, 0),     # location (row_idx, column_idx)
-    #                                                                          dict(other_patterns=['comparison'], 
-    #                                                                               crop=(0, #900, 
-    #                                                                                     100, 2800, 2200))),
-    #                                                 '2. Model prediction accuracy': ('model_all_sessions',
-    #                                                                                  (0, 0), 
-    #                                                                                  dict(other_patterns=['pred_acc'])),            
-    #                                                 '3. Model fitted parameters': ('model_all_sessions', 
-    #                                                                                (0, 0), 
-    #                                                                                dict(other_patterns=['fitted_para'])),
-    #                 }
-   
+  
    
     # Some ad-hoc modifications on df_sessions
     _df = st.session_state.df['sessions_bonsai']  # temporary df alias

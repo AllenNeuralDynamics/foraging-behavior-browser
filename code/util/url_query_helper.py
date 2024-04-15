@@ -1,5 +1,7 @@
 import streamlit as st
 
+from .settings import draw_type_mapper_session_level
+
 from pandas.api.types import (
     is_categorical_dtype,
     is_datetime64_any_dtype,
@@ -50,6 +52,7 @@ to_sync_with_url_query_default = {
     'x_y_plot_size_mapper_range': [3, 20],
     
     'session_plot_mode': 'sessions selected from table or plot',
+    'session_plot_selected_draw_types': list(draw_type_mapper_session_level.keys()),
 
     'auto_training_history_x_axis': 'session',
     'auto_training_history_sort_by': 'subject_id',
