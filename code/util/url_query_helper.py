@@ -151,6 +151,8 @@ def sync_URL_to_session_state():
                                           key.replace('filter_', ''))
             if filter_type == 'slider_range_float':
                 default = [0.0, 1.0]
+            elif filter_type == 'reg_ex':
+                default = ''
             else:
                 print('sync_URL_to_session_state: Unrecognized filter type')
                 continue
