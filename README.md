@@ -4,6 +4,7 @@ A streamlit app for browsing foraging behavior sessions in AIND.
 
 ## The app
 - The one running on ECS: https://foraging-behavior-browser.allenneuraldynamics-test.org/
+    - If you see a window "Select a certificate for authentication", just click "Cancel".
 - To debug, use this [Code Ocean capsule](https://codeocean.allenneuraldynamics.org/capsule/3373065/tree?cw=true)
 - See also a streamlit app for ephys sessions https://github.com/AllenNeuralDynamics/foraging-ephys-browser/
 
