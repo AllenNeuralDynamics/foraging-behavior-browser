@@ -39,7 +39,7 @@ from util.aws_s3 import (
 from util.url_query_helper import (
     sync_URL_to_session_state, sync_session_state_to_URL,
     slider_wrapper_for_url_query, checkbox_wrapper_for_url_query,
-    multiselect_wrapper_for_url_query,
+    multiselect_wrapper_for_url_query, number_input_wrapper_for_url_query,
 )
 
 from aind_auto_train.curriculum_manager import CurriculumManager
@@ -99,10 +99,10 @@ def draw_session_plots(df_to_draw_session):
             st.write(f'Loading selected {len(df_to_draw_session)} sessions...')
             my_bar = st.columns((1, 7))[0].progress(0)
              
-            major_cols = st.columns([1] * st.session_state.num_cols)
+            major_cols = st.columns([1] * st.session_state['session_plot_number_cols'])
             
             for i, key in enumerate(df_to_draw_session.to_dict(orient='records')):
-                this_major_col = major_cols[i % st.session_state.num_cols]
+                this_major_col = major_cols[i % st.session_state['session_plot_number_cols']]
                 
                 # setting up layout for each session
                 rows = []
@@ -155,9 +155,15 @@ def session_plot_settings(need_click=True):
         n_session_to_draw = len(st.session_state.df_selected_from_plotly) \
             if 'selected from table or plot' in st.session_state.selected_draw_sessions \
             else len(st.session_state.df_session_filtered) 
-        
-        st.session_state.num_cols = cols[2].number_input('number of columns', 1, 10, 
-                                                        3 if 'num_cols' not in st.session_state else st.session_state.num_cols)
+                
+        _ = number_input_wrapper_for_url_query(
+            st_prefix=cols[2],
+            label='number of columns',
+            min_value=1,
+            max_value=10,
+            default=3,
+            key='session_plot_number_cols',
+        )
         
         st.markdown(
         """

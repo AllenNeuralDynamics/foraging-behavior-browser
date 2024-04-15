@@ -53,6 +53,7 @@ to_sync_with_url_query_default = {
     
     'session_plot_mode': 'sessions selected from table or plot',
     'session_plot_selected_draw_types': list(draw_type_mapper_session_level.keys()),
+    'session_plot_number_cols': 3,
 
     'auto_training_history_x_axis': 'session',
     'auto_training_history_sort_by': 'subject_id',
@@ -120,6 +121,23 @@ def slider_wrapper_for_url_query(st_prefix, label, min_value, max_value, key, de
             st.session_state[key]
             if key in st.session_state
             else parse_range_from_url
+            if key in st.query_params 
+            else default
+        ),
+        key=key,
+        **kwargs,
+    )
+    
+    
+def number_input_wrapper_for_url_query(st_prefix, label, min_value, max_value, key, default, **kwargs):
+    return st_prefix.number_input(
+        label=label,
+        min_value=min_value,
+        max_value=max_value,
+        value=(
+            st.session_state[key]
+            if key in st.session_state
+            else type(min_value)(st.query_params[key])
             if key in st.query_params 
             else default
         ),
