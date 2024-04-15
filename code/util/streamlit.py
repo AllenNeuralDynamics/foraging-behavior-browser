@@ -6,10 +6,8 @@ from st_aggrid import AgGrid, GridOptionsBuilder
 from st_aggrid.shared import GridUpdateMode, ColumnsAutoSizeMode, DataReturnMode
 from pandas.api.types import (
     is_categorical_dtype,
-    is_datetime64_any_dtype,
     is_numeric_dtype,
     is_string_dtype,
-    is_object_dtype,
 )
 import streamlit.components.v1 as components
 from streamlit_plotly_events import plotly_events
@@ -22,7 +20,13 @@ import plotly.graph_objects as go
 import statsmodels.api as sm
 from scipy.stats import linregress
 
-from .url_query_helper import checkbox_wrapper_for_url_query, selectbox_wrapper_for_url_query, slider_wrapper_for_url_query
+from .url_query_helper import (
+    checkbox_wrapper_for_url_query, 
+    selectbox_wrapper_for_url_query, 
+    slider_wrapper_for_url_query, 
+    multiselect_wrapper_for_url_query,
+    get_filter_type,
+    )
 from .plot_autotrain_manager import plot_manager_all_progress
 
 from .aws_s3 import draw_session_plots_quick_preview
@@ -186,6 +190,7 @@ def cache_widget(field, clear=None):
 # def dec_cache_widget_state(widget, ):
 
 
+
 def filter_dataframe(df: pd.DataFrame, 
                      default_filters=['h2o', 'task', 'finished_trials', 'photostim_location'],
                      url_query={}) -> pd.DataFrame:
@@ -214,20 +219,25 @@ def filter_dataframe(df: pd.DataFrame,
         cols = st.columns([1, 1.5])
         cols[0].markdown(f"Add filters")
         if_reset_filters = cols[1].button(label="Reset filters")
-        to_filter_columns = st.multiselect("Filter dataframe on", df.columns,
-                                                            label_visibility='collapsed',
-                                                            default=st.session_state.to_filter_columns_changed 
-                                                                    if 'to_filter_columns_changed' in st.session_state
-                                                                    else default_filters,
-                                                            key='to_filter_columns',
-                                                            on_change=cache_widget,
-                                                            args=['to_filter_columns'])
+        
+        to_filter_columns = multiselect_wrapper_for_url_query(
+            st_prefix=st,
+            label="Filter dataframe on",
+            options=df.columns,
+            default=['subject_id', 'session', 'finished_trials', 'foraging_eff', 'task'],
+            key='to_filter_columns',
+            label_visibility='collapsed',
+        )
+
         for column in to_filter_columns:
             if not len(df): break
             
             left, right = st.columns((1, 20))
             # Treat columns with < 10 unique values as categorical
-            if is_categorical_dtype(df[column]) or df[column].nunique() < 10 and column not in ('finished', 'foraging_eff', 'session', 'finished_trials'):
+            
+            filter_type = get_filter_type(df, column)
+            
+            if filter_type == 'multiselect':
                 right.markdown(f"Filter for :red[**{column}**]")
                 
                 if if_reset_filters:
@@ -243,6 +253,7 @@ def filter_dataframe(df: pd.DataFrame,
                 else:
                     default_value = list(df[column].unique())  
                 
+                default_value = [v for v in default_value if v in list(df[column].unique())]
                 st.session_state[f'filter_{column}'] = default_value           
                 
                 selected = right.multiselect(
@@ -256,7 +267,7 @@ def filter_dataframe(df: pd.DataFrame,
                 )
                 df = df[df[column].isin(selected)]
                 
-            elif is_numeric_dtype(df[column]):
+            elif filter_type == 'slider_range_float':
                 
                 # fig = px.histogram(df[column], nbins=100, )
                 # fig.update_layout(showlegend=False, height=50)
@@ -339,7 +350,7 @@ def filter_dataframe(df: pd.DataFrame,
 
                     df = df[x.between(*user_num_input)]
                 
-            elif is_datetime64_any_dtype(df[column]):
+            elif filter_type == 'slider_range_date':
                 user_date_input = right.date_input(
                     f"Values for :red[**{column}**]",
                     value=st.session_state[f'filter_{column}_changed']
@@ -354,8 +365,8 @@ def filter_dataframe(df: pd.DataFrame,
                     user_date_input = tuple(map(pd.to_datetime, user_date_input))
                     start_date, end_date = user_date_input
                     df = df.loc[df[column].between(start_date, end_date)]
-            else:  # Regular string
                     
+            elif filter_type == 'reg_ex':
                 if if_reset_filters:
                     default_value = ''
                     st.session_state[f'filter_{column}_changed'] = default_value
