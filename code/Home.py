@@ -284,13 +284,10 @@ def init():
         if key in ['selected_draw_types'] or '_changed' in key:
             del st.session_state[key]
             
-    # Set session state from URL
-    sync_URL_to_session_state()
-    
     df = load_data(['sessions'], data_source='bonsai')
     
     # --- Perform any data source-dependent preprocessing here ---
-    if st.session_state.if_load_bpod_sessions:
+    if (st.session_state.if_load_bpod_sessions if 'if_load_bpod_sessions' in st.session_state else False):
         df_bpod = load_data(['sessions'], data_source='bpod')
         
         # For historial reason, the suffix of df['sessions_bonsai'] just mean the data of the Home.py page
@@ -473,6 +470,9 @@ def init():
     st.session_state.df['sessions_bonsai'] = _df  # Somehow _df loses the reference to the original dataframe
     
     st.session_state.session_stats_names = [keys for keys in _df.keys()]
+
+    # Set session state from URL
+    sync_URL_to_session_state()
        
     # Establish communication between pygwalker and streamlit
     init_streamlit_comm()

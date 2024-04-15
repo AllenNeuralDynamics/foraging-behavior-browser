@@ -1,10 +1,16 @@
 import streamlit as st
 
+from pandas.api.types import (
+    is_categorical_dtype,
+    is_datetime64_any_dtype,
+    is_numeric_dtype,
+)
+
 # Sync widgets with URL query params
 # https://blog.streamlit.io/how-streamlit-uses-streamlit-sharing-contextual-apps/
 # dict of "key": default pairs
 # Note: When creating the widget, add argument "value"/"index" as well as "key" for all widgets you want to sync with URL
-to_sync_with_url_query = {
+to_sync_with_url_query_default = {
     'if_load_bpod_sessions': False,
     
     'to_filter_columns': ['subject_id', 'task', 'session', 'finished_trials', 'foraging_eff'],
@@ -122,7 +128,34 @@ def slider_wrapper_for_url_query(st_prefix, label, min_value, max_value, key, de
 def sync_URL_to_session_state():
     """Assign session_state to sync with URL"""
     
-    for key, default in to_sync_with_url_query.items():
+    to_sync_with_session_state_dynamic_filter_added = list(
+        set(
+            list(st.query_params.keys())
+            + list(to_sync_with_url_query_default.keys())
+        )
+    )
+    
+    for key in to_sync_with_session_state_dynamic_filter_added:
+        
+        if key in to_sync_with_url_query_default:
+            # If in default list, get default value there
+            default = to_sync_with_url_query_default[key]
+        else:
+            # Else, the user should have added a new filter column
+            # let's get the type from the dataframe directly.
+            # 
+            # Also, in this case, the key must be from st.query_params, 
+            # so the only purpose of getting default is to get the correct type,
+            # not its value per se.
+            filter_type = get_filter_type(st.session_state.df['sessions_bonsai'],
+                                          key.replace('filter_', ''))
+            if filter_type == 'slider_range_float':
+                default = [0.0, 1.0]
+            else:
+                print('sync_URL_to_session_state: Unrecognized filter type')
+                continue
+            
+            
         if key in st.query_params:
             # always get all query params as a list
             q_all = st.query_params.get_all(key)
@@ -147,19 +180,22 @@ def sync_URL_to_session_state():
             
             try:
                 st.session_state[key] = q_all_correct_type
+                # print(f'sync_URL_to_session_state: Set {key} to {q_all_correct_type}')
             except:
-                print(f'Failed to set {key} to {q_all_correct_type}')
+                print(f'sync_URL_to_session_state: Failed to set {key} to {q_all_correct_type}')
         else:
             try:
                 st.session_state[key] = default
             except:
                 print(f'Failed to set {key} to {default}')
-            
+                        
 
 def sync_session_state_to_URL():
-    to_sync_with_url_query_all_filters_added = list(
+    # Add all 'filter_' fields to the default list 
+    # so that all dynamic filters are synced with URL
+    to_sync_with_url_query_dynamic_filter_added = list(
         set(
-            list(to_sync_with_url_query.keys()) + 
+            list(to_sync_with_url_query_default.keys()) + 
                 [
                     filter_name for filter_name in st.session_state 
                     if (
@@ -169,9 +205,23 @@ def sync_session_state_to_URL():
                 ]
                 )
         )
-    
-    for key in to_sync_with_url_query_all_filters_added:
+    for key in to_sync_with_url_query_dynamic_filter_added:
         try:
             st.query_params.update({key: st.session_state[key]})
         except:
             print(f'Failed to update {key} to URL query')
+            
+            
+def get_filter_type(df, column):
+    if (is_categorical_dtype(df[column]) 
+        or df[column].nunique() < 10 
+        and column not in ('finished', 'foraging_eff', 'session', 'finished_trials')):
+        return 'multiselect'
+    
+    if is_numeric_dtype(df[column]):
+        return 'slider_range_float'
+
+    if is_datetime64_any_dtype(df[column]):
+        return 'slider_range_date'
+    
+    return 'reg_ex'  # Default
