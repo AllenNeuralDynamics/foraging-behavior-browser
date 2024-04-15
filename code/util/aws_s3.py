@@ -5,6 +5,8 @@ import s3fs
 import pandas as pd
 import streamlit as st
 
+from .settings import draw_type_mapper_session_level
+
 # --------------------------------------
 data_sources = ['bonsai', 'bpod']
 
@@ -54,7 +56,7 @@ def draw_session_plots_quick_preview(df_to_draw_session):
             rows.append(st.columns(column_setting))
 
         for draw_type in draw_types_quick_preview:
-            prefix, position, setting = st.session_state.draw_type_mapper_session_level[draw_type]
+            prefix, position, setting = draw_type_mapper_session_level[draw_type]
             this_col = rows[position[0]][position[1]] if len(draw_types_quick_preview) > 1 else rows[0]
             show_session_level_img_by_key_and_prefix(
                 key,
