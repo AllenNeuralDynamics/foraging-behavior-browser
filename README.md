@@ -6,7 +6,7 @@ A streamlit app for browsing foraging behavior sessions in AIND.
 - The one running on ECS: https://foraging-behavior-browser.allenneuraldynamics-test.org/
     - If you see a window "Select a certificate for authentication", just click "Cancel".
 - To debug, use this [Code Ocean capsule](https://codeocean.allenneuraldynamics.org/capsule/3373065/tree?cw=true)
-- See also a streamlit app for ephys sessions https://github.com/AllenNeuralDynamics/foraging-ephys-browser/
+- See also a streamlit app for ephys sessions https://foraging-ephys-browser.allenneuraldynamics-test.org/ ([Git repo](https://github.com/AllenNeuralDynamics/foraging-ephys-browser/))
 
 ## Sharing a contextual app
 Starting from this [PR](https://github.com/AllenNeuralDynamics/foraging-behavior-browser/pull/25), the URL contains (part of) the session state of the app. Meaning that the user can "query" pre-set filters and plot settings in the URL. On the other hand, after interacting with the app, the URL is automatically updated to reflect the user interactions, and the user can then copy and paste the URL to share/save the new context. Essentially, this becomes a cool way of sharing a data analysis.
