@@ -44,6 +44,7 @@ from util.url_query_helper import (
 
 from aind_auto_train.curriculum_manager import CurriculumManager
 from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
+from aind_auto_train import __version__ as auto_train_version
 
 
 try:
@@ -625,6 +626,7 @@ def app():
 
             # Curriculum drop down selector
             cols = st.columns([0.8, 0.5, 0.8, 4])
+            cols[3].markdown(f"(aind_auto_train lib version = {auto_train_version})")
             options = list(df_curriculums['curriculum_name'].unique())
             selected_curriculum_name = cols[0].selectbox(
                 'Curriculum name', 
