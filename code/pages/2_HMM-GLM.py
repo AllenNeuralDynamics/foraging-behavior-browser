@@ -57,10 +57,11 @@ def app():
         widget_n_states = st.container()
         widget_model_comparison = st.container()
         
+        height = st.slider('Session container height', 100, 3000, 700, step=100)
         if st.button('Reload data from S3'):
             st.cache_data.clear()
             st.rerun()
-        
+                
     data_folder_selected = widget_data_folder.selectbox('Select Data Folder', data_folders)
 
     if data_folder_selected:
@@ -109,7 +110,7 @@ def app():
                                     caption='Fraction occupancy (all)')    
                                                 
                 # Grouped by selection
-                with st.container(height=700):
+                with st.container(height=height):
                     cols = st.columns([1.5, 1, 4])
                     grouped_by = cols[0].selectbox('Grouped By', ['grouped_by_sessions', 'grouped_by_sessions_conventional_view', 'grouped_by_states'])
                     num_cols = cols[1].number_input(
