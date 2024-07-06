@@ -9,6 +9,18 @@ import streamlit as st
 import s3fs
 import streamlit_nested_layout
 
+try:
+    st.set_page_config(layout="wide", 
+                    page_title='Foraging behavior browser',
+                    page_icon=':mouse2:',
+                        menu_items={
+                        'Report a bug': "https://github.com/hanhou/foraging-behavior-browser/issues",
+                        'About': "Github repo: https://github.com/hanhou/foraging-behavior-browser/"
+                        }
+                    )
+except:
+    pass
+
 # Set up the S3 bucket and prefix
 bucket_name = "s3://aind-behavior-data/faeze/HMM-GLM"
 
@@ -88,7 +100,7 @@ if data_folder_selected:
                                    caption='Fraction occupancy (all)')    
                                             
             # Grouped by selection
-            with st.container(height=2000):
+            with st.container(height=700):
                 cols = st.columns([1.5, 1, 4])
                 grouped_by = cols[0].selectbox('Grouped By', ['grouped_by_sessions', 'grouped_by_sessions_conventional_view', 'grouped_by_states'])
                 num_cols = cols[1].number_input(
