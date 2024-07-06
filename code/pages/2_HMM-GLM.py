@@ -36,6 +36,10 @@ with st.sidebar:
     widget_n_states = st.container()
     widget_model_comparison = st.container()
     
+    if st.button('Reload data from S3'):
+        st.cache_data.clear()
+        st.rerun()
+    
 data_folder_selected = widget_data_folder.selectbox('Select Data Folder', data_folders)
 
 if data_folder_selected:
