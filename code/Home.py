@@ -440,6 +440,11 @@ def init():
     
     # _df = _df.merge(
     #     diff_relative_weight_next_day, how='left', on=['h2o', 'session'])
+    
+    # Recorder columns so that autotrain info is easier to see
+    first_several_cols = ['']
+    new_order = first_several_cols + [col for col in _df.columns if col not in first_several_cols]
+    _df = _df[new_order]
 
     st.session_state.df['sessions_bonsai'] = _df  # Somehow _df loses the reference to the original dataframe
     
