@@ -31,7 +31,7 @@ def load_data(tables=['sessions'], data_source = 'bonsai'):
             st.markdown(f'''### df_{table}.pkl is missing on S3. \n'''
                         f'''## It is very likely that Han is [rerunning the whole pipeline](https://github.com/AllenNeuralDynamics/aind-foraging-behavior-bonsai-trigger-pipeline?tab=readme-ov-file#notes-on-manually-re-process-all-nwbs-and-overwrite-s3-database-and-thus-the-streamlit-app). Please come back after an hour.''')
             st.markdown('')
-            st.image("https://private-user-images.githubusercontent.com/24734299/356400867-bea2c7a9-c561-4c5f-afa5-92d63c040be6.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MjMxNTYxNDYsIm5iZiI6MTcyMzE1NTg0NiwicGF0aCI6Ii8yNDczNDI5OS8zNTY0MDA4NjctYmVhMmM3YTktYzU2MS00YzVmLWFmYTUtOTJkNjNjMDQwYmU2LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNDA4MDglMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjQwODA4VDIyMjQwNlomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTM5NDI4YjYzNTNiM2FiMDZlMzMyYmE2NjY5ZGMzNmM4ZTA4MWI4YjUxZGJlMWNlMTM0NGYwMDQ2MjRhNDcwODImWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.Sb8JeqY1yFnO6DAZLFe4eDd6AYEICaCtFar_CdTT_-Y",
+            st.image("https://github.com/user-attachments/assets/bea2c7a9-c561-4c5f-afa5-92d63c040be6",
                      width=500)
     return df
 
