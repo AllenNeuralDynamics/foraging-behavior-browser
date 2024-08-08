@@ -24,7 +24,7 @@ from streamlit_plotly_events import plotly_events
 from pygwalker.api.streamlit import StreamlitRenderer, init_streamlit_comm
 import extra_streamlit_components as stx
 
-from util.settings import draw_type_mapper_session_level
+from util.settings import draw_type_mapper_session_level, draw_type_layout_definition
 
 from util.streamlit import (aggrid_interactive_table_session,
                             aggrid_interactive_table_curriculum, add_session_filter, data_selector,
@@ -84,12 +84,6 @@ def get_pyg_renderer(df, spec="./gw_config.json", **kwargs) -> "StreamlitRendere
 
 def draw_session_plots(df_to_draw_session):
     
-    # Setting up layout for each session
-    layout_definition = [[1],   # columns in the first row
-                         [1, 1],  # columns in the second row
-                         [1, 1],
-                         ]  
-    
     # cols_option = st.columns([3, 0.5, 1])
     container_session_all_in_one = st.container()
     
@@ -118,7 +112,7 @@ def draw_session_plots(df_to_draw_session):
                                 f'''({key["user_name"]}@{key["data_source"]})''',
                                 unsafe_allow_html=True)
                     if len(st.session_state.session_plot_selected_draw_types) > 1:  # more than one types, use the pre-defined layout
-                        for row, column_setting in enumerate(layout_definition):
+                        for row, column_setting in enumerate(draw_type_layout_definition):
                             rows.append(this_major_col.columns(column_setting))
                     else:    # else, put it in the whole column
                         rows = this_major_col.columns([1])
