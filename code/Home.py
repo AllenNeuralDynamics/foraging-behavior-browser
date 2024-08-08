@@ -293,6 +293,9 @@ def init():
             
     df = load_data(['sessions'], data_source='bonsai')
     
+    if not len(df):
+        return False
+    
     # --- Perform any data source-dependent preprocessing here ---
     # Because sync_URL_to_session_state() needs df to be loaded (for dynamic column filtering),
     # 'if_load_bpod_sessions' has not been synced from URL to session state yet.
@@ -447,6 +450,8 @@ def init():
        
     # Establish communication between pygwalker and streamlit
     init_streamlit_comm()
+    
+    return True
 
 
 def app():
@@ -717,6 +722,7 @@ def app():
 
 
 if 'df' not in st.session_state or 'sessions_bonsai' not in st.session_state.df.keys(): 
-    init()
+    ok = init()
 
-app()
+if ok:
+    app()
