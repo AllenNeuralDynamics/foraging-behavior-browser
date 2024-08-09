@@ -95,3 +95,5 @@ yarl==1.8.1
 zipp==3.10.0
 git+https://github.com/AllenNeuralDynamics/aind-foraging-behavior-bonsai-automatic-training.git@main
 pygwalker==0.4.7
+aind-data-access-api[docdb]==0.13.0
+streamlit-dynamic-filters==0.1.9
