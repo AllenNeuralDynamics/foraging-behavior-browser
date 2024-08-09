@@ -442,7 +442,9 @@ def init():
     #     diff_relative_weight_next_day, how='left', on=['h2o', 'session'])
     
     # Recorder columns so that autotrain info is easier to see
-    first_several_cols = ['']
+    first_several_cols = ['subject_id', 'session_date', 'session', 'nwb_suffix', 'rig', 
+                          'user_name', 'curriculum_name', 'curriculum_version', 'current_stage_actual', 
+                          'task', 'notes']
     new_order = first_several_cols + [col for col in _df.columns if col not in first_several_cols]
     _df = _df[new_order]
 
@@ -725,7 +727,7 @@ def app():
     
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
 
-
+ok = True
 if 'df' not in st.session_state or 'sessions_bonsai' not in st.session_state.df.keys(): 
     ok = init()
 
