@@ -8,6 +8,18 @@ from util.fetch_data_docDB import fetch_fip_data
 import streamlit as st
 from streamlit_dynamic_filters import DynamicFilters
 
+try:
+    st.set_page_config(layout="wide", 
+                    page_title='Foraging behavior browser',
+                    page_icon=':mouse2:',
+                        menu_items={
+                        'Report a bug': "https://github.com/hanhou/foraging-behavior-browser/issues",
+                        'About': "Github repo: https://github.com/hanhou/foraging-behavior-browser/"
+                        }
+                    )
+except:
+    pass
+
 @st.cache_data  
 def load_data():
     df = fetch_fip_data(client)
