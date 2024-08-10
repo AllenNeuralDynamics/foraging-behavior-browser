@@ -691,7 +691,7 @@ def add_auto_train_manager():
     df_training_manager = st.session_state.auto_train_manager.df_manager
 
     # -- Show plotly chart --
-    cols = st.columns([1, 1, 1, 0.7, 0.7, 3])
+    cols = st.columns([1, 1, 1, 0.7, 0.7, 1, 2])
     options = ["session", "date", "relative_date"]
     x_axis = selectbox_wrapper_for_url_query(
         st_prefix=cols[0],
@@ -721,6 +721,16 @@ def add_auto_train_manager():
 
     marker_size = cols[3].number_input('Marker size', value=15, step=1)
     marker_edge_width = cols[4].number_input('Marker edge width', value=3, step=1)
+    
+    recent_weeks = slider_wrapper_for_url_query(cols[5],
+                                                label="only recent weeks",
+                                                min_value=1,
+                                                max_value=26,
+                                                step=1,
+                                                key='auto_training_history_recent_weeks',
+                                                default=8,
+                                                disabled=x_axis != 'date',
+                                                )
 
     # Get highlighted subjects
     if ('filter_subject_id' in st.session_state and st.session_state['filter_subject_id']) or\
@@ -734,7 +744,7 @@ def add_auto_train_manager():
     fig_auto_train = plot_manager_all_progress(
         st.session_state.auto_train_manager,
         x_axis=x_axis,
-        recent_days=30,
+        recent_days=recent_weeks*7,
         sort_by=sort_by,
         sort_order=sort_order,
         marker_size=marker_size,
