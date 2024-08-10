@@ -7,6 +7,7 @@ draw_type_layout_definition = [
 ]
 
 logistic_regression_models = ["Su2022", "Bari2019", "Hattori2019", "Miller2021"]
+
 draw_type_mapper_session_level = {
     "1. Choice history": (
         "choice_history",  # prefix
@@ -27,3 +28,8 @@ draw_type_mapper_session_level = {
         for n, model in enumerate(logistic_regression_models)
     },
 }
+
+# For quick preview
+draw_types_quick_preview = [
+    '1. Choice history',
+    '3. Logistic regression (Su2022)']

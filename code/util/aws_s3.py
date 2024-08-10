@@ -5,7 +5,9 @@ import s3fs
 import pandas as pd
 import streamlit as st
 
-from .settings import draw_type_mapper_session_level
+from .settings import (
+    draw_type_layout_definition, draw_type_mapper_session_level, draw_types_quick_preview
+)
 
 # --------------------------------------
 data_sources = ['bonsai', 'bpod']
@@ -38,12 +40,6 @@ def load_data(tables=['sessions'], data_source = 'bonsai'):
 
 def draw_session_plots_quick_preview(df_to_draw_session):
 
-    # Setting up layout for each session
-    layout_definition = [[1],   # columns in the first row
-                         [1, 1],
-                         ]  
-    draw_types_quick_preview = ['1. Choice history', '2. Logistic regression (Su2022)']
-
     container_session_all_in_one = st.container()
 
     key = df_to_draw_session.to_dict(orient='records')[0]
@@ -59,7 +55,7 @@ def draw_session_plots_quick_preview(df_to_draw_session):
                     unsafe_allow_html=True)
 
         rows = []
-        for row, column_setting in enumerate(layout_definition):
+        for row, column_setting in enumerate(draw_type_layout_definition):
             rows.append(st.columns(column_setting))
 
         for draw_type in draw_types_quick_preview:
