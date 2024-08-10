@@ -15,6 +15,7 @@ def plot_manager_all_progress(manager: 'AutoTrainManager',
                                         'last_date', 'progress_to_graduated'] = 'subject_id',
                               sort_order: ['ascending',
                                            'descending'] = 'descending',
+                              recent_days: int=None,
                               marker_size=10,
                               marker_edge_width=2,
                               highlight_subjects=[],
@@ -174,8 +175,15 @@ def plot_manager_all_progress(manager: 'AutoTrainManager',
             autorange='reversed',
             zeroline=False,
             title=''
-        )
+        ),
+        yaxis_range=[-0.5, n + 0.5],
     )
+    
+    # Limit x range to recent days if x is "date"
+    if x_axis == 'date' and recent_days is not None:
+        xrange_min = datetime.now() - pd.Timedelta(days=recent_days)
+        xrange_max = datetime.now()
+        fig.update_xaxes(range=[xrange_min, xrange_max])
     
     # Highight the selected subject
     for n, subject_id in enumerate(subject_ids):

@@ -734,6 +734,7 @@ def add_auto_train_manager():
     fig_auto_train = plot_manager_all_progress(
         st.session_state.auto_train_manager,
         x_axis=x_axis,
+        recent_days=30,
         sort_by=sort_by,
         sort_order=sort_order,
         marker_size=marker_size,
@@ -748,6 +749,8 @@ def add_auto_train_manager():
         ),
         font=dict(size=18),
         height=30 * len(df_training_manager.subject_id.unique()),
+        xaxis_side='top',
+        title='',
     )            
 
     cols = st.columns([2, 1])
