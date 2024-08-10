@@ -24,7 +24,7 @@ to_sync_with_url_query_default = {
     
     'table_height': 300,
     
-    'tab_id': 'tab_session_x_y',
+    'tab_id': 'tab_auto_train_history',
     'x_y_plot_xname': 'session',
     'x_y_plot_yname': 'foraging_performance_random_seed',
     'x_y_plot_group_by': 'h2o',
@@ -55,8 +55,8 @@ to_sync_with_url_query_default = {
     'session_plot_selected_draw_types': list(draw_type_mapper_session_level.keys()),
     'session_plot_number_cols': 3,
 
-    'auto_training_history_x_axis': 'session',
-    'auto_training_history_sort_by': 'subject_id',
+    'auto_training_history_x_axis': 'date',
+    'auto_training_history_sort_by': 'last_date',
     'auto_training_history_sort_order': 'descending',
     'auto_training_curriculum_name': 'Uncoupled Baiting',
     'auto_training_curriculum_version': '1.0',
