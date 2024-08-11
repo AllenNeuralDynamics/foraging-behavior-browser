@@ -765,19 +765,27 @@ def add_auto_train_manager():
 
     cols = st.columns([2, 1])
     with cols[0]:
-        selected_ = plotly_events(fig_auto_train,
-                                    override_height=fig_auto_train.layout.height * 1.1, 
-                                    override_width=fig_auto_train.layout.width,
-                                    click_event=True,
-                                    select_event=True,
-                                    )
+        # selected_ = plotly_events(fig_auto_train,
+        #                             override_height=fig_auto_train.layout.height * 1.1, 
+        #                             override_width=fig_auto_train.layout.width,
+        #                             click_event=True,
+        #                             select_event=True,
+        #                             )
+        
+        selected_ = st.plotly_chart(fig_auto_train,
+                                 on_select="rerun",
+                                 key="auto_train_plotly")
+        
+        
+        
     with cols[1]:
         st.markdown('#### 👀 Quick preview')
         st.markdown('###### Click on one session to preview here')
-        if selected_:
+        if selected_:            
             # Some hacks to get back selected data
-            curve_number = selected_[0]['curveNumber']
-            point_number = selected_[0]['pointNumber']
+            curve_number = selected_.selection['points'][0]['curve_number']
+            point_number = selected_.selection['points'][0]['point_number']
+            
             this_subject = fig_auto_train['data'][curve_number]
             session_date = datetime.strptime(this_subject['customdata'][point_number][1], "%Y-%m-%d")
             subject_id = fig_auto_train['data'][curve_number]['name'].split(' ')[1]
