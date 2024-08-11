@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
 import pandas as pd
@@ -7,6 +8,9 @@ import pandas as pd
 from aind_auto_train.schema.curriculum import TrainingStage
 from aind_auto_train.plot.curriculum import get_stage_color_mapper
 
+# Get some additional metadata from the master table
+df_tmp_rig_user_name = st.session_state.df['sessions_bonsai'].loc[:, ['subject_id', 'session_date', 'rig', 'user_name']]
+df_tmp_rig_user_name.session_date = df_tmp_rig_user_name.session_date.astype(str)
 
 def plot_manager_all_progress(manager: 'AutoTrainManager',
                               x_axis: ['session', 'date',
@@ -73,6 +77,10 @@ def plot_manager_all_progress(manager: 'AutoTrainManager',
                 manager.df_behavior['subject_id'] == subject_id]['h2o'].iloc[0]
         else:
             h2o = None
+            
+        df_subject = df_subject.merge(
+            df_tmp_rig_user_name,
+            on=['subject_id', 'session_date'], how='left')
 
         # Handle open loop sessions
         open_loop_ids = df_subject.if_closed_loop == False
@@ -100,7 +108,7 @@ def plot_manager_all_progress(manager: 'AutoTrainManager',
 
         traces.append(go.Scattergl(
             x=x,
-            y=[n] * len(df_subject),
+            y=len(subject_ids) - np.array([n] * len(df_subject)),
             mode='markers',
             marker=dict(
                 size=marker_size,
@@ -115,12 +123,15 @@ def plot_manager_all_progress(manager: 'AutoTrainManager',
             name=f'Mouse {subject_id}',
             hovertemplate=(f"<b>Subject {subject_id} ({h2o})</b>"
                            "<br><b>Session %{customdata[0]}, %{customdata[1]}</b>"
-                           "<br>Curriculum: <b>%{customdata[2]}_v%{customdata[3]}</b>"
+                           "<br><b>%{customdata[12]} @ %{customdata[11]}</b>"
+                           "<br><b>%{customdata[2]}_v%{customdata[3]}</b>"
                            "<br>Suggested: <b>%{customdata[4]}</b>"
                            "<br>Actual: <b>%{customdata[5]}</b>"
+                           f"<br>{'-'*10}"
                            "<br>Session task: <b>%{customdata[6]}</b>"
                            "<br>foraging_eff = %{customdata[7]}"
                            "<br>finished_trials = %{customdata[8]}"
+                           f"<br>{'-'*10}"
                            "<br>Decision = <b>%{customdata[9]}</b>"
                            "<br>Next suggested: <b>%{customdata[10]}</b>"
                            "<extra></extra>"),
@@ -130,21 +141,23 @@ def plot_manager_all_progress(manager: 'AutoTrainManager',
                  df_subject.curriculum_name,
                  df_subject.curriculum_version,
                  df_subject.current_stage_suggested,
-                 stage_actual,
+                 stage_actual, # 5
                  df_subject.task,
                  np.round(df_subject.foraging_efficiency, 3),
                  df_subject.finished_trials,
                  df_subject.decision,
-                 df_subject.next_stage_suggested,
+                 df_subject.next_stage_suggested, # 10
+                 df_subject.rig, # 11
+                 df_subject.user_name, # 12
                  ), axis=-1),
             showlegend=False
         )
         )
-
+        
         # Add "x" for open loop sessions
         traces.append(go.Scattergl(
             x=x[open_loop_ids],
-            y=[n] * len(x[open_loop_ids]),
+            y=len(subject_ids) - np.array([n] * len(x[open_loop_ids])),
             mode='markers',
             marker=dict(
                 size=marker_size*0.8,
@@ -172,7 +185,7 @@ def plot_manager_all_progress(manager: 'AutoTrainManager',
             tickmode='array',
             tickvals=np.arange(0, n + 1),  # Original y-axis values
             ticktext=subject_ids,  # New labels
-            autorange='reversed',
+            # autorange='reversed',
             zeroline=False,
             title=''
         ),

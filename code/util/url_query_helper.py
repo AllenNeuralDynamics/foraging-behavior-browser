@@ -56,7 +56,7 @@ to_sync_with_url_query_default = {
     'session_plot_number_cols': 3,
 
     'auto_training_history_x_axis': 'date',
-    'auto_training_history_sort_by': 'last_date',
+    'auto_training_history_sort_by': 'first_date',
     'auto_training_history_sort_order': 'descending',
     'auto_training_curriculum_name': 'Uncoupled Baiting',
     'auto_training_curriculum_version': '1.0',
