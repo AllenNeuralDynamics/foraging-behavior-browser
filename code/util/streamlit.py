@@ -697,7 +697,7 @@ def add_auto_train_manager():
         st_prefix=cols[0],
         label="X axis",
         options=options,
-        default=options.index(st.session_state["auto_training_history_x_axis"]),
+        default="date",
         key="auto_training_history_x_axis",
     )
 
@@ -706,7 +706,7 @@ def add_auto_train_manager():
         st_prefix=cols[1],
         label="Sort by",
         options=options,
-        default=options.index(st.session_state["auto_training_history_sort_by"]),
+        default="first_date",
         key="auto_training_history_sort_by",
     )
 
@@ -715,7 +715,7 @@ def add_auto_train_manager():
         st_prefix=cols[2],
         label="Sort order",
         options=options,
-        default=options.index(st.session_state["auto_training_history_sort_order"]),
+        default="descending",
         key="auto_training_history_sort_order",
     )
 
@@ -769,7 +769,7 @@ def add_auto_train_manager():
                                     override_height=fig_auto_train.layout.height * 1.1, 
                                     override_width=fig_auto_train.layout.width,
                                     click_event=True,
-                                    select_event=False,
+                                    select_event=True,
                                     )
     with cols[1]:
         st.markdown('#### 👀 Quick preview')
@@ -801,8 +801,8 @@ def add_auto_train_manager():
                                                 'decision', 'next_stage_suggested'
                                                 ]]
 
-    with st.expander('Automatic training manager', expanded=True):
-        st.dataframe(df_training_manager, height=3000)
+    # with st.expander('Automatic training manager', expanded=True):
+    #     st.dataframe(df_training_manager, height=3000)
 
 @st.cache_data(ttl=3600*24)                
 def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='h2o',

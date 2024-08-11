@@ -201,9 +201,10 @@ def plot_manager_all_progress(manager: 'AutoTrainManager',
     
     # Limit x range to recent days if x is "date"
     if x_axis == 'date' and recent_days is not None:
-        xrange_min = datetime.now() - pd.Timedelta(days=recent_days)
-        xrange_max = datetime.now()
-        fig.update_xaxes(range=[xrange_min, xrange_max])
+        # xrange_max = pd.Timestamp.today()  # For unknown reasons, using this line will break both plotly_events and new st.plotly_chart callback...
+        xrange_max = pd.to_datetime(df_manager.session_date).max() + pd.Timedelta(days=1)  
+        xrange_min = xrange_max - pd.Timedelta(days=recent_days)        
+        fig.update_layout(xaxis_range=[xrange_min, xrange_max])
     
     # Highight the selected subject
     for n, subject_id in enumerate(subject_ids):
