@@ -364,6 +364,8 @@ def init():
             room = '347'
         elif '447' in rig:
             room = '447'
+        elif '446' in rig:
+            room = '446'
         elif '323' in rig:
             room = '323'
         elif rig_type == 'ephys':
