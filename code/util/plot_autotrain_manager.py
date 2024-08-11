@@ -39,11 +39,15 @@ def plot_manager_all_progress(manager: 'AutoTrainManager',
     if sort_by == 'subject_id':
         subject_ids = df_manager.subject_id.unique()
     elif sort_by == 'first_date':
-        subject_ids = df_manager.groupby('subject_id').session_date.min().sort_values(
-            ascending=sort_order == 'ascending').index
+        subject_ids = pd.DataFrame(df_manager.groupby('subject_id').session_date.min()
+                                   ).reset_index().sort_values(
+                                       by=['session_date', 'subject_id'],
+                                       ascending=sort_order == 'ascending').subject_id
     elif sort_by == 'last_date':
-        subject_ids = df_manager.groupby('subject_id').session_date.max().sort_values(
-            ascending=sort_order == 'ascending').index
+        subject_ids = pd.DataFrame(df_manager.groupby('subject_id').session_date.max()
+                                    ).reset_index().sort_values(
+                                            by=['session_date', 'subject_id'],
+                                            ascending=sort_order == 'ascending').subject_id
     elif sort_by == 'progress_to_graduated':
         manager.compute_stats()
         df_stats = manager.df_manager_stats
@@ -183,13 +187,13 @@ def plot_manager_all_progress(manager: 'AutoTrainManager',
         hovermode='closest',
         yaxis=dict(
             tickmode='array',
-            tickvals=np.arange(0, n + 1),  # Original y-axis values
-            ticktext=subject_ids,  # New labels
+            tickvals=np.arange(n+1, 0, -1), 
+            ticktext=subject_ids, 
             # autorange='reversed',
             zeroline=False,
             title=''
         ),
-        yaxis_range=[-0.5, n + 0.5],
+        yaxis_range=[-0.5, n + 2],
     )
     
     # Limit x range to recent days if x is "date"
