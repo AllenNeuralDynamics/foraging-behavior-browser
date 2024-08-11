@@ -109,10 +109,12 @@ def plot_manager_all_progress(manager: 'AutoTrainManager',
         # Cache x range
         xrange_min = x.min() if n == 0 else min(x.min(), xrange_min)
         xrange_max = x.max() if n == 0 else max(x.max(), xrange_max)
+        
+        y = len(subject_ids) - n  # Y axis
 
         traces.append(go.Scattergl(
             x=x,
-            y=len(subject_ids) - np.array([n] * len(df_subject)),
+            y=[y] * len(df_subject),
             mode='markers',
             marker=dict(
                 size=marker_size,
@@ -161,7 +163,7 @@ def plot_manager_all_progress(manager: 'AutoTrainManager',
         # Add "x" for open loop sessions
         traces.append(go.Scattergl(
             x=x[open_loop_ids],
-            y=len(subject_ids) - np.array([n] * len(x[open_loop_ids])),
+            y=[y] * len(df_subject),
             mode='markers',
             marker=dict(
                 size=marker_size*0.8,
@@ -187,13 +189,13 @@ def plot_manager_all_progress(manager: 'AutoTrainManager',
         hovermode='closest',
         yaxis=dict(
             tickmode='array',
-            tickvals=np.arange(n+1, 0, -1), 
+            tickvals=np.arange(len(subject_ids), 0, -1), 
             ticktext=subject_ids, 
-            # autorange='reversed',
+            # autorange='reversed',  # This will lead to a weird space at the top
             zeroline=False,
             title=''
         ),
-        yaxis_range=[-0.5, n + 2],
+        yaxis_range=[-0.5, len(subject_ids) + 1],
     )
     
     # Limit x range to recent days if x is "date"
@@ -204,11 +206,12 @@ def plot_manager_all_progress(manager: 'AutoTrainManager',
     
     # Highight the selected subject
     for n, subject_id in enumerate(subject_ids):
+        y = len(subject_ids) - n  # Y axis
         if subject_id in highlight_subjects:
             fig.add_shape(
                 type="rect",
-                y0=n-0.5,  
-                y1=n+0.5,
+                y0=y-0.5,  
+                y1=y+0.5,
                 x0=xrange_min - (1 if x_axis != 'date' else pd.Timedelta(days=1)),
                 x1=xrange_max + (1 if x_axis != 'date' else pd.Timedelta(days=1)),
                 line=dict(
