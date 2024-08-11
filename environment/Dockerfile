@@ -84,7 +84,7 @@ RUN pip install -U --no-cache-dir \
     smmap==5.0.0 \
     statannotations==0.5.0 \
     statsmodels==0.13.5 \
-    streamlit==1.37.0 \
+    streamlit==1.31.0 \
     streamlit-aggrid==0.3.5 \
     streamlit-nested-layout==0.1.1 \
     streamlit-plotly-events==0.0.6 \
