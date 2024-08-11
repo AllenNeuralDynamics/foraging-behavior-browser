@@ -12,7 +12,7 @@ Example queries:
 
 """
 
-__ver__ = 'v2.3.2'
+__ver__ = 'v2.4.0'
 
 import pandas as pd
 import streamlit as st
@@ -364,6 +364,8 @@ def init():
             room = '347'
         elif '447' in rig:
             room = '447'
+        elif '446' in rig:
+            room = '446'
         elif '323' in rig:
             room = '323'
         elif rig_type == 'ephys':
@@ -542,10 +544,10 @@ def app():
         st.rerun()
 
     chosen_id = stx.tab_bar(data=[
-        stx.TabBarItemData(id="tab_session_x_y", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
-        stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
-        stx.TabBarItemData(id="tab_pygwalker", title="📊 PyGWalker (Tableau)", description="Interactive dataframe explorer"),
         stx.TabBarItemData(id="tab_auto_train_history", title="🎓 Automatic Training History", description="Track progress"),
+        stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
+        stx.TabBarItemData(id="tab_session_x_y", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
+        stx.TabBarItemData(id="tab_pygwalker", title="📊 PyGWalker (Tableau)", description="Interactive dataframe explorer"),
         stx.TabBarItemData(id="tab_auto_train_curriculum", title="📚 Automatic Training Curriculums", description="Collection of curriculums"),
         # stx.TabBarItemData(id="tab_mouse_inspector", title="🐭 Mouse Inspector", description="Mouse-level summary"),
         ], default=st.query_params['tab_id'] if 'tab_id' in st.query_params
