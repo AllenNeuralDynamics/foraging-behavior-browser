@@ -262,8 +262,16 @@ def plot_x_y_session():
                                     )
         
         # st.plotly_chart(fig)
-        selected = plotly_events(fig, click_event=True, hover_event=False, select_event=True, 
-                                 override_height=fig.layout.height * 1.1, override_width=fig.layout.width)
+        # selected = plotly_events(fig, click_event=True, hover_event=False, select_event=True, 
+        #                          override_height=fig.layout.height * 1.1, override_width=fig.layout.width)
+        selected = st.plotly_chart(fig, 
+                                   on_select="rerun",
+                                #    click_event=True, hover_event=False, select_event=True, 
+                                #  override_height=fig.layout.height * 1.1, override_width=fig.layout.width
+                                )
+
+        selected = selected.selection['points']
+        st.write(selected)
     
     with cols[1]:
         st.markdown('#### 👀 Quick preview')
