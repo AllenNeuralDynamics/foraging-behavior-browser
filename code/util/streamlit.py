@@ -692,7 +692,7 @@ def add_auto_train_manager():
 
     # -- Show plotly chart --
     cols = st.columns([1, 1, 1, 0.7, 0.7, 1, 2])
-    options = ["session", "date", "relative_date"]
+    options = ["date", "session", "relative_date"]
     x_axis = selectbox_wrapper_for_url_query(
         st_prefix=cols[0],
         label="X axis",
@@ -701,7 +701,7 @@ def add_auto_train_manager():
         key="auto_training_history_x_axis",
     )
 
-    options = ["subject_id", "first_date", "last_date", "progress_to_graduated"]
+    options = ["first_date", "last_date", "subject_id", "progress_to_graduated"]
     sort_by = selectbox_wrapper_for_url_query(
         st_prefix=cols[1],
         label="Sort by",
