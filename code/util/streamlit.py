@@ -774,14 +774,14 @@ def add_auto_train_manager():
         
         selected_ = st.plotly_chart(fig_auto_train,
                                  on_select="rerun",
+                                 theme=None,
                                  key="auto_train_plotly")
-        
         
         
     with cols[1]:
         st.markdown('#### 👀 Quick preview')
         st.markdown('###### Click on one session to preview here')
-        if selected_:            
+        if selected_.selection['points']:            
             # Some hacks to get back selected data
             curve_number = selected_.selection['points'][0]['curve_number']
             point_number = selected_.selection['points'][0]['point_number']
