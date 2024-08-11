@@ -8,9 +8,6 @@ import pandas as pd
 from aind_auto_train.schema.curriculum import TrainingStage
 from aind_auto_train.plot.curriculum import get_stage_color_mapper
 
-# Get some additional metadata from the master table
-df_tmp_rig_user_name = st.session_state.df['sessions_bonsai'].loc[:, ['subject_id', 'session_date', 'rig', 'user_name']]
-df_tmp_rig_user_name.session_date = df_tmp_rig_user_name.session_date.astype(str)
 
 def plot_manager_all_progress(manager: 'AutoTrainManager',
                               x_axis: ['session', 'date',
@@ -34,6 +31,10 @@ def plot_manager_all_progress(manager: 'AutoTrainManager',
     
     if not len(df_manager):
         return None
+    
+    # Get some additional metadata from the master table
+    df_tmp_rig_user_name = st.session_state.df['sessions_bonsai'].loc[:, ['subject_id', 'session_date', 'rig', 'user_name']]
+    df_tmp_rig_user_name.session_date = df_tmp_rig_user_name.session_date.astype(str)
 
     # Sort mice
     if sort_by == 'subject_id':
