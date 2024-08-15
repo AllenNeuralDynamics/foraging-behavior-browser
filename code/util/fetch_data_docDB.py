@@ -1,22 +1,47 @@
+"""Code to fetch data from docDB by David Feng
+"""
+
 import pandas as pd
 import logging
 import time
-
+import semver
 logger = logging.getLogger(__name__)
+
+def find_probes(r):
+    version = semver.Version.parse((r.get('procedures') or {}).get('schema_version', '0.0.0'))
+    
+    probes = []
+    if version >= "0.8.1": # post introduction of Surgery concept
+        sub_procs = (r.get('procedures') or {}).get('subject_procedures') or {}
+        for sub_proc in sub_procs:        
+            if sub_proc.get('procedure_type') == 'Surgery':
+                for sp in sub_proc['procedures']:
+                    if sp['procedure_type'] == 'Fiber implant':
+                        probes += sp['probes']
+    else: # pre Surgery
+        sub_procs = (r.get('procedures') or {}).get('subject_procedures') or {}
+        for sp in sub_procs:
+            if sp['procedure_type'] == 'Fiber implant':
+                probes += sp['probes']    
+        
+    return probes
+
 
 def fetch_fip_data(client):
     # search for records that have the "fib" (for fiber photometry) modality in data_description
     logger.warning("fetching 'fib' records...")
-    modality_results = client.retrieve_docdb_records(filter_query={
-        "data_description.modality.abbreviation": "fib"
-    })              
+    modality_results = client.retrieve_docdb_records(
+        filter_query={"data_description.modality.abbreviation": "fib"},
+        paginate_batch_size=500
+    )              
 
     # there are more from the past that didn't specify modality correctly. 
     # until this is fixed, need to guess by asset name 
     logger.warning("fetching FIP records by name...")
-    name_results = client.retrieve_docdb_records(filter_query={
-        "name": {"$regex": "^FIP.*"}
-    })
+    name_results = client.retrieve_docdb_records(
+        filter_query={"name": {"$regex": "^FIP.*"}},
+        paginate_batch_size=500
+    )
     
     # make some dataframes from these two queries
     records_by_modality_df = pd.DataFrame.from_records([ map_record_to_dict(d) for d in modality_results ])
@@ -29,7 +54,7 @@ def fetch_fip_data(client):
     records_by_name_df = records_by_name_df.drop(dup_df.index.values)
 
     # now we have a master data frame
-    combined_df = pd.concat([records_by_modality_df, records_by_name_df], axis=0).drop_duplicates()
+    combined_df = pd.concat([records_by_modality_df, records_by_name_df], axis=0)#.drop_duplicates()
     
     # let's get processed results too
     logger.warning("fetching processed results...")
@@ -54,6 +79,8 @@ def map_record_to_dict(record):
     subject = record.get('subject', {}) or {}
     subject_id = subject.get('subject_id') or ''
     subject_genotype = subject.get('genotype') or ''
+    session = record.get('session') or {}
+    task_type = session.get('session_type') or ''
 
     return {
         'location': record['location'],
@@ -61,6 +88,9 @@ def map_record_to_dict(record):
         'creation_time': creation_time,
         'subject_id': subject_id,
         'subject_genotype': subject_genotype,
+        'probes': str(find_probes(record)),
+        'task_type': task_type
+        
     }
 
 
