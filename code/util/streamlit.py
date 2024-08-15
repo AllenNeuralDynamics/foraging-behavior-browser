@@ -657,6 +657,8 @@ def add_dot_property_mapper():
 def data_selector():
             
     with st.expander(f'Session selector', expanded=True):
+        # --- add a download button ---
+        _add_download_filtered_session()
         
         with st.expander(f"Filtered: {len(st.session_state.df_session_filtered)} sessions, "
                          f"{len(st.session_state.df_session_filtered.h2o.unique())} mice", expanded=False):
@@ -677,12 +679,24 @@ def data_selector():
         if cols[1].button('all'):
             st.session_state.df_selected_from_plotly = st.session_state.df_session_filtered
             st.rerun()
-            
         
         if cols[2].button('❌ '):
             st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
             st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
             st.rerun()
+                    
+def _add_download_filtered_session():
+    """Download the master table of the filtered session"""
+    # Convert DataFrame to CSV format
+    csv = st.session_state.df_session_filtered.to_csv(index=False)
+
+    # Create a download button
+    st.download_button(
+        label="💾 Download filtered df",
+        data=csv,
+        file_name='filtered_data.csv',
+        mime='text/csv'
+    )
 
 def add_auto_train_manager():
 
