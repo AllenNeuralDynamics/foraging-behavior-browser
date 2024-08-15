@@ -79,7 +79,6 @@ RUN pip install -U --no-cache-dir \
     scipy==1.10.0 \
     scikit-learn==1.3.2 \
     seaborn==0.11.2 \
-    semver==2.13.0 \
     six==1.16.0 \
     smmap==5.0.0 \
     statannotations==0.5.0 \
