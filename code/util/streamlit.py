@@ -697,7 +697,7 @@ def _add_download_filtered_session():
                if 'filter' in key}
     query = json.dumps(filters, indent=4) 
     
-    current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+    current_time = datetime.now().strftime("%Y%m%d")
     
     # Create download buttons
     st.download_button(
