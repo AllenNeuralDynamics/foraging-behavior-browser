@@ -42,6 +42,8 @@ from util.url_query_helper import (
     multiselect_wrapper_for_url_query, number_input_wrapper_for_url_query,
 )
 
+from util.fetch_data_docDB import load_data_from_docDB
+
 from aind_auto_train.curriculum_manager import CurriculumManager
 from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
 from aind_auto_train import __version__ as auto_train_version
@@ -309,7 +311,7 @@ def init():
         
         # For historial reason, the suffix of df['sessions_bonsai'] just mean the data of the Home.py page
         df['sessions_bonsai'] = pd.concat([df['sessions_bonsai'], df_bpod['sessions_bonsai']], axis=0)
-                
+        
     st.session_state.df = df
     st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
     st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
@@ -450,9 +452,12 @@ def init():
                           'task', 'notes']
     new_order = first_several_cols + [col for col in _df.columns if col not in first_several_cols]
     _df = _df[new_order]
+    
+
+    # --- Load data from docDB ---
+    merge_in_df_docDB(_df)
 
     st.session_state.df['sessions_bonsai'] = _df  # Somehow _df loses the reference to the original dataframe
-    
     st.session_state.session_stats_names = [keys for keys in _df.keys()]
 
     # Set session state from URL
@@ -463,6 +468,14 @@ def init():
     
     return True
 
+def merge_in_df_docDB(_df):
+    # Fetch df_docDB
+    
+    # Parse session and subject_id from session_name
+    
+    # Merge with _df
+    
+    return _df
 
 def app():
     

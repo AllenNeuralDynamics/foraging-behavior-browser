@@ -5,7 +5,25 @@ import pandas as pd
 import logging
 import time
 import semver
+import streamlit as st
 logger = logging.getLogger(__name__)
+
+from aind_data_access_api.document_db import MetadataDbClient
+
+@st.cache_data(ttl=3600*12) # Cache the df_docDB up to 12 hours
+def load_data_from_docDB():
+    client = load_client()
+    df = fetch_fip_data(client)
+    return df
+
+@st.cache_resource
+def load_client():
+    return MetadataDbClient(
+        host="api.allenneuraldynamics.org",    
+        database="metadata_index",
+        collection="data_assets"
+    )
+
 
 def find_probes(r):
     version = semver.Version.parse((r.get('procedures') or {}).get('schema_version', '0.0.0'))

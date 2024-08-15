@@ -5,8 +5,7 @@ import logging
 import streamlit as st
 from streamlit_dynamic_filters import DynamicFilters
 
-from aind_data_access_api.document_db import MetadataDbClient
-from util.fetch_data_docDB import fetch_fip_data
+from util.fetch_data_docDB import load_data_from_docDB
 
 try:
     st.set_page_config(layout="wide", 
@@ -19,20 +18,6 @@ try:
                     )
 except:
     pass
-
-@st.cache_data(ttl=3600*12) # Cache the df_docDB up to 12 hours
-def load_data_from_docDB():
-    client = load_client()
-    df = fetch_fip_data(client)
-    return df
-
-@st.cache_resource
-def load_client():
-    return MetadataDbClient(
-        host="api.allenneuraldynamics.org",    
-        database="metadata_index",
-        collection="data_assets"
-    )
 
 df = load_data_from_docDB()
 
