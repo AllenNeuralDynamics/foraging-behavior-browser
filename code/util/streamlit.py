@@ -9,6 +9,7 @@ from pandas.api.types import (
     is_numeric_dtype,
     is_string_dtype,
 )
+import json
 import streamlit.components.v1 as components
 from streamlit_plotly_events import plotly_events
 
@@ -689,13 +690,29 @@ def _add_download_filtered_session():
     """Download the master table of the filtered session"""
     # Convert DataFrame to CSV format
     csv = st.session_state.df_session_filtered.to_csv(index=False)
-
-    # Create a download button
+    
+    # Get the queries from URL for reproducibility
+    filters = {key: st.query_params.get_all(key)
+               for key in st.query_params.to_dict().keys()
+               if 'filter' in key}
+    query = json.dumps(filters, indent=4) 
+    
+    current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # Create download buttons
     st.download_button(
-        label="💾 Download filtered df",
+        label="Download filtered df as CSV",
         data=csv,
-        file_name='filtered_data.csv',
+        file_name=f'filtered_data_{current_time}.csv',
         mime='text/csv'
+    )
+    
+    # Create a download button for the JSON file
+    st.download_button(
+        label="Download filters as JSON",
+        data=query,
+        file_name=f'query_params_{current_time}.json',
+        mime='application/json'
     )
 
 def add_auto_train_manager():
