@@ -1004,9 +1004,8 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
     else:
         df['dot_size'] = dot_size_base
 
-    # Turn column of group_by to string if it's not
-    if not is_string_dtype(df[group_by]):
-        df[group_by] = df[group_by].astype(str)
+    # Always turn group_by column to str
+    df[group_by] = df[group_by].astype(str)
         
     # Add a diagonal line first
     if if_show_diagonal:

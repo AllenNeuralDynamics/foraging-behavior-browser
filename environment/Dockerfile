@@ -79,7 +79,6 @@ RUN pip install -U --no-cache-dir \
     scipy==1.10.0 \
     scikit-learn==1.3.2 \
     seaborn==0.11.2 \
-    semver==2.13.0 \
     six==1.16.0 \
     smmap==5.0.0 \
     statannotations==0.5.0 \
@@ -107,7 +106,8 @@ RUN pip install -U --no-cache-dir \
     git+https://github.com/AllenNeuralDynamics/aind-foraging-behavior-bonsai-automatic-training.git@main \
     pygwalker==0.4.7 \
     aind-data-access-api[docdb]==0.13.0 \
-    streamlit-dynamic-filters==0.1.9
+    streamlit-dynamic-filters==0.1.9 \
+    semver==3.0.2
 
 
 ADD "https://github.com/coder/code-server/releases/download/v4.21.1/code-server-4.21.1-linux-amd64.tar.gz" /.code-server/code-server.tar.gz

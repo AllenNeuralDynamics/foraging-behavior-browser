@@ -12,7 +12,7 @@ Example queries:
 
 """
 
-__ver__ = 'v2.4.1'
+__ver__ = 'v2.5.0'
 
 import pandas as pd
 import streamlit as st
@@ -41,6 +41,8 @@ from util.url_query_helper import (
     slider_wrapper_for_url_query, checkbox_wrapper_for_url_query,
     multiselect_wrapper_for_url_query, number_input_wrapper_for_url_query,
 )
+
+from util.fetch_data_docDB import load_data_from_docDB
 
 from aind_auto_train.curriculum_manager import CurriculumManager
 from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
@@ -309,7 +311,7 @@ def init():
         
         # For historial reason, the suffix of df['sessions_bonsai'] just mean the data of the Home.py page
         df['sessions_bonsai'] = pd.concat([df['sessions_bonsai'], df_bpod['sessions_bonsai']], axis=0)
-                
+        
     st.session_state.df = df
     st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
     st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
@@ -450,9 +452,12 @@ def init():
                           'task', 'notes']
     new_order = first_several_cols + [col for col in _df.columns if col not in first_several_cols]
     _df = _df[new_order]
+    
+
+    # --- Load data from docDB ---
+    _df = merge_in_df_docDB(_df)
 
     st.session_state.df['sessions_bonsai'] = _df  # Somehow _df loses the reference to the original dataframe
-    
     st.session_state.session_stats_names = [keys for keys in _df.keys()]
 
     # Set session state from URL
@@ -463,6 +468,21 @@ def init():
     
     return True
 
+def merge_in_df_docDB(_df):
+    # Fetch df_docDB
+    df = load_data_from_docDB()
+
+    # Parse session and subject_id from session_name
+    df['session_date'] = pd.to_datetime(df['session_name'].str.split('_').str[2])
+    # Extract the session_time. remove the '-' and remove the leading zero. 
+    df['session_time'] = df['session_name'].str.split('_').str[-1]
+    df['nwb_suffix'] = df['session_time'].str.replace('-', '').str.lstrip('0').astype('int64')    
+    
+    # Merge with _df. left merged to keep everything on han's side 
+
+    left_merged = pd.merge(_df, df, how='left', on=['subject_id', 'session_date', 'nwb_suffix'])
+
+    return left_merged
 
 def app():
     
