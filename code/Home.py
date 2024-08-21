@@ -455,7 +455,7 @@ def init():
     
 
     # --- Load data from docDB ---
-    merge_in_df_docDB(_df)
+    _df = merge_in_df_docDB(_df)
 
     st.session_state.df['sessions_bonsai'] = _df  # Somehow _df loses the reference to the original dataframe
     st.session_state.session_stats_names = [keys for keys in _df.keys()]
@@ -470,12 +470,19 @@ def init():
 
 def merge_in_df_docDB(_df):
     # Fetch df_docDB
-    
+    df = load_data_from_docDB()
+
     # Parse session and subject_id from session_name
+    df['session_date'] = pd.to_datetime(df['session_name'].str.split('_').str[2])
+    # Extract the session_time. remove the '-' and remove the leading zero. 
+    df['session_time'] = df['session_name'].str.split('_').str[-1]
+    df['nwb_suffix'] = df['session_time'].str.replace('-', '').str.lstrip('0').astype('int64')    
     
-    # Merge with _df
-    
-    return _df
+    # Merge with _df. left merged to keep everything on han's side 
+
+    left_merged = pd.merge(_df, df, how='left', on=['subject_id', 'session_date', 'nwb_suffix'])
+
+    return left_merged
 
 def app():
     

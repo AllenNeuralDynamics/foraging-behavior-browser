@@ -52,6 +52,7 @@ def fetch_fip_data(client):
         filter_query={"data_description.modality.abbreviation": "fib"},
         paginate_batch_size=500
     )              
+    logger.warning(f"found {len(modality_results)} results")
 
     # there are more from the past that didn't specify modality correctly. 
     # until this is fixed, need to guess by asset name 
@@ -60,19 +61,24 @@ def fetch_fip_data(client):
         filter_query={"name": {"$regex": "^FIP.*"}},
         paginate_batch_size=500
     )
-    
-    # make some dataframes from these two queries
-    records_by_modality_df = pd.DataFrame.from_records([ map_record_to_dict(d) for d in modality_results ])
-    records_by_name_df = pd.DataFrame.from_records([ map_record_to_dict(d) for d in name_results ])
+    logger.warning(f"found {len(name_results)} results")
 
+    # in case there is overlap between these two queries, filter down to a single list with unique IDs
+    unique_results_by_id = { r['_id']: r for r in modality_results } | { r['_id']: r for r in name_results }
+    results = list(unique_results_by_id.values())
+    logger.warning(f"found {len(results)} unique results")
+    
+    # filter out results with 'processed' in the name because I can't rely on data_description.data_level :(
+    results = [ r for r in results if not 'processed' in r['name'] ]
+    
+    # make a dataframe
+    records_df = pd.DataFrame.from_records([ map_record_to_dict(d) for d in results ])
+    
     # currently there are some sessions uploaded twice in two different locations.
     # let's filter out the ones in aind-ophys-data, a deprecated location
-    dup_df = records_by_name_df[records_by_name_df.duplicated('session_name',keep=False)]
+    dup_df = records_df[records_df.duplicated('session_name',keep=False)]
     dup_df = dup_df[dup_df.location.str.contains("aind-ophys-data")]
-    records_by_name_df = records_by_name_df.drop(dup_df.index.values)
-
-    # now we have a master data frame
-    combined_df = pd.concat([records_by_modality_df, records_by_name_df], axis=0)#.drop_duplicates()
+    records_df = records_df.drop(dup_df.index.values)
     
     # let's get processed results too
     logger.warning("fetching processed results...")
@@ -84,10 +90,11 @@ def fetch_fip_data(client):
     processed_results_by_name = { r['name']: r for r in processed_results }  
         
     # adding two columns to our master dataframe - result name and result s3 location
-    combined_df['results'] = combined_df.session_name.apply(lambda x: find_result(x, processed_results_by_name).get('name'))
-    combined_df['results_location'] = combined_df.session_name.apply(lambda x: find_result(x, processed_results_by_name).get('location'))
+    records_df['results'] = records_df.session_name.apply(lambda x: find_result(x, processed_results_by_name).get('name'))
+    records_df['results_location'] = records_df.session_name.apply(lambda x: find_result(x, processed_results_by_name).get('location'))
     
-    return combined_df
+    return records_df
+
 
 
 def map_record_to_dict(record):
@@ -97,8 +104,7 @@ def map_record_to_dict(record):
     subject = record.get('subject', {}) or {}
     subject_id = subject.get('subject_id') or ''
     subject_genotype = subject.get('genotype') or ''
-    session = record.get('session') or {}
-    task_type = session.get('session_type') or ''
+
 
     return {
         'location': record['location'],
@@ -106,8 +112,7 @@ def map_record_to_dict(record):
         'creation_time': creation_time,
         'subject_id': subject_id,
         'subject_genotype': subject_genotype,
-        'probes': str(find_probes(record)),
-        'task_type': task_type
+        'probes': str(find_probes(record))
         
     }
 
