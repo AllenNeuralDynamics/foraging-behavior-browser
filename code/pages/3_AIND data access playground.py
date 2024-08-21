@@ -21,6 +21,8 @@ except:
 
 df = load_data_from_docDB()
 
+st.markdown(f'### Note: the dataframe showing here has been merged in to the master table on the Home page!')
+
 dynamic_filters = DynamicFilters(
     df=df, 
     filters=['subject_id', 'subject_genotype'])
