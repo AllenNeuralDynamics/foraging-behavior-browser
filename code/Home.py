@@ -460,12 +460,12 @@ def init():
     # add docDB_status column
     _df["docDB_status"] = _df.apply(
         lambda row: (
-            "not uploaded"
+            "0_not uploaded"
             if pd.isnull(row["location"])
             else (
-                "uploaded but not processed"
+                "1_uploaded but not processed"
                 if pd.isnull(row["results_location"])
-                else "uploaded and processed"
+                else "2_uploaded and processed"
             )
         ),
         axis=1,
