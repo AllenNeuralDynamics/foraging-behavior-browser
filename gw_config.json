@@ -205,7 +205,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "has_video",
-          "dragId": "GW_2WFpZTxq"
+          "dragId": "GW_2WFpZTxq",
+          "offset": 0
         },
         {
           "fid": "has_ephys",
@@ -213,7 +214,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "has_ephys",
-          "dragId": "GW_zEX6LQVa"
+          "dragId": "GW_zEX6LQVa",
+          "offset": 0
         },
         {
           "fid": "old_bpod_session",
@@ -221,7 +223,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "old_bpod_session",
-          "dragId": "GW_CxAuDhVz"
+          "dragId": "GW_CxAuDhVz",
+          "offset": 0
         },
         {
           "fid": "institute",
@@ -229,7 +232,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "institute",
-          "dragId": "GW_kZ3nBOU9"
+          "dragId": "GW_kZ3nBOU9",
+          "offset": 0
         },
         {
           "fid": "rig_type",
@@ -237,7 +241,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "rig_type",
-          "dragId": "GW_qhiUSQPC"
+          "dragId": "GW_qhiUSQPC",
+          "offset": 0
         },
         {
           "fid": "room",
@@ -245,7 +250,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "room",
-          "dragId": "GW_vN6TegxB"
+          "dragId": "GW_vN6TegxB",
+          "offset": 0
         },
         {
           "fid": "hardware",
@@ -253,7 +259,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "hardware",
-          "dragId": "GW_7vKJHUYO"
+          "dragId": "GW_7vKJHUYO",
+          "offset": 0
         },
         {
           "fid": "data_source",
@@ -261,7 +268,120 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "data_source",
-          "dragId": "GW_B1xgPbEL"
+          "dragId": "GW_B1xgPbEL",
+          "offset": 0
+        },
+        {
+          "fid": "laser_1_target_areas",
+          "name": "laser_1_target_areas",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "laser_1_target_areas",
+          "dragId": "GW_ipL0EUva"
+        },
+        {
+          "fid": "laser_2_target_areas",
+          "name": "laser_2_target_areas",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "laser_2_target_areas",
+          "dragId": "GW_KZwecAag"
+        },
+        {
+          "fid": "commit_ID",
+          "name": "commit_ID",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "commit_ID",
+          "dragId": "GW_B07Czkx9"
+        },
+        {
+          "fid": "repo_url",
+          "name": "repo_url",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "repo_url",
+          "dragId": "GW_mOdQXJb5"
+        },
+        {
+          "fid": "current_branch",
+          "name": "current_branch",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "current_branch",
+          "dragId": "GW_deB47ZHc"
+        },
+        {
+          "fid": "location",
+          "name": "location",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "location",
+          "dragId": "GW_1ZxohQOf"
+        },
+        {
+          "fid": "session_name",
+          "name": "session_name",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "session_name",
+          "dragId": "GW_L8ix2XlN"
+        },
+        {
+          "fid": "creation_time",
+          "name": "creation_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "creation_time",
+          "dragId": "GW_L45qlHfK"
+        },
+        {
+          "fid": "subject_genotype",
+          "name": "subject_genotype",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "subject_genotype",
+          "dragId": "GW_t2e0Vw9J"
+        },
+        {
+          "fid": "probes",
+          "name": "probes",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "probes",
+          "dragId": "GW_xsM5kpSu"
+        },
+        {
+          "fid": "results",
+          "name": "results",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "results",
+          "dragId": "GW_YMGTKrga"
+        },
+        {
+          "fid": "results_location",
+          "name": "results_location",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "results_location",
+          "dragId": "GW_25uFhek3"
+        },
+        {
+          "fid": "session_time",
+          "name": "session_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "session_time",
+          "dragId": "GW_Zrvp2FCg"
+        },
+        {
+          "fid": "docDB_status",
+          "name": "docDB_status",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "docDB_status",
+          "dragId": "GW_QPJswGtK"
         }
       ],
       "measures": [
@@ -1546,6 +1666,110 @@
           "basename": "abs(logistic_Miller2021_bias)",
           "dragId": "GW_7Vb6z9Mv",
           "offset": 0
+        },
+        {
+          "fid": "laser_1_calibration_power",
+          "name": "laser_1_calibration_power",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "laser_1_calibration_power",
+          "dragId": "GW_gqS76R4U"
+        },
+        {
+          "fid": "laser_2_calibration_power",
+          "name": "laser_2_calibration_power",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "laser_2_calibration_power",
+          "dragId": "GW_zOyFV2mC"
+        },
+        {
+          "fid": "logistic_Su2022_score_mean",
+          "name": "logistic_Su2022_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Su2022_score_mean",
+          "dragId": "GW_gsPqw2jL"
+        },
+        {
+          "fid": "logistic_Su2022_score_std",
+          "name": "logistic_Su2022_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Su2022_score_std",
+          "dragId": "GW_A0W5bQkM"
+        },
+        {
+          "fid": "logistic_Bari2019_score_mean",
+          "name": "logistic_Bari2019_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Bari2019_score_mean",
+          "dragId": "GW_vxbRtez9"
+        },
+        {
+          "fid": "logistic_Bari2019_score_std",
+          "name": "logistic_Bari2019_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Bari2019_score_std",
+          "dragId": "GW_Mpx6GP8j"
+        },
+        {
+          "fid": "logistic_Hattori2019_score_mean",
+          "name": "logistic_Hattori2019_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Hattori2019_score_mean",
+          "dragId": "GW_nVvN3xSd"
+        },
+        {
+          "fid": "logistic_Hattori2019_score_std",
+          "name": "logistic_Hattori2019_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Hattori2019_score_std",
+          "dragId": "GW_Ldivz2I9"
+        },
+        {
+          "fid": "logistic_Miller2021_score_mean",
+          "name": "logistic_Miller2021_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Miller2021_score_mean",
+          "dragId": "GW_dNSPfLby"
+        },
+        {
+          "fid": "logistic_Miller2021_score_std",
+          "name": "logistic_Miller2021_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Miller2021_score_std",
+          "dragId": "GW_Yd5teJIX"
+        },
+        {
+          "fid": "avg_trial_length_in_seconds",
+          "name": "avg_trial_length_in_seconds",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "avg_trial_length_in_seconds",
+          "dragId": "GW_xVDiuX7q"
+        },
+        {
+          "fid": "water_day_total_last_session",
+          "name": "water_day_total_last_session",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "water_day_total_last_session",
+          "dragId": "GW_Cn2XO6Ge"
+        },
+        {
+          "fid": "water_after_session_last_session",
+          "name": "water_after_session_last_session",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "water_after_session_last_session",
+          "dragId": "GW_D6xLrY9I"
         }
       ],
       "rows": [
@@ -1866,7 +2090,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "has_video",
-          "dragId": "GW_Cdfo8s0e"
+          "dragId": "GW_Cdfo8s0e",
+          "offset": 0
         },
         {
           "fid": "has_ephys",
@@ -1874,7 +2099,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "has_ephys",
-          "dragId": "GW_E7NCF4ya"
+          "dragId": "GW_E7NCF4ya",
+          "offset": 0
         },
         {
           "fid": "old_bpod_session",
@@ -1882,7 +2108,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "old_bpod_session",
-          "dragId": "GW_TIlKiJW1"
+          "dragId": "GW_TIlKiJW1",
+          "offset": 0
         },
         {
           "fid": "institute",
@@ -1890,7 +2117,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "institute",
-          "dragId": "GW_GiIbtKYo"
+          "dragId": "GW_GiIbtKYo",
+          "offset": 0
         },
         {
           "fid": "rig_type",
@@ -1898,7 +2126,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "rig_type",
-          "dragId": "GW_309LpyUt"
+          "dragId": "GW_309LpyUt",
+          "offset": 0
         },
         {
           "fid": "room",
@@ -1906,7 +2135,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "room",
-          "dragId": "GW_PO5RApT8"
+          "dragId": "GW_PO5RApT8",
+          "offset": 0
         },
         {
           "fid": "hardware",
@@ -1914,7 +2144,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "hardware",
-          "dragId": "GW_JD8sn7fz"
+          "dragId": "GW_JD8sn7fz",
+          "offset": 0
         },
         {
           "fid": "data_source",
@@ -1922,7 +2153,120 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "data_source",
-          "dragId": "GW_ts9aSd4z"
+          "dragId": "GW_ts9aSd4z",
+          "offset": 0
+        },
+        {
+          "fid": "laser_1_target_areas",
+          "name": "laser_1_target_areas",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "laser_1_target_areas",
+          "dragId": "GW_5s1ASprD"
+        },
+        {
+          "fid": "laser_2_target_areas",
+          "name": "laser_2_target_areas",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "laser_2_target_areas",
+          "dragId": "GW_xosyEpwm"
+        },
+        {
+          "fid": "commit_ID",
+          "name": "commit_ID",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "commit_ID",
+          "dragId": "GW_mTGcOo6R"
+        },
+        {
+          "fid": "repo_url",
+          "name": "repo_url",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "repo_url",
+          "dragId": "GW_Fnhq9Zij"
+        },
+        {
+          "fid": "current_branch",
+          "name": "current_branch",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "current_branch",
+          "dragId": "GW_IrLHFeoC"
+        },
+        {
+          "fid": "location",
+          "name": "location",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "location",
+          "dragId": "GW_TLzvNOlo"
+        },
+        {
+          "fid": "session_name",
+          "name": "session_name",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "session_name",
+          "dragId": "GW_OvaS1z2p"
+        },
+        {
+          "fid": "creation_time",
+          "name": "creation_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "creation_time",
+          "dragId": "GW_eGImTzWA"
+        },
+        {
+          "fid": "subject_genotype",
+          "name": "subject_genotype",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "subject_genotype",
+          "dragId": "GW_tTMPf7DX"
+        },
+        {
+          "fid": "probes",
+          "name": "probes",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "probes",
+          "dragId": "GW_YaNzmQOR"
+        },
+        {
+          "fid": "results",
+          "name": "results",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "results",
+          "dragId": "GW_8cSl0mLD"
+        },
+        {
+          "fid": "results_location",
+          "name": "results_location",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "results_location",
+          "dragId": "GW_wU6vyC4M"
+        },
+        {
+          "fid": "session_time",
+          "name": "session_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "session_time",
+          "dragId": "GW_D7H5cVNu"
+        },
+        {
+          "fid": "docDB_status",
+          "name": "docDB_status",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "docDB_status",
+          "dragId": "GW_x3mD07ui"
         }
       ],
       "measures": [
@@ -3167,6 +3511,110 @@
           "basename": "abs(logistic_Miller2021_bias)",
           "dragId": "GW_pWmeA4h1",
           "offset": 0
+        },
+        {
+          "fid": "laser_1_calibration_power",
+          "name": "laser_1_calibration_power",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "laser_1_calibration_power",
+          "dragId": "GW_YFAe9UJH"
+        },
+        {
+          "fid": "laser_2_calibration_power",
+          "name": "laser_2_calibration_power",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "laser_2_calibration_power",
+          "dragId": "GW_32D4GOyY"
+        },
+        {
+          "fid": "logistic_Su2022_score_mean",
+          "name": "logistic_Su2022_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Su2022_score_mean",
+          "dragId": "GW_UGxWLkDq"
+        },
+        {
+          "fid": "logistic_Su2022_score_std",
+          "name": "logistic_Su2022_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Su2022_score_std",
+          "dragId": "GW_dIKzoW0n"
+        },
+        {
+          "fid": "logistic_Bari2019_score_mean",
+          "name": "logistic_Bari2019_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Bari2019_score_mean",
+          "dragId": "GW_snmPvWj7"
+        },
+        {
+          "fid": "logistic_Bari2019_score_std",
+          "name": "logistic_Bari2019_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Bari2019_score_std",
+          "dragId": "GW_6Z4ycqA0"
+        },
+        {
+          "fid": "logistic_Hattori2019_score_mean",
+          "name": "logistic_Hattori2019_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Hattori2019_score_mean",
+          "dragId": "GW_2PTjohR8"
+        },
+        {
+          "fid": "logistic_Hattori2019_score_std",
+          "name": "logistic_Hattori2019_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Hattori2019_score_std",
+          "dragId": "GW_pLi35ug2"
+        },
+        {
+          "fid": "logistic_Miller2021_score_mean",
+          "name": "logistic_Miller2021_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Miller2021_score_mean",
+          "dragId": "GW_gelvTLDc"
+        },
+        {
+          "fid": "logistic_Miller2021_score_std",
+          "name": "logistic_Miller2021_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Miller2021_score_std",
+          "dragId": "GW_9YjhFAub"
+        },
+        {
+          "fid": "avg_trial_length_in_seconds",
+          "name": "avg_trial_length_in_seconds",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "avg_trial_length_in_seconds",
+          "dragId": "GW_ZHj17Oay"
+        },
+        {
+          "fid": "water_day_total_last_session",
+          "name": "water_day_total_last_session",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "water_day_total_last_session",
+          "dragId": "GW_ok05uVFq"
+        },
+        {
+          "fid": "water_after_session_last_session",
+          "name": "water_after_session_last_session",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "water_after_session_last_session",
+          "dragId": "GW_PUfDhAjO"
         }
       ],
       "rows": [
@@ -3427,7 +3875,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "has_video",
-          "dragId": "GW_xvZNz6ly"
+          "dragId": "GW_xvZNz6ly",
+          "offset": 0
         },
         {
           "fid": "has_ephys",
@@ -3435,7 +3884,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "has_ephys",
-          "dragId": "GW_LfaGjIzQ"
+          "dragId": "GW_LfaGjIzQ",
+          "offset": 0
         },
         {
           "fid": "old_bpod_session",
@@ -3443,7 +3893,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "old_bpod_session",
-          "dragId": "GW_Gufaj7xo"
+          "dragId": "GW_Gufaj7xo",
+          "offset": 0
         },
         {
           "fid": "institute",
@@ -3451,7 +3902,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "institute",
-          "dragId": "GW_z1pxDdrJ"
+          "dragId": "GW_z1pxDdrJ",
+          "offset": 0
         },
         {
           "fid": "rig_type",
@@ -3459,7 +3911,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "rig_type",
-          "dragId": "GW_aP9S0HbF"
+          "dragId": "GW_aP9S0HbF",
+          "offset": 0
         },
         {
           "fid": "room",
@@ -3467,7 +3920,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "room",
-          "dragId": "GW_VwiJzWey"
+          "dragId": "GW_VwiJzWey",
+          "offset": 0
         },
         {
           "fid": "hardware",
@@ -3475,7 +3929,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "hardware",
-          "dragId": "GW_ITK4MUEk"
+          "dragId": "GW_ITK4MUEk",
+          "offset": 0
         },
         {
           "fid": "data_source",
@@ -3483,7 +3938,120 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "data_source",
-          "dragId": "GW_8VmNjt1i"
+          "dragId": "GW_8VmNjt1i",
+          "offset": 0
+        },
+        {
+          "fid": "laser_1_target_areas",
+          "name": "laser_1_target_areas",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "laser_1_target_areas",
+          "dragId": "GW_Wql5RNTn"
+        },
+        {
+          "fid": "laser_2_target_areas",
+          "name": "laser_2_target_areas",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "laser_2_target_areas",
+          "dragId": "GW_bSzhJwPl"
+        },
+        {
+          "fid": "commit_ID",
+          "name": "commit_ID",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "commit_ID",
+          "dragId": "GW_jwtOQsNI"
+        },
+        {
+          "fid": "repo_url",
+          "name": "repo_url",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "repo_url",
+          "dragId": "GW_kYmEVbTs"
+        },
+        {
+          "fid": "current_branch",
+          "name": "current_branch",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "current_branch",
+          "dragId": "GW_vCbh6Zm8"
+        },
+        {
+          "fid": "location",
+          "name": "location",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "location",
+          "dragId": "GW_X1OLJdM6"
+        },
+        {
+          "fid": "session_name",
+          "name": "session_name",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "session_name",
+          "dragId": "GW_qAPWcK0o"
+        },
+        {
+          "fid": "creation_time",
+          "name": "creation_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "creation_time",
+          "dragId": "GW_3ZemWwU1"
+        },
+        {
+          "fid": "subject_genotype",
+          "name": "subject_genotype",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "subject_genotype",
+          "dragId": "GW_6XYNTSP1"
+        },
+        {
+          "fid": "probes",
+          "name": "probes",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "probes",
+          "dragId": "GW_7UomPEFn"
+        },
+        {
+          "fid": "results",
+          "name": "results",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "results",
+          "dragId": "GW_mKgB0vwn"
+        },
+        {
+          "fid": "results_location",
+          "name": "results_location",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "results_location",
+          "dragId": "GW_Nn3ujOeq"
+        },
+        {
+          "fid": "session_time",
+          "name": "session_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "session_time",
+          "dragId": "GW_k37sZItO"
+        },
+        {
+          "fid": "docDB_status",
+          "name": "docDB_status",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "docDB_status",
+          "dragId": "GW_dmCOJ9GT"
         }
       ],
       "measures": [
@@ -4570,6 +5138,110 @@
           "semanticType": "quantitative",
           "aggName": "sum",
           "offset": 0
+        },
+        {
+          "fid": "laser_1_calibration_power",
+          "name": "laser_1_calibration_power",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "laser_1_calibration_power",
+          "dragId": "GW_f2LUntGY"
+        },
+        {
+          "fid": "laser_2_calibration_power",
+          "name": "laser_2_calibration_power",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "laser_2_calibration_power",
+          "dragId": "GW_snGSCoqi"
+        },
+        {
+          "fid": "logistic_Su2022_score_mean",
+          "name": "logistic_Su2022_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Su2022_score_mean",
+          "dragId": "GW_Sjf2eZu0"
+        },
+        {
+          "fid": "logistic_Su2022_score_std",
+          "name": "logistic_Su2022_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Su2022_score_std",
+          "dragId": "GW_89DhjIY1"
+        },
+        {
+          "fid": "logistic_Bari2019_score_mean",
+          "name": "logistic_Bari2019_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Bari2019_score_mean",
+          "dragId": "GW_FkhUR8et"
+        },
+        {
+          "fid": "logistic_Bari2019_score_std",
+          "name": "logistic_Bari2019_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Bari2019_score_std",
+          "dragId": "GW_divyNSbe"
+        },
+        {
+          "fid": "logistic_Hattori2019_score_mean",
+          "name": "logistic_Hattori2019_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Hattori2019_score_mean",
+          "dragId": "GW_23fk1alh"
+        },
+        {
+          "fid": "logistic_Hattori2019_score_std",
+          "name": "logistic_Hattori2019_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Hattori2019_score_std",
+          "dragId": "GW_KLGBEd9y"
+        },
+        {
+          "fid": "logistic_Miller2021_score_mean",
+          "name": "logistic_Miller2021_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Miller2021_score_mean",
+          "dragId": "GW_O10VLoKQ"
+        },
+        {
+          "fid": "logistic_Miller2021_score_std",
+          "name": "logistic_Miller2021_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Miller2021_score_std",
+          "dragId": "GW_vWmUQ28X"
+        },
+        {
+          "fid": "avg_trial_length_in_seconds",
+          "name": "avg_trial_length_in_seconds",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "avg_trial_length_in_seconds",
+          "dragId": "GW_FCNd4Kib"
+        },
+        {
+          "fid": "water_day_total_last_session",
+          "name": "water_day_total_last_session",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "water_day_total_last_session",
+          "dragId": "GW_YhuRstT3"
+        },
+        {
+          "fid": "water_after_session_last_session",
+          "name": "water_after_session_last_session",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "water_after_session_last_session",
+          "dragId": "GW_vWUu1n9t"
         }
       ],
       "rows": [
@@ -4841,7 +5513,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "has_video",
-          "dragId": "GW_d0snox9X"
+          "dragId": "GW_d0snox9X",
+          "offset": 0
         },
         {
           "fid": "has_ephys",
@@ -4849,7 +5522,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "has_ephys",
-          "dragId": "GW_Un7Ab4aD"
+          "dragId": "GW_Un7Ab4aD",
+          "offset": 0
         },
         {
           "fid": "old_bpod_session",
@@ -4857,7 +5531,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "old_bpod_session",
-          "dragId": "GW_0CRgMaA5"
+          "dragId": "GW_0CRgMaA5",
+          "offset": 0
         },
         {
           "fid": "institute",
@@ -4865,7 +5540,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "institute",
-          "dragId": "GW_3OcDsx8W"
+          "dragId": "GW_3OcDsx8W",
+          "offset": 0
         },
         {
           "fid": "rig_type",
@@ -4873,7 +5549,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "rig_type",
-          "dragId": "GW_X89EDH2b"
+          "dragId": "GW_X89EDH2b",
+          "offset": 0
         },
         {
           "fid": "room",
@@ -4881,7 +5558,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "room",
-          "dragId": "GW_8P3IN1fy"
+          "dragId": "GW_8P3IN1fy",
+          "offset": 0
         },
         {
           "fid": "hardware",
@@ -4889,7 +5567,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "hardware",
-          "dragId": "GW_i0LKsTka"
+          "dragId": "GW_i0LKsTka",
+          "offset": 0
         },
         {
           "fid": "data_source",
@@ -4897,7 +5576,120 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "data_source",
-          "dragId": "GW_ovQlp534"
+          "dragId": "GW_ovQlp534",
+          "offset": 0
+        },
+        {
+          "fid": "laser_1_target_areas",
+          "name": "laser_1_target_areas",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "laser_1_target_areas",
+          "dragId": "GW_9PrpMC75"
+        },
+        {
+          "fid": "laser_2_target_areas",
+          "name": "laser_2_target_areas",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "laser_2_target_areas",
+          "dragId": "GW_HOT8iNIe"
+        },
+        {
+          "fid": "commit_ID",
+          "name": "commit_ID",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "commit_ID",
+          "dragId": "GW_Ea1uTZjI"
+        },
+        {
+          "fid": "repo_url",
+          "name": "repo_url",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "repo_url",
+          "dragId": "GW_gmohdDjQ"
+        },
+        {
+          "fid": "current_branch",
+          "name": "current_branch",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "current_branch",
+          "dragId": "GW_MdmAk2gD"
+        },
+        {
+          "fid": "location",
+          "name": "location",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "location",
+          "dragId": "GW_VcjzNUa0"
+        },
+        {
+          "fid": "session_name",
+          "name": "session_name",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "session_name",
+          "dragId": "GW_UaIgXGLS"
+        },
+        {
+          "fid": "creation_time",
+          "name": "creation_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "creation_time",
+          "dragId": "GW_MnqzU7EZ"
+        },
+        {
+          "fid": "subject_genotype",
+          "name": "subject_genotype",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "subject_genotype",
+          "dragId": "GW_ZlM5B6Xr"
+        },
+        {
+          "fid": "probes",
+          "name": "probes",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "probes",
+          "dragId": "GW_zl9HWiag"
+        },
+        {
+          "fid": "results",
+          "name": "results",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "results",
+          "dragId": "GW_81045Fy7"
+        },
+        {
+          "fid": "results_location",
+          "name": "results_location",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "results_location",
+          "dragId": "GW_dfAovNBK"
+        },
+        {
+          "fid": "session_time",
+          "name": "session_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "session_time",
+          "dragId": "GW_Kmd37Ci9"
+        },
+        {
+          "fid": "docDB_status",
+          "name": "docDB_status",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "docDB_status",
+          "dragId": "GW_M5VfoIgx"
         }
       ],
       "measures": [
@@ -5984,6 +6776,110 @@
           "semanticType": "quantitative",
           "aggName": "sum",
           "offset": 0
+        },
+        {
+          "fid": "laser_1_calibration_power",
+          "name": "laser_1_calibration_power",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "laser_1_calibration_power",
+          "dragId": "GW_3Llorcbg"
+        },
+        {
+          "fid": "laser_2_calibration_power",
+          "name": "laser_2_calibration_power",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "laser_2_calibration_power",
+          "dragId": "GW_hf3jikCU"
+        },
+        {
+          "fid": "logistic_Su2022_score_mean",
+          "name": "logistic_Su2022_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Su2022_score_mean",
+          "dragId": "GW_u3c2C7ov"
+        },
+        {
+          "fid": "logistic_Su2022_score_std",
+          "name": "logistic_Su2022_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Su2022_score_std",
+          "dragId": "GW_aJzjp8Q0"
+        },
+        {
+          "fid": "logistic_Bari2019_score_mean",
+          "name": "logistic_Bari2019_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Bari2019_score_mean",
+          "dragId": "GW_7n1WoQZ5"
+        },
+        {
+          "fid": "logistic_Bari2019_score_std",
+          "name": "logistic_Bari2019_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Bari2019_score_std",
+          "dragId": "GW_0wLTOYmv"
+        },
+        {
+          "fid": "logistic_Hattori2019_score_mean",
+          "name": "logistic_Hattori2019_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Hattori2019_score_mean",
+          "dragId": "GW_QteqcCMV"
+        },
+        {
+          "fid": "logistic_Hattori2019_score_std",
+          "name": "logistic_Hattori2019_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Hattori2019_score_std",
+          "dragId": "GW_aD1tAkVE"
+        },
+        {
+          "fid": "logistic_Miller2021_score_mean",
+          "name": "logistic_Miller2021_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Miller2021_score_mean",
+          "dragId": "GW_r9Y0ZK4h"
+        },
+        {
+          "fid": "logistic_Miller2021_score_std",
+          "name": "logistic_Miller2021_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Miller2021_score_std",
+          "dragId": "GW_rVDjvxsk"
+        },
+        {
+          "fid": "avg_trial_length_in_seconds",
+          "name": "avg_trial_length_in_seconds",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "avg_trial_length_in_seconds",
+          "dragId": "GW_kI8ioXMw"
+        },
+        {
+          "fid": "water_day_total_last_session",
+          "name": "water_day_total_last_session",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "water_day_total_last_session",
+          "dragId": "GW_hlUXrOxi"
+        },
+        {
+          "fid": "water_after_session_last_session",
+          "name": "water_after_session_last_session",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "water_after_session_last_session",
+          "dragId": "GW_h5DtGlBV"
         }
       ],
       "rows": [
@@ -6016,7 +6912,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "data_source",
-          "dragId": "gw_Xjam"
+          "dragId": "gw_Xjam",
+          "offset": 0
         }
       ],
       "opacity": [],
@@ -6242,7 +7139,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "has_video",
-          "dragId": "GW_bqFCZrpy"
+          "dragId": "GW_bqFCZrpy",
+          "offset": 0
         },
         {
           "fid": "has_ephys",
@@ -6250,7 +7148,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "has_ephys",
-          "dragId": "GW_4xjIydG8"
+          "dragId": "GW_4xjIydG8",
+          "offset": 0
         },
         {
           "fid": "old_bpod_session",
@@ -6258,7 +7157,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "old_bpod_session",
-          "dragId": "GW_Xm5RBDsM"
+          "dragId": "GW_Xm5RBDsM",
+          "offset": 0
         },
         {
           "fid": "institute",
@@ -6266,7 +7166,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "institute",
-          "dragId": "GW_Rzr945a3"
+          "dragId": "GW_Rzr945a3",
+          "offset": 0
         },
         {
           "fid": "rig_type",
@@ -6274,7 +7175,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "rig_type",
-          "dragId": "GW_LUV0XbSs"
+          "dragId": "GW_LUV0XbSs",
+          "offset": 0
         },
         {
           "fid": "room",
@@ -6282,7 +7184,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "room",
-          "dragId": "GW_ThuEasrW"
+          "dragId": "GW_ThuEasrW",
+          "offset": 0
         },
         {
           "fid": "hardware",
@@ -6290,7 +7193,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "hardware",
-          "dragId": "GW_lIN7svPj"
+          "dragId": "GW_lIN7svPj",
+          "offset": 0
         },
         {
           "fid": "data_source",
@@ -6298,7 +7202,120 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "data_source",
-          "dragId": "GW_eUVoHIi3"
+          "dragId": "GW_eUVoHIi3",
+          "offset": 0
+        },
+        {
+          "fid": "laser_1_target_areas",
+          "name": "laser_1_target_areas",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "laser_1_target_areas",
+          "dragId": "GW_w0dOkLo3"
+        },
+        {
+          "fid": "laser_2_target_areas",
+          "name": "laser_2_target_areas",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "laser_2_target_areas",
+          "dragId": "GW_EXgLSzrc"
+        },
+        {
+          "fid": "commit_ID",
+          "name": "commit_ID",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "commit_ID",
+          "dragId": "GW_NeG7wnOo"
+        },
+        {
+          "fid": "repo_url",
+          "name": "repo_url",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "repo_url",
+          "dragId": "GW_Q04FKTgc"
+        },
+        {
+          "fid": "current_branch",
+          "name": "current_branch",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "current_branch",
+          "dragId": "GW_2PNdtUqj"
+        },
+        {
+          "fid": "location",
+          "name": "location",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "location",
+          "dragId": "GW_3VUBexGR"
+        },
+        {
+          "fid": "session_name",
+          "name": "session_name",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "session_name",
+          "dragId": "GW_NCWmQnhD"
+        },
+        {
+          "fid": "creation_time",
+          "name": "creation_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "creation_time",
+          "dragId": "GW_hBYySn8v"
+        },
+        {
+          "fid": "subject_genotype",
+          "name": "subject_genotype",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "subject_genotype",
+          "dragId": "GW_2rsMLXQj"
+        },
+        {
+          "fid": "probes",
+          "name": "probes",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "probes",
+          "dragId": "GW_xofgaDjF"
+        },
+        {
+          "fid": "results",
+          "name": "results",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "results",
+          "dragId": "GW_1KawEzmu"
+        },
+        {
+          "fid": "results_location",
+          "name": "results_location",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "results_location",
+          "dragId": "GW_Pe8pzxfY"
+        },
+        {
+          "fid": "session_time",
+          "name": "session_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "session_time",
+          "dragId": "GW_VPxCMeD0"
+        },
+        {
+          "fid": "docDB_status",
+          "name": "docDB_status",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "docDB_status",
+          "dragId": "GW_UwrENq8l"
         }
       ],
       "measures": [
@@ -7385,6 +8402,110 @@
           "semanticType": "quantitative",
           "aggName": "sum",
           "offset": 0
+        },
+        {
+          "fid": "laser_1_calibration_power",
+          "name": "laser_1_calibration_power",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "laser_1_calibration_power",
+          "dragId": "GW_LUY1HwF7"
+        },
+        {
+          "fid": "laser_2_calibration_power",
+          "name": "laser_2_calibration_power",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "laser_2_calibration_power",
+          "dragId": "GW_kIbj40iH"
+        },
+        {
+          "fid": "logistic_Su2022_score_mean",
+          "name": "logistic_Su2022_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Su2022_score_mean",
+          "dragId": "GW_Wn0wRGZA"
+        },
+        {
+          "fid": "logistic_Su2022_score_std",
+          "name": "logistic_Su2022_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Su2022_score_std",
+          "dragId": "GW_ExjfwXOh"
+        },
+        {
+          "fid": "logistic_Bari2019_score_mean",
+          "name": "logistic_Bari2019_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Bari2019_score_mean",
+          "dragId": "GW_eL1XpMhk"
+        },
+        {
+          "fid": "logistic_Bari2019_score_std",
+          "name": "logistic_Bari2019_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Bari2019_score_std",
+          "dragId": "GW_b9W0iceQ"
+        },
+        {
+          "fid": "logistic_Hattori2019_score_mean",
+          "name": "logistic_Hattori2019_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Hattori2019_score_mean",
+          "dragId": "GW_VdRQiLut"
+        },
+        {
+          "fid": "logistic_Hattori2019_score_std",
+          "name": "logistic_Hattori2019_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Hattori2019_score_std",
+          "dragId": "GW_CTfBbI7U"
+        },
+        {
+          "fid": "logistic_Miller2021_score_mean",
+          "name": "logistic_Miller2021_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Miller2021_score_mean",
+          "dragId": "GW_6XN7kHIp"
+        },
+        {
+          "fid": "logistic_Miller2021_score_std",
+          "name": "logistic_Miller2021_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Miller2021_score_std",
+          "dragId": "GW_M817fjgY"
+        },
+        {
+          "fid": "avg_trial_length_in_seconds",
+          "name": "avg_trial_length_in_seconds",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "avg_trial_length_in_seconds",
+          "dragId": "GW_saYn0dXy"
+        },
+        {
+          "fid": "water_day_total_last_session",
+          "name": "water_day_total_last_session",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "water_day_total_last_session",
+          "dragId": "GW_UbwAOD2a"
+        },
+        {
+          "fid": "water_after_session_last_session",
+          "name": "water_after_session_last_session",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "water_after_session_last_session",
+          "dragId": "GW_gno3kdVZ"
         }
       ],
       "rows": [
@@ -7644,7 +8765,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "has_video",
-          "dragId": "GW_cIj0CiSl"
+          "dragId": "GW_cIj0CiSl",
+          "offset": 0
         },
         {
           "fid": "has_ephys",
@@ -7652,7 +8774,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "has_ephys",
-          "dragId": "GW_SJwOhAXu"
+          "dragId": "GW_SJwOhAXu",
+          "offset": 0
         },
         {
           "fid": "old_bpod_session",
@@ -7660,7 +8783,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "old_bpod_session",
-          "dragId": "GW_qFLmGBcS"
+          "dragId": "GW_qFLmGBcS",
+          "offset": 0
         },
         {
           "fid": "institute",
@@ -7668,7 +8792,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "institute",
-          "dragId": "GW_lK7zi5Vs"
+          "dragId": "GW_lK7zi5Vs",
+          "offset": 0
         },
         {
           "fid": "rig_type",
@@ -7676,7 +8801,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "rig_type",
-          "dragId": "GW_6G7cNkPO"
+          "dragId": "GW_6G7cNkPO",
+          "offset": 0
         },
         {
           "fid": "room",
@@ -7684,7 +8810,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "room",
-          "dragId": "GW_IzBiWfqh"
+          "dragId": "GW_IzBiWfqh",
+          "offset": 0
         },
         {
           "fid": "hardware",
@@ -7692,7 +8819,8 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "hardware",
-          "dragId": "GW_4uXa8HfP"
+          "dragId": "GW_4uXa8HfP",
+          "offset": 0
         },
         {
           "fid": "data_source",
@@ -7700,7 +8828,120 @@
           "semanticType": "nominal",
           "analyticType": "dimension",
           "basename": "data_source",
-          "dragId": "GW_FTWywrJo"
+          "dragId": "GW_FTWywrJo",
+          "offset": 0
+        },
+        {
+          "fid": "laser_1_target_areas",
+          "name": "laser_1_target_areas",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "laser_1_target_areas",
+          "dragId": "GW_iRqEvpfD"
+        },
+        {
+          "fid": "laser_2_target_areas",
+          "name": "laser_2_target_areas",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "laser_2_target_areas",
+          "dragId": "GW_4QojDq2S"
+        },
+        {
+          "fid": "commit_ID",
+          "name": "commit_ID",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "commit_ID",
+          "dragId": "GW_9TIFnfs0"
+        },
+        {
+          "fid": "repo_url",
+          "name": "repo_url",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "repo_url",
+          "dragId": "GW_UH69ijts"
+        },
+        {
+          "fid": "current_branch",
+          "name": "current_branch",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "current_branch",
+          "dragId": "GW_2PSWrXA4"
+        },
+        {
+          "fid": "location",
+          "name": "location",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "location",
+          "dragId": "GW_tJjT6hxz"
+        },
+        {
+          "fid": "session_name",
+          "name": "session_name",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "session_name",
+          "dragId": "GW_5A9JTPY3"
+        },
+        {
+          "fid": "creation_time",
+          "name": "creation_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "creation_time",
+          "dragId": "GW_S9gJoeND"
+        },
+        {
+          "fid": "subject_genotype",
+          "name": "subject_genotype",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "subject_genotype",
+          "dragId": "GW_Tzdx4oWR"
+        },
+        {
+          "fid": "probes",
+          "name": "probes",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "probes",
+          "dragId": "GW_iXNEvVex"
+        },
+        {
+          "fid": "results",
+          "name": "results",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "results",
+          "dragId": "GW_P43lukcS"
+        },
+        {
+          "fid": "results_location",
+          "name": "results_location",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "results_location",
+          "dragId": "GW_AJZebCyF"
+        },
+        {
+          "fid": "session_time",
+          "name": "session_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "session_time",
+          "dragId": "GW_o7y6NcA9"
+        },
+        {
+          "fid": "docDB_status",
+          "name": "docDB_status",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "docDB_status",
+          "dragId": "GW_nLsjf8Dl"
         }
       ],
       "measures": [
@@ -8787,6 +10028,110 @@
           "semanticType": "quantitative",
           "aggName": "sum",
           "offset": 0
+        },
+        {
+          "fid": "laser_1_calibration_power",
+          "name": "laser_1_calibration_power",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "laser_1_calibration_power",
+          "dragId": "GW_HXW5a9rl"
+        },
+        {
+          "fid": "laser_2_calibration_power",
+          "name": "laser_2_calibration_power",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "laser_2_calibration_power",
+          "dragId": "GW_xDR3cAH8"
+        },
+        {
+          "fid": "logistic_Su2022_score_mean",
+          "name": "logistic_Su2022_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Su2022_score_mean",
+          "dragId": "GW_T8GCWqlD"
+        },
+        {
+          "fid": "logistic_Su2022_score_std",
+          "name": "logistic_Su2022_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Su2022_score_std",
+          "dragId": "GW_gGyhQYfE"
+        },
+        {
+          "fid": "logistic_Bari2019_score_mean",
+          "name": "logistic_Bari2019_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Bari2019_score_mean",
+          "dragId": "GW_o1ZP7iWh"
+        },
+        {
+          "fid": "logistic_Bari2019_score_std",
+          "name": "logistic_Bari2019_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Bari2019_score_std",
+          "dragId": "GW_NPJ8YuLi"
+        },
+        {
+          "fid": "logistic_Hattori2019_score_mean",
+          "name": "logistic_Hattori2019_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Hattori2019_score_mean",
+          "dragId": "GW_4BnltADP"
+        },
+        {
+          "fid": "logistic_Hattori2019_score_std",
+          "name": "logistic_Hattori2019_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Hattori2019_score_std",
+          "dragId": "GW_VQWA7S5z"
+        },
+        {
+          "fid": "logistic_Miller2021_score_mean",
+          "name": "logistic_Miller2021_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Miller2021_score_mean",
+          "dragId": "GW_GqT7L3cm"
+        },
+        {
+          "fid": "logistic_Miller2021_score_std",
+          "name": "logistic_Miller2021_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Miller2021_score_std",
+          "dragId": "GW_ZUQSIyKd"
+        },
+        {
+          "fid": "avg_trial_length_in_seconds",
+          "name": "avg_trial_length_in_seconds",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "avg_trial_length_in_seconds",
+          "dragId": "GW_PWDF0fTe"
+        },
+        {
+          "fid": "water_day_total_last_session",
+          "name": "water_day_total_last_session",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "water_day_total_last_session",
+          "dragId": "GW_M2DgyClK"
+        },
+        {
+          "fid": "water_after_session_last_session",
+          "name": "water_after_session_last_session",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "water_after_session_last_session",
+          "dragId": "GW_OASp5evs"
         }
       ],
       "rows": [
@@ -9109,7 +10454,120 @@
           "fid": "gw_mea_key_fid",
           "name": "Measure names",
           "analyticType": "dimension",
-          "semanticType": "nominal"
+          "semanticType": "nominal",
+          "offset": 0
+        },
+        {
+          "fid": "laser_1_target_areas",
+          "name": "laser_1_target_areas",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "laser_1_target_areas",
+          "dragId": "GW_j5dsCEVS"
+        },
+        {
+          "fid": "laser_2_target_areas",
+          "name": "laser_2_target_areas",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "laser_2_target_areas",
+          "dragId": "GW_VesqJ0iL"
+        },
+        {
+          "fid": "commit_ID",
+          "name": "commit_ID",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "commit_ID",
+          "dragId": "GW_PiIv0fcO"
+        },
+        {
+          "fid": "repo_url",
+          "name": "repo_url",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "repo_url",
+          "dragId": "GW_DSAW5uQC"
+        },
+        {
+          "fid": "current_branch",
+          "name": "current_branch",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "current_branch",
+          "dragId": "GW_oUYLgHKz"
+        },
+        {
+          "fid": "location",
+          "name": "location",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "location",
+          "dragId": "GW_LMnKwxXt"
+        },
+        {
+          "fid": "session_name",
+          "name": "session_name",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "session_name",
+          "dragId": "GW_z01xQ3Uf"
+        },
+        {
+          "fid": "creation_time",
+          "name": "creation_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "creation_time",
+          "dragId": "GW_hcSnUOlx"
+        },
+        {
+          "fid": "subject_genotype",
+          "name": "subject_genotype",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "subject_genotype",
+          "dragId": "GW_clZnz9ky"
+        },
+        {
+          "fid": "probes",
+          "name": "probes",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "probes",
+          "dragId": "GW_xZ1NCj4p"
+        },
+        {
+          "fid": "results",
+          "name": "results",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "results",
+          "dragId": "GW_pwceaOAY"
+        },
+        {
+          "fid": "results_location",
+          "name": "results_location",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "results_location",
+          "dragId": "GW_Ir5jE3M1"
+        },
+        {
+          "fid": "session_time",
+          "name": "session_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "session_time",
+          "dragId": "GW_tb5K7eqa"
+        },
+        {
+          "fid": "docDB_status",
+          "name": "docDB_status",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "docDB_status",
+          "dragId": "GW_cvAOYqu2"
         }
       ],
       "measures": [
@@ -10185,7 +11643,8 @@
             "op": "one",
             "params": [],
             "as": "gw_count_fid"
-          }
+          },
+          "offset": 0
         },
         {
           "dragId": "gw_mea_val_fid",
@@ -10193,7 +11652,112 @@
           "name": "Measure values",
           "analyticType": "measure",
           "semanticType": "quantitative",
-          "aggName": "sum"
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "fid": "laser_1_calibration_power",
+          "name": "laser_1_calibration_power",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "laser_1_calibration_power",
+          "dragId": "GW_msBOLpkX"
+        },
+        {
+          "fid": "laser_2_calibration_power",
+          "name": "laser_2_calibration_power",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "laser_2_calibration_power",
+          "dragId": "GW_HMavrIqy"
+        },
+        {
+          "fid": "logistic_Su2022_score_mean",
+          "name": "logistic_Su2022_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Su2022_score_mean",
+          "dragId": "GW_tIYkvqFS"
+        },
+        {
+          "fid": "logistic_Su2022_score_std",
+          "name": "logistic_Su2022_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Su2022_score_std",
+          "dragId": "GW_mEkNeojJ"
+        },
+        {
+          "fid": "logistic_Bari2019_score_mean",
+          "name": "logistic_Bari2019_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Bari2019_score_mean",
+          "dragId": "GW_3VwkPU4n"
+        },
+        {
+          "fid": "logistic_Bari2019_score_std",
+          "name": "logistic_Bari2019_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Bari2019_score_std",
+          "dragId": "GW_0lLDjBSx"
+        },
+        {
+          "fid": "logistic_Hattori2019_score_mean",
+          "name": "logistic_Hattori2019_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Hattori2019_score_mean",
+          "dragId": "GW_58OIkUly"
+        },
+        {
+          "fid": "logistic_Hattori2019_score_std",
+          "name": "logistic_Hattori2019_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Hattori2019_score_std",
+          "dragId": "GW_6dwV3YF7"
+        },
+        {
+          "fid": "logistic_Miller2021_score_mean",
+          "name": "logistic_Miller2021_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Miller2021_score_mean",
+          "dragId": "GW_W1Ccu42d"
+        },
+        {
+          "fid": "logistic_Miller2021_score_std",
+          "name": "logistic_Miller2021_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Miller2021_score_std",
+          "dragId": "GW_uDLKr9Nn"
+        },
+        {
+          "fid": "avg_trial_length_in_seconds",
+          "name": "avg_trial_length_in_seconds",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "avg_trial_length_in_seconds",
+          "dragId": "GW_X8Kv1gEk"
+        },
+        {
+          "fid": "water_day_total_last_session",
+          "name": "water_day_total_last_session",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "water_day_total_last_session",
+          "dragId": "GW_bWEeJuDP"
+        },
+        {
+          "fid": "water_after_session_last_session",
+          "name": "water_after_session_last_session",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "water_after_session_last_session",
+          "dragId": "GW_1ezSApcR"
         }
       ],
       "rows": [
@@ -10527,7 +12091,120 @@
           "fid": "gw_mea_key_fid",
           "name": "Measure names",
           "analyticType": "dimension",
-          "semanticType": "nominal"
+          "semanticType": "nominal",
+          "offset": 0
+        },
+        {
+          "fid": "laser_1_target_areas",
+          "name": "laser_1_target_areas",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "laser_1_target_areas",
+          "dragId": "GW_ymVSpc0f"
+        },
+        {
+          "fid": "laser_2_target_areas",
+          "name": "laser_2_target_areas",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "laser_2_target_areas",
+          "dragId": "GW_dMX71hqi"
+        },
+        {
+          "fid": "commit_ID",
+          "name": "commit_ID",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "commit_ID",
+          "dragId": "GW_rt9HVkOK"
+        },
+        {
+          "fid": "repo_url",
+          "name": "repo_url",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "repo_url",
+          "dragId": "GW_XAQLuPI5"
+        },
+        {
+          "fid": "current_branch",
+          "name": "current_branch",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "current_branch",
+          "dragId": "GW_w0kp6S8Z"
+        },
+        {
+          "fid": "location",
+          "name": "location",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "location",
+          "dragId": "GW_wNrflMYd"
+        },
+        {
+          "fid": "session_name",
+          "name": "session_name",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "session_name",
+          "dragId": "GW_3sJryjAp"
+        },
+        {
+          "fid": "creation_time",
+          "name": "creation_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "creation_time",
+          "dragId": "GW_UYsijRTk"
+        },
+        {
+          "fid": "subject_genotype",
+          "name": "subject_genotype",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "subject_genotype",
+          "dragId": "GW_01eOQM86"
+        },
+        {
+          "fid": "probes",
+          "name": "probes",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "probes",
+          "dragId": "GW_UP2muXGx"
+        },
+        {
+          "fid": "results",
+          "name": "results",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "results",
+          "dragId": "GW_hilYP4bn"
+        },
+        {
+          "fid": "results_location",
+          "name": "results_location",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "results_location",
+          "dragId": "GW_t2X74MqE"
+        },
+        {
+          "fid": "session_time",
+          "name": "session_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "session_time",
+          "dragId": "GW_MZVIncXB"
+        },
+        {
+          "fid": "docDB_status",
+          "name": "docDB_status",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "basename": "docDB_status",
+          "dragId": "GW_AQzIPGsc"
         }
       ],
       "measures": [
@@ -11603,7 +13280,8 @@
             "op": "one",
             "params": [],
             "as": "gw_count_fid"
-          }
+          },
+          "offset": 0
         },
         {
           "dragId": "gw_mea_val_fid",
@@ -11611,7 +13289,112 @@
           "name": "Measure values",
           "analyticType": "measure",
           "semanticType": "quantitative",
-          "aggName": "sum"
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "fid": "laser_1_calibration_power",
+          "name": "laser_1_calibration_power",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "laser_1_calibration_power",
+          "dragId": "GW_K3M6ohIf"
+        },
+        {
+          "fid": "laser_2_calibration_power",
+          "name": "laser_2_calibration_power",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "laser_2_calibration_power",
+          "dragId": "GW_RpZ6yIfm"
+        },
+        {
+          "fid": "logistic_Su2022_score_mean",
+          "name": "logistic_Su2022_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Su2022_score_mean",
+          "dragId": "GW_j71pcU9m"
+        },
+        {
+          "fid": "logistic_Su2022_score_std",
+          "name": "logistic_Su2022_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Su2022_score_std",
+          "dragId": "GW_6en19vlz"
+        },
+        {
+          "fid": "logistic_Bari2019_score_mean",
+          "name": "logistic_Bari2019_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Bari2019_score_mean",
+          "dragId": "GW_vg6QWrKF"
+        },
+        {
+          "fid": "logistic_Bari2019_score_std",
+          "name": "logistic_Bari2019_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Bari2019_score_std",
+          "dragId": "GW_bi5KONLA"
+        },
+        {
+          "fid": "logistic_Hattori2019_score_mean",
+          "name": "logistic_Hattori2019_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Hattori2019_score_mean",
+          "dragId": "GW_XIHuwZN7"
+        },
+        {
+          "fid": "logistic_Hattori2019_score_std",
+          "name": "logistic_Hattori2019_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Hattori2019_score_std",
+          "dragId": "GW_jF7y4JY8"
+        },
+        {
+          "fid": "logistic_Miller2021_score_mean",
+          "name": "logistic_Miller2021_score_mean",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Miller2021_score_mean",
+          "dragId": "GW_57jVsSWr"
+        },
+        {
+          "fid": "logistic_Miller2021_score_std",
+          "name": "logistic_Miller2021_score_std",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "logistic_Miller2021_score_std",
+          "dragId": "GW_A2N4k97z"
+        },
+        {
+          "fid": "avg_trial_length_in_seconds",
+          "name": "avg_trial_length_in_seconds",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "avg_trial_length_in_seconds",
+          "dragId": "GW_Do9TxM5R"
+        },
+        {
+          "fid": "water_day_total_last_session",
+          "name": "water_day_total_last_session",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "water_day_total_last_session",
+          "dragId": "GW_gn2Mme4Y"
+        },
+        {
+          "fid": "water_after_session_last_session",
+          "name": "water_after_session_last_session",
+          "semanticType": "quantitative",
+          "analyticType": "measure",
+          "basename": "water_after_session_last_session",
+          "dragId": "GW_T7E20JzU"
         }
       ],
       "rows": [
@@ -11674,5 +13457,1652 @@
     },
     "visId": "gw_FW26",
     "name": "All sessions by task"
+  },
+  {
+    "config": {
+      "defaultAggregated": true,
+      "geoms": [
+        "bar"
+      ],
+      "coordSystem": "generic",
+      "limit": -1,
+      "timezoneDisplayOffset": 0
+    },
+    "encodings": {
+      "dimensions": [
+        {
+          "dragId": "gw_-skD",
+          "fid": "subject_id",
+          "name": "subject_id",
+          "basename": "subject_id",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_hPfg",
+          "fid": "session_date",
+          "name": "session_date",
+          "basename": "session_date",
+          "semanticType": "temporal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_4bVy",
+          "fid": "rig",
+          "name": "rig",
+          "basename": "rig",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw__Egt",
+          "fid": "user_name",
+          "name": "user_name",
+          "basename": "user_name",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_1slC",
+          "fid": "curriculum_name",
+          "name": "curriculum_name",
+          "basename": "curriculum_name",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_1D1e",
+          "fid": "curriculum_version",
+          "name": "curriculum_version",
+          "basename": "curriculum_version",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_C_iQ",
+          "fid": "current_stage_actual",
+          "name": "current_stage_actual",
+          "basename": "current_stage_actual",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_cw3e",
+          "fid": "task",
+          "name": "task",
+          "basename": "task",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_Pi_m",
+          "fid": "notes",
+          "name": "notes",
+          "basename": "notes",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_1FcW",
+          "fid": "experiment_description",
+          "name": "experiment_description",
+          "basename": "experiment_description",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_yOvg",
+          "fid": "session_start_time",
+          "name": "session_start_time",
+          "basename": "session_start_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_-a1q",
+          "fid": "session_end_time",
+          "name": "session_end_time",
+          "basename": "session_end_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_1eg5",
+          "fid": "laser_1_target_areas",
+          "name": "laser_1_target_areas",
+          "basename": "laser_1_target_areas",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_9Lyk",
+          "fid": "laser_2_target_areas",
+          "name": "laser_2_target_areas",
+          "basename": "laser_2_target_areas",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_uuQV",
+          "fid": "commit_ID",
+          "name": "commit_ID",
+          "basename": "commit_ID",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_4jD6",
+          "fid": "repo_url",
+          "name": "repo_url",
+          "basename": "repo_url",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_3tZp",
+          "fid": "current_branch",
+          "name": "current_branch",
+          "basename": "current_branch",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_IqaC",
+          "fid": "curriculum_schema_version",
+          "name": "curriculum_schema_version",
+          "basename": "curriculum_schema_version",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_Wm0l",
+          "fid": "if_overriden_by_trainer",
+          "name": "if_overriden_by_trainer",
+          "basename": "if_overriden_by_trainer",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_qi1j",
+          "fid": "if_consistent_within_session",
+          "name": "if_consistent_within_session",
+          "basename": "if_consistent_within_session",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_YmXO",
+          "fid": "h2o",
+          "name": "h2o",
+          "basename": "h2o",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_T7jO",
+          "fid": "institute",
+          "name": "institute",
+          "basename": "institute",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw__5m1",
+          "fid": "rig_type",
+          "name": "rig_type",
+          "basename": "rig_type",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_Jq78",
+          "fid": "room",
+          "name": "room",
+          "basename": "room",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_0Lgp",
+          "fid": "hardware",
+          "name": "hardware",
+          "basename": "hardware",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_mMkZ",
+          "fid": "data_source",
+          "name": "data_source",
+          "basename": "data_source",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_d8E7",
+          "fid": "weekday",
+          "name": "weekday",
+          "basename": "weekday",
+          "semanticType": "quantitative",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_eVV9",
+          "fid": "location",
+          "name": "location",
+          "basename": "location",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_DdNc",
+          "fid": "session_name",
+          "name": "session_name",
+          "basename": "session_name",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_HaRm",
+          "fid": "creation_time",
+          "name": "creation_time",
+          "basename": "creation_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_d3vn",
+          "fid": "subject_genotype",
+          "name": "subject_genotype",
+          "basename": "subject_genotype",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw__5m1",
+          "fid": "probes",
+          "name": "probes",
+          "basename": "probes",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_WBOH",
+          "fid": "results",
+          "name": "results",
+          "basename": "results",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_2pFl",
+          "fid": "results_location",
+          "name": "results_location",
+          "basename": "results_location",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_WqIH",
+          "fid": "session_time",
+          "name": "session_time",
+          "basename": "session_time",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_A6Zd",
+          "fid": "docDB_status",
+          "name": "docDB_status",
+          "basename": "docDB_status",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_mea_key_fid",
+          "fid": "gw_mea_key_fid",
+          "name": "Measure names",
+          "analyticType": "dimension",
+          "semanticType": "nominal"
+        }
+      ],
+      "measures": [
+        {
+          "dragId": "gw__FIY",
+          "fid": "nwb_suffix",
+          "name": "nwb_suffix",
+          "basename": "nwb_suffix",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_Mi0C",
+          "fid": "session",
+          "name": "session",
+          "basename": "session",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_DSqP",
+          "fid": "session_run_time_in_min",
+          "name": "session_run_time_in_min",
+          "basename": "session_run_time_in_min",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw__C4C",
+          "fid": "water_in_session_foraging",
+          "name": "water_in_session_foraging",
+          "basename": "water_in_session_foraging",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_AxXA",
+          "fid": "water_in_session_manual",
+          "name": "water_in_session_manual",
+          "basename": "water_in_session_manual",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_2-h9",
+          "fid": "water_in_session_total",
+          "name": "water_in_session_total",
+          "basename": "water_in_session_total",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_XjAy",
+          "fid": "water_after_session",
+          "name": "water_after_session",
+          "basename": "water_after_session",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_hIDP",
+          "fid": "water_day_total",
+          "name": "water_day_total",
+          "basename": "water_day_total",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_Q98V",
+          "fid": "base_weight",
+          "name": "base_weight",
+          "basename": "base_weight",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_ONZ2",
+          "fid": "target_weight",
+          "name": "target_weight",
+          "basename": "target_weight",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_ihQx",
+          "fid": "target_weight_ratio",
+          "name": "target_weight_ratio",
+          "basename": "target_weight_ratio",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_-chx",
+          "fid": "weight_after",
+          "name": "weight_after",
+          "basename": "weight_after",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_tGR3",
+          "fid": "laser_1_calibration_power",
+          "name": "laser_1_calibration_power",
+          "basename": "laser_1_calibration_power",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_H2p6",
+          "fid": "laser_2_calibration_power",
+          "name": "laser_2_calibration_power",
+          "basename": "laser_2_calibration_power",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_TzyQ",
+          "fid": "weight_after_ratio",
+          "name": "weight_after_ratio",
+          "basename": "weight_after_ratio",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_o6Ki",
+          "fid": "p_reward_sum_mean",
+          "name": "p_reward_sum_mean",
+          "basename": "p_reward_sum_mean",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_P3XX",
+          "fid": "p_reward_sum_std",
+          "name": "p_reward_sum_std",
+          "basename": "p_reward_sum_std",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_klqB",
+          "fid": "p_reward_sum_median",
+          "name": "p_reward_sum_median",
+          "basename": "p_reward_sum_median",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_Zs19",
+          "fid": "p_reward_contrast_mean",
+          "name": "p_reward_contrast_mean",
+          "basename": "p_reward_contrast_mean",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_pr7o",
+          "fid": "p_reware_contrast_median",
+          "name": "p_reware_contrast_median",
+          "basename": "p_reware_contrast_median",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_wiQ5",
+          "fid": "effective_block_length_mean",
+          "name": "effective_block_length_mean",
+          "basename": "effective_block_length_mean",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_2WeG",
+          "fid": "effective_block_length_std",
+          "name": "effective_block_length_std",
+          "basename": "effective_block_length_std",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_GyL1",
+          "fid": "effective_block_length_median",
+          "name": "effective_block_length_median",
+          "basename": "effective_block_length_median",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_t3Kn",
+          "fid": "effective_block_length_min",
+          "name": "effective_block_length_min",
+          "basename": "effective_block_length_min",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_BLmP",
+          "fid": "effective_block_length_max",
+          "name": "effective_block_length_max",
+          "basename": "effective_block_length_max",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_8InL",
+          "fid": "duration_gocue_stop_mean",
+          "name": "duration_gocue_stop_mean",
+          "basename": "duration_gocue_stop_mean",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_0_qz",
+          "fid": "duration_gocue_stop_std",
+          "name": "duration_gocue_stop_std",
+          "basename": "duration_gocue_stop_std",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_PWwJ",
+          "fid": "duration_gocue_stop_median",
+          "name": "duration_gocue_stop_median",
+          "basename": "duration_gocue_stop_median",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_rMtU",
+          "fid": "duration_gocue_stop_min",
+          "name": "duration_gocue_stop_min",
+          "basename": "duration_gocue_stop_min",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_P5-m",
+          "fid": "duration_gocue_stop_max",
+          "name": "duration_gocue_stop_max",
+          "basename": "duration_gocue_stop_max",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_gl48",
+          "fid": "duration_delay_period_mean",
+          "name": "duration_delay_period_mean",
+          "basename": "duration_delay_period_mean",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_4BSA",
+          "fid": "duration_delay_period_std",
+          "name": "duration_delay_period_std",
+          "basename": "duration_delay_period_std",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_T897",
+          "fid": "duration_delay_period_median",
+          "name": "duration_delay_period_median",
+          "basename": "duration_delay_period_median",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_fd9i",
+          "fid": "duration_delay_period_min",
+          "name": "duration_delay_period_min",
+          "basename": "duration_delay_period_min",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_Lb55",
+          "fid": "duration_delay_period_max",
+          "name": "duration_delay_period_max",
+          "basename": "duration_delay_period_max",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_0QhI",
+          "fid": "duration_iti_mean",
+          "name": "duration_iti_mean",
+          "basename": "duration_iti_mean",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_ZcKj",
+          "fid": "duration_iti_std",
+          "name": "duration_iti_std",
+          "basename": "duration_iti_std",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_QUop",
+          "fid": "duration_iti_median",
+          "name": "duration_iti_median",
+          "basename": "duration_iti_median",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_ctHz",
+          "fid": "duration_iti_min",
+          "name": "duration_iti_min",
+          "basename": "duration_iti_min",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_qHb-",
+          "fid": "duration_iti_max",
+          "name": "duration_iti_max",
+          "basename": "duration_iti_max",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_6tUu",
+          "fid": "reward_volume_left_mean",
+          "name": "reward_volume_left_mean",
+          "basename": "reward_volume_left_mean",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_jwfA",
+          "fid": "reward_volume_right_mean",
+          "name": "reward_volume_right_mean",
+          "basename": "reward_volume_right_mean",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_Cay8",
+          "fid": "lickspout_movement_range_x",
+          "name": "lickspout_movement_range_x",
+          "basename": "lickspout_movement_range_x",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_RL_W",
+          "fid": "lickspout_movement_range_y",
+          "name": "lickspout_movement_range_y",
+          "basename": "lickspout_movement_range_y",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_NFkN",
+          "fid": "lickspout_movement_range_z",
+          "name": "lickspout_movement_range_z",
+          "basename": "lickspout_movement_range_z",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_A4hg",
+          "fid": "lickspout_initial_pos_x",
+          "name": "lickspout_initial_pos_x",
+          "basename": "lickspout_initial_pos_x",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_9NFd",
+          "fid": "lickspout_initial_pos_y",
+          "name": "lickspout_initial_pos_y",
+          "basename": "lickspout_initial_pos_y",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_5fOB",
+          "fid": "lickspout_initial_pos_z",
+          "name": "lickspout_initial_pos_z",
+          "basename": "lickspout_initial_pos_z",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_nKM_",
+          "fid": "lickspout_median_pos_x",
+          "name": "lickspout_median_pos_x",
+          "basename": "lickspout_median_pos_x",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_2Msz",
+          "fid": "lickspout_median_pos_y",
+          "name": "lickspout_median_pos_y",
+          "basename": "lickspout_median_pos_y",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_SORn",
+          "fid": "lickspout_median_pos_z",
+          "name": "lickspout_median_pos_z",
+          "basename": "lickspout_median_pos_z",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_Hua1",
+          "fid": "total_trials_with_autowater",
+          "name": "total_trials_with_autowater",
+          "basename": "total_trials_with_autowater",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_OZmI",
+          "fid": "finished_trials_with_autowater",
+          "name": "finished_trials_with_autowater",
+          "basename": "finished_trials_with_autowater",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_Aj6b",
+          "fid": "finished_rate_with_autowater",
+          "name": "finished_rate_with_autowater",
+          "basename": "finished_rate_with_autowater",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_nsTV",
+          "fid": "ignore_rate_with_autowater",
+          "name": "ignore_rate_with_autowater",
+          "basename": "ignore_rate_with_autowater",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_bmwm",
+          "fid": "autowater_collected",
+          "name": "autowater_collected",
+          "basename": "autowater_collected",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_WLQ5",
+          "fid": "autowater_ignored",
+          "name": "autowater_ignored",
+          "basename": "autowater_ignored",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_yTaL",
+          "fid": "total_trials",
+          "name": "total_trials",
+          "basename": "total_trials",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_FIT0",
+          "fid": "finished_trials",
+          "name": "finished_trials",
+          "basename": "finished_trials",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_l-tV",
+          "fid": "ignored_trials",
+          "name": "ignored_trials",
+          "basename": "ignored_trials",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_XxO2",
+          "fid": "finished_rate",
+          "name": "finished_rate",
+          "basename": "finished_rate",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_XA-1",
+          "fid": "ignore_rate",
+          "name": "ignore_rate",
+          "basename": "ignore_rate",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_HWHv",
+          "fid": "reward_trials",
+          "name": "reward_trials",
+          "basename": "reward_trials",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_PWF0",
+          "fid": "reward_rate",
+          "name": "reward_rate",
+          "basename": "reward_rate",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw__K4e",
+          "fid": "foraging_eff",
+          "name": "foraging_eff",
+          "basename": "foraging_eff",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_Dlyz",
+          "fid": "foraging_eff_random_seed",
+          "name": "foraging_eff_random_seed",
+          "basename": "foraging_eff_random_seed",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_wm6z",
+          "fid": "foraging_performance",
+          "name": "foraging_performance",
+          "basename": "foraging_performance",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_qokS",
+          "fid": "foraging_performance_random_seed",
+          "name": "foraging_performance_random_seed",
+          "basename": "foraging_performance_random_seed",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_ntBN",
+          "fid": "bias_naive",
+          "name": "bias_naive",
+          "basename": "bias_naive",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_P75M",
+          "fid": "reaction_time_median",
+          "name": "reaction_time_median",
+          "basename": "reaction_time_median",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_9gre",
+          "fid": "reaction_time_mean",
+          "name": "reaction_time_mean",
+          "basename": "reaction_time_mean",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_kdL5",
+          "fid": "early_lick_rate",
+          "name": "early_lick_rate",
+          "basename": "early_lick_rate",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_UqLC",
+          "fid": "invalid_lick_ratio",
+          "name": "invalid_lick_ratio",
+          "basename": "invalid_lick_ratio",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_yypT",
+          "fid": "double_dipping_rate_finished_trials",
+          "name": "double_dipping_rate_finished_trials",
+          "basename": "double_dipping_rate_finished_trials",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_MFNn",
+          "fid": "double_dipping_rate_finished_reward_trials",
+          "name": "double_dipping_rate_finished_reward_trials",
+          "basename": "double_dipping_rate_finished_reward_trials",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_ozSI",
+          "fid": "double_dipping_rate_finished_noreward_trials",
+          "name": "double_dipping_rate_finished_noreward_trials",
+          "basename": "double_dipping_rate_finished_noreward_trials",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_nLkL",
+          "fid": "lick_consistency_mean_finished_trials",
+          "name": "lick_consistency_mean_finished_trials",
+          "basename": "lick_consistency_mean_finished_trials",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_ztTr",
+          "fid": "lick_consistency_mean_finished_reward_trials",
+          "name": "lick_consistency_mean_finished_reward_trials",
+          "basename": "lick_consistency_mean_finished_reward_trials",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_7Wgb",
+          "fid": "lick_consistency_mean_finished_noreward_trials",
+          "name": "lick_consistency_mean_finished_noreward_trials",
+          "basename": "lick_consistency_mean_finished_noreward_trials",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_WLSE",
+          "fid": "logistic_Su2022_RewC_tau",
+          "name": "logistic_Su2022_RewC_tau",
+          "basename": "logistic_Su2022_RewC_tau",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_XOBN",
+          "fid": "logistic_Su2022_RewC_amp",
+          "name": "logistic_Su2022_RewC_amp",
+          "basename": "logistic_Su2022_RewC_amp",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_jOTw",
+          "fid": "logistic_Su2022_UnrC_tau",
+          "name": "logistic_Su2022_UnrC_tau",
+          "basename": "logistic_Su2022_UnrC_tau",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_RB6h",
+          "fid": "logistic_Su2022_UnrC_amp",
+          "name": "logistic_Su2022_UnrC_amp",
+          "basename": "logistic_Su2022_UnrC_amp",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_BUi3",
+          "fid": "logistic_Su2022_bias",
+          "name": "logistic_Su2022_bias",
+          "basename": "logistic_Su2022_bias",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_3KSY",
+          "fid": "logistic_Su2022_score_mean",
+          "name": "logistic_Su2022_score_mean",
+          "basename": "logistic_Su2022_score_mean",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_O5RQ",
+          "fid": "logistic_Su2022_score_std",
+          "name": "logistic_Su2022_score_std",
+          "basename": "logistic_Su2022_score_std",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_Kcb8",
+          "fid": "logistic_Bari2019_RewC_tau",
+          "name": "logistic_Bari2019_RewC_tau",
+          "basename": "logistic_Bari2019_RewC_tau",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_OHH7",
+          "fid": "logistic_Bari2019_RewC_amp",
+          "name": "logistic_Bari2019_RewC_amp",
+          "basename": "logistic_Bari2019_RewC_amp",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_Zvoh",
+          "fid": "logistic_Bari2019_Choice_tau",
+          "name": "logistic_Bari2019_Choice_tau",
+          "basename": "logistic_Bari2019_Choice_tau",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_EcNn",
+          "fid": "logistic_Bari2019_Choice_amp",
+          "name": "logistic_Bari2019_Choice_amp",
+          "basename": "logistic_Bari2019_Choice_amp",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_W1pP",
+          "fid": "logistic_Bari2019_bias",
+          "name": "logistic_Bari2019_bias",
+          "basename": "logistic_Bari2019_bias",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_QDtX",
+          "fid": "logistic_Bari2019_score_mean",
+          "name": "logistic_Bari2019_score_mean",
+          "basename": "logistic_Bari2019_score_mean",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_ECXZ",
+          "fid": "logistic_Bari2019_score_std",
+          "name": "logistic_Bari2019_score_std",
+          "basename": "logistic_Bari2019_score_std",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_KAEG",
+          "fid": "logistic_Hattori2019_RewC_tau",
+          "name": "logistic_Hattori2019_RewC_tau",
+          "basename": "logistic_Hattori2019_RewC_tau",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_mbjo",
+          "fid": "logistic_Hattori2019_RewC_amp",
+          "name": "logistic_Hattori2019_RewC_amp",
+          "basename": "logistic_Hattori2019_RewC_amp",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_OQ_k",
+          "fid": "logistic_Hattori2019_UnrC_tau",
+          "name": "logistic_Hattori2019_UnrC_tau",
+          "basename": "logistic_Hattori2019_UnrC_tau",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_jzBp",
+          "fid": "logistic_Hattori2019_UnrC_amp",
+          "name": "logistic_Hattori2019_UnrC_amp",
+          "basename": "logistic_Hattori2019_UnrC_amp",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_3dKV",
+          "fid": "logistic_Hattori2019_Choice_tau",
+          "name": "logistic_Hattori2019_Choice_tau",
+          "basename": "logistic_Hattori2019_Choice_tau",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_1kyl",
+          "fid": "logistic_Hattori2019_Choice_amp",
+          "name": "logistic_Hattori2019_Choice_amp",
+          "basename": "logistic_Hattori2019_Choice_amp",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_A8KT",
+          "fid": "logistic_Hattori2019_bias",
+          "name": "logistic_Hattori2019_bias",
+          "basename": "logistic_Hattori2019_bias",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_59jI",
+          "fid": "logistic_Hattori2019_score_mean",
+          "name": "logistic_Hattori2019_score_mean",
+          "basename": "logistic_Hattori2019_score_mean",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_iAo-",
+          "fid": "logistic_Hattori2019_score_std",
+          "name": "logistic_Hattori2019_score_std",
+          "basename": "logistic_Hattori2019_score_std",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_DD4e",
+          "fid": "logistic_Miller2021_Choice_tau",
+          "name": "logistic_Miller2021_Choice_tau",
+          "basename": "logistic_Miller2021_Choice_tau",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_T_tS",
+          "fid": "logistic_Miller2021_Choice_amp",
+          "name": "logistic_Miller2021_Choice_amp",
+          "basename": "logistic_Miller2021_Choice_amp",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_hXfS",
+          "fid": "logistic_Miller2021_Reward_tau",
+          "name": "logistic_Miller2021_Reward_tau",
+          "basename": "logistic_Miller2021_Reward_tau",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_7j43",
+          "fid": "logistic_Miller2021_Reward_amp",
+          "name": "logistic_Miller2021_Reward_amp",
+          "basename": "logistic_Miller2021_Reward_amp",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_9lnx",
+          "fid": "logistic_Miller2021_Choice_x_Reward_tau",
+          "name": "logistic_Miller2021_Choice_x_Reward_tau",
+          "basename": "logistic_Miller2021_Choice_x_Reward_tau",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_2DkC",
+          "fid": "logistic_Miller2021_Choice_x_Reward_amp",
+          "name": "logistic_Miller2021_Choice_x_Reward_amp",
+          "basename": "logistic_Miller2021_Choice_x_Reward_amp",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_oTjr",
+          "fid": "logistic_Miller2021_bias",
+          "name": "logistic_Miller2021_bias",
+          "basename": "logistic_Miller2021_bias",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_XA8o",
+          "fid": "logistic_Miller2021_score_mean",
+          "name": "logistic_Miller2021_score_mean",
+          "basename": "logistic_Miller2021_score_mean",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_hiFI",
+          "fid": "logistic_Miller2021_score_std",
+          "name": "logistic_Miller2021_score_std",
+          "basename": "logistic_Miller2021_score_std",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_fnTE",
+          "fid": "abs(bias_naive)",
+          "name": "abs(bias_naive)",
+          "basename": "abs(bias_naive)",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_iDNN",
+          "fid": "abs(logistic_Su2022_bias)",
+          "name": "abs(logistic_Su2022_bias)",
+          "basename": "abs(logistic_Su2022_bias)",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_of8T",
+          "fid": "abs(logistic_Bari2019_bias)",
+          "name": "abs(logistic_Bari2019_bias)",
+          "basename": "abs(logistic_Bari2019_bias)",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_C_vC",
+          "fid": "abs(logistic_Hattori2019_bias)",
+          "name": "abs(logistic_Hattori2019_bias)",
+          "basename": "abs(logistic_Hattori2019_bias)",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_8Tzv",
+          "fid": "abs(logistic_Miller2021_bias)",
+          "name": "abs(logistic_Miller2021_bias)",
+          "basename": "abs(logistic_Miller2021_bias)",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_NjnD",
+          "fid": "avg_trial_length_in_seconds",
+          "name": "avg_trial_length_in_seconds",
+          "basename": "avg_trial_length_in_seconds",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_k4_r",
+          "fid": "water_day_total_last_session",
+          "name": "water_day_total_last_session",
+          "basename": "water_day_total_last_session",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_VwyX",
+          "fid": "water_after_session_last_session",
+          "name": "water_after_session_last_session",
+          "basename": "water_after_session_last_session",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "offset": 0
+        },
+        {
+          "dragId": "gw_count_fid",
+          "fid": "gw_count_fid",
+          "name": "Row count",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum",
+          "computed": true,
+          "expression": {
+            "op": "one",
+            "params": [],
+            "as": "gw_count_fid"
+          }
+        },
+        {
+          "dragId": "gw_mea_val_fid",
+          "fid": "gw_mea_val_fid",
+          "name": "Measure values",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "sum"
+        }
+      ],
+      "rows": [
+        {
+          "dragId": "gw_atuY",
+          "fid": "session",
+          "name": "session",
+          "basename": "session",
+          "analyticType": "measure",
+          "semanticType": "quantitative",
+          "aggName": "count",
+          "offset": 0
+        }
+      ],
+      "columns": [
+        {
+          "dragId": "gw_HEM4",
+          "fid": "session_date",
+          "name": "session_date",
+          "basename": "session_date",
+          "semanticType": "temporal",
+          "analyticType": "dimension",
+          "offset": 0
+        }
+      ],
+      "color": [
+        {
+          "dragId": "gw_jXqN",
+          "fid": "docDB_status",
+          "name": "docDB_status",
+          "basename": "docDB_status",
+          "semanticType": "nominal",
+          "analyticType": "dimension",
+          "offset": 0
+        }
+      ],
+      "opacity": [],
+      "size": [],
+      "shape": [],
+      "radius": [],
+      "theta": [],
+      "longitude": [],
+      "latitude": [],
+      "geoId": [],
+      "details": [],
+      "filters": [
+        {
+          "dragId": "gw_Lyoa",
+          "fid": "session_date",
+          "name": "session_date",
+          "basename": "session_date",
+          "semanticType": "temporal",
+          "analyticType": "dimension",
+          "offset": 0,
+          "rule": null
+        }
+      ],
+      "text": []
+    },
+    "layout": {
+      "showActions": false,
+      "showTableSummary": false,
+      "stack": "stack",
+      "interactiveScale": false,
+      "zeroScale": true,
+      "size": {
+        "mode": "full",
+        "width": 320,
+        "height": 200
+      },
+      "format": {},
+      "geoKey": "name",
+      "resolve": {
+        "x": false,
+        "y": false,
+        "color": false,
+        "opacity": false,
+        "shape": false,
+        "size": false
+      },
+      "scaleIncludeUnmatchedChoropleth": false,
+      "colorPalette": "set1",
+      "useSvg": false,
+      "scale": {
+        "opacity": {},
+        "size": {}
+      }
+    },
+    "visId": "gw_24NK",
+    "name": "Check docDB status"
   }
 ]
