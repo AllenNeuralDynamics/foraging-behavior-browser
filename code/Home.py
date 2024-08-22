@@ -456,6 +456,20 @@ def init():
 
     # --- Load data from docDB ---
     _df = merge_in_df_docDB(_df)
+    
+    # add docDB_status column
+    _df["docDB_status"] = _df.apply(
+        lambda row: (
+            "0_not uploaded"
+            if pd.isnull(row["location"])
+            else (
+                "1_uploaded but not processed"
+                if pd.isnull(row["results_location"])
+                else "2_uploaded and processed"
+            )
+        ),
+        axis=1,
+    )
 
     st.session_state.df['sessions_bonsai'] = _df  # Somehow _df loses the reference to the original dataframe
     st.session_state.session_stats_names = [keys for keys in _df.keys()]
