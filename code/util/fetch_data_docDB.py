@@ -64,7 +64,7 @@ def fetch_fip_data(client):
     logger.warning(f"found {len(name_results)} results")
 
     # in case there is overlap between these two queries, filter down to a single list with unique IDs
-    unique_results_by_id = { r['_id']: r for r in modality_results } | { r['_id']: r for r in name_results }
+    unique_results_by_id = {**{ r['_id']: r for r in modality_results }, **{ r['_id']: r for r in name_results }}
     results = list(unique_results_by_id.values())
     logger.warning(f"found {len(results)} unique results")
     
