@@ -18,6 +18,7 @@ RUN pip install -U --no-cache-dir \
     attrs==22.1.0 \
     blinker==1.5 \
     botocore==1.27.59 \
+    bokeh==2.4.3 \
     cachetools==5.2.0 \
     certifi \
     charset-normalizer==2.1.1 \
