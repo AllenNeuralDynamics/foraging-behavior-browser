@@ -18,7 +18,7 @@ RUN pip install -U --no-cache-dir \
     attrs==22.1.0 \
     blinker==1.5 \
     botocore==1.27.59 \
-    bokeh==2.4.3 \
+    bokeh==3.4.3 \
     cachetools==5.2.0 \
     certifi \
     charset-normalizer==2.1.1 \
@@ -89,6 +89,7 @@ RUN pip install -U --no-cache-dir \
     streamlit-aggrid==0.3.5 \
     streamlit-nested-layout==0.1.1 \
     streamlit-plotly-events==0.0.6 \
+    streamlit-bokeh3-events==0.1.4 \
     streamlit-profiler==0.2.4 \
     tenacity==8.1.0 \
     toml==0.10.2 \
