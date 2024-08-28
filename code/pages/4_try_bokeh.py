@@ -1,11 +1,13 @@
 import base64
 from bokeh.plotting import figure, show
 from bokeh.models import ColumnDataSource, HoverTool
+
 from io import BytesIO
 from PIL import Image
 import numpy as np
 
 import streamlit as st
+
 
 # https://docs.bokeh.org/en/3.0.2/docs/user_guide/interaction/tools.html#custom-tooltip
 
@@ -40,22 +42,22 @@ source = ColumnDataSource(data=dict(
 ))
 
 TOOLTIPS = """
-    <div>
+    <div style="width: 600px;">
         <div>
             <img
                 src="@imgs" height="200" alt="@imgs" width="600"
-                style="float: right; margin: 0px 15px 15px 0px;"
+                style="display: block; margin: 0 auto 15px auto;"
                 border="2"
             ></img>
         </div>
-        <div>
+        <div style="text-align: left;">
             <span style="font-size: 17px; font-weight: bold;">@desc</span>
             <span style="font-size: 15px; color: #966;">[$index]</span>
         </div>
-        <div>
+        <div style="margin-top: 5px;">
             <span>@fonts{safe}</span>
         </div>
-        <div>
+        <div style="margin-top: 5px;">
             <span style="font-size: 15px;">Location</span>
             <span style="font-size: 10px; color: #696;">($x, $y)</span>
         </div>
@@ -69,12 +71,47 @@ hover = HoverTool(
     point_policy="snap_to_data",
 )
 
-p = figure(width=600, height=700,
-           tools=[hover],
+plot = figure(width=600, height=800,
+           tools=[hover, "lasso_select", "reset", "tap", "pan", "wheel_zoom"],
            tooltips=TOOLTIPS,
            title="Mouse over the dots")
 
-p.circle('x', 'y', size=20, source=source)
+plot.circle('x', 'y', size=20, source=source)
 
-# Display the plot
-st.bokeh_chart(p)
+# Using the third-party component "streamlit-bokeh3-events"
+# https://discuss.streamlit.io/t/bokeh-3-plots-within-streamlit-including-bi-directional-communication/57650
+# https://github.com/ChristophNa/stBokeh3Demo/blob/main/pages/1_%F0%9F%A4%A0_Lasso_Selector.py
+from streamlit_bokeh3_events import streamlit_bokeh3_events
+from bokeh.models import ColumnDataSource, CustomJS
+
+source.selected.js_on_change(
+    "indices",
+    CustomJS(
+        args=dict(source=source),
+        code="""
+        document.dispatchEvent(
+            new CustomEvent("TestSelectEvent", {detail: {indices: cb_obj.indices}})
+        )
+    """,
+    ),
+)
+
+event_result = streamlit_bokeh3_events(
+    events="TestSelectEvent",
+    bokeh_plot=plot,
+    key="foo1",
+    debounce_time=100,
+    refresh_on_update=False,
+    override_height=800
+)
+
+# some event was thrown
+if event_result is not None:
+    # TestSelectEvent was thrown
+    if "TestSelectEvent" in event_result:
+        st.subheader("Selected Points' Pandas Stat summary")
+        indices = event_result["TestSelectEvent"].get("indices", [])
+        st.table(indices)
+
+st.subheader("Raw Event Data")
+st.write(event_result)
