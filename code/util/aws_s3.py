@@ -12,8 +12,8 @@ from .settings import (
 # --------------------------------------
 data_sources = ['bonsai', 'bpod']
 
-s3_nwb_folder = {data: f'aind-behavior-data/foraging_nwb_{data}/' for data in data_sources}
-s3_processed_nwb_folder = {data: f'aind-behavior-data/foraging_nwb_{data}_processed/' for data in data_sources}
+s3_nwb_folder = {data: f'aind-behavior-data-dev/foraging_nwb_{data}/' for data in data_sources}
+s3_processed_nwb_folder = {data: f'aind-behavior-data-dev/foraging_nwb_{data}_processed/' for data in data_sources}
 # --------------------------------------
 
 fs = s3fs.S3FileSystem(anon=False)

@@ -315,21 +315,21 @@ def init():
     st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
             
     # Init auto training database
-    st.session_state.curriculum_manager = CurriculumManager(
-        saved_curriculums_on_s3=dict(
-            bucket='aind-behavior-data',
-            root='foraging_auto_training/saved_curriculums/'
-        ),
-        saved_curriculums_local=os.path.expanduser('~/curriculum_manager/'),
-    )
-    st.session_state.auto_train_manager = DynamicForagingAutoTrainManager(
-        manager_name='447_demo',
-        df_behavior_on_s3=dict(bucket='aind-behavior-data',
-                                root='foraging_nwb_bonsai_processed/',
-                                file_name='df_sessions.pkl'),
-        df_manager_root_on_s3=dict(bucket='aind-behavior-data',
-                                root='foraging_auto_training/')
-    )
+    # st.session_state.curriculum_manager = CurriculumManager(
+    #     saved_curriculums_on_s3=dict(
+    #         bucket='aind-behavior-data',
+    #         root='foraging_auto_training/saved_curriculums/'
+    #     ),
+    #     saved_curriculums_local=os.path.expanduser('~/curriculum_manager/'),
+    # )
+    # st.session_state.auto_train_manager = DynamicForagingAutoTrainManager(
+    #     manager_name='447_demo',
+    #     df_behavior_on_s3=dict(bucket='aind-behavior-data',
+    #                             root='foraging_nwb_bonsai_processed/',
+    #                             file_name='df_sessions.pkl'),
+    #     df_manager_root_on_s3=dict(bucket='aind-behavior-data',
+    #                             root='foraging_auto_training/')
+    # )
   
    
     # Some ad-hoc modifications on df_sessions
