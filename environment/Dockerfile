@@ -107,7 +107,9 @@ RUN pip install -U --no-cache-dir \
     pygwalker==0.4.7 \
     aind-data-access-api[docdb]==0.13.0 \
     streamlit-dynamic-filters==0.1.9 \
-    semver==3.0.2
+    semver==3.0.2 \
+    aind_dynamic_foraging_models \
+    aind_behavior_gym
 
 
 ADD "https://github.com/coder/code-server/releases/download/v4.21.1/code-server-4.21.1-linux-amd64.tar.gz" /.code-server/code-server.tar.gz
