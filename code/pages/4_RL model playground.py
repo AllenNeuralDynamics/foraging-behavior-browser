@@ -3,11 +3,12 @@
 
 import streamlit as st
 import streamlit_nested_layout
+from typing import get_type_hints, _LiteralGenericAlias
+import inspect
 
 from aind_behavior_gym.dynamic_foraging.task import CoupledBlockTask
-from aind_dynamic_foraging_models.generative_model import (
-    ForagerQLearning, ForagerLossCounting, ForagerCollection
-)
+from aind_dynamic_foraging_models import generative_model
+from aind_dynamic_foraging_models.generative_model import ForagerCollection
 
 try:
     st.set_page_config(layout="wide", 
@@ -21,9 +22,51 @@ try:
 except:
     pass
 
+model_families = {
+    "Q-learning": "ForagerQLearning",
+    "Loss counting": "ForagerLossCounting"
+}
+
+def _get_agent_args(agent_class):
+    type_hints = get_type_hints(agent_class.__init__)
+    signature = inspect.signature(agent_class.__init__)
+
+    agent_args_options = {}
+    for arg, type_hint in type_hints.items():
+        if isinstance(type_hint, _LiteralGenericAlias):  # Check if the type hint is a Literal
+            # Get options
+            literal_values = type_hint.__args__
+            default_value = signature.parameters[arg].default
+            
+            agent_args_options[arg] = {'options': literal_values, 'default': default_value}
+    return agent_args_options
+
+def get_arg_params(agent_args_options):
+    agent_args = {}
+    # Select agent parameters
+    for n, arg_name in enumerate(agent_args_options.keys()):
+        agent_args[arg_name] = st.selectbox(
+            arg_name, 
+            agent_args_options[arg_name]['options']
+        )
+    return agent_args
+
+
 def app():
+    
+    # A dropdown to select model family
+    model_family = st.selectbox("Select model family", list(model_families.keys()))
+    
+    agent_class = getattr(generative_model, model_families[model_family])
+    agent_args_options = _get_agent_args(agent_class)
+    agent_args = get_arg_params(agent_args_options)
+    
     # Initialize the model
-    forager = ForagerCollection().get_preset_forager("Hattori2019", seed=42)
+    forager_collection = ForagerCollection()
+    all_presets = forager_collection.FORAGER_PRESETS.keys()
+    
+    forager = forager_collection.get_preset_forager("Hattori2019", seed=42)
+    
     forager.set_params(
         softmax_inverse_temperature=5,
         biasL=0,

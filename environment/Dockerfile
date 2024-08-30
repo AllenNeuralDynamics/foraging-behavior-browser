@@ -108,7 +108,7 @@ RUN pip install -U --no-cache-dir \
     aind-data-access-api[docdb]==0.13.0 \
     streamlit-dynamic-filters==0.1.9 \
     semver==3.0.2 \
-    aind_dynamic_foraging_models \
+    git+https://github.com/AllenNeuralDynamics/aind-dynamic-foraging-models.git@develop \
     aind_behavior_gym
 
 
