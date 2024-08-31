@@ -37,7 +37,6 @@ task_families = {
 }
 
 para_range_override = {
-    "biasL": [-5.0, 5.0],
     "choice_kernel_relative_weight": [0.0, 2.0],
 }
 
