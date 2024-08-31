@@ -109,7 +109,7 @@ RUN pip install -U --no-cache-dir \
     streamlit-dynamic-filters==0.1.9 \
     semver==3.0.2 \
     git+https://github.com/AllenNeuralDynamics/aind-dynamic-foraging-models.git@develop \
-    aind_behavior_gym
+    git+https://github.com/AllenNeuralDynamics/aind-behavior-gym.git@develop
 
 
 ADD "https://github.com/coder/code-server/releases/download/v4.21.1/code-server-4.21.1-linux-amd64.tar.gz" /.code-server/code-server.tar.gz
