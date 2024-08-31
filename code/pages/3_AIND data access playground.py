@@ -2,9 +2,9 @@
 '''
 
 import logging
+
 import streamlit as st
 from streamlit_dynamic_filters import DynamicFilters
-
 from util.fetch_data_docDB import load_data_from_docDB
 
 try:

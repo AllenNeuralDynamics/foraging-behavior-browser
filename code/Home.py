@@ -14,40 +14,35 @@ Example queries:
 
 __ver__ = 'v2.5.3'
 
-import pandas as pd
-import streamlit as st
-import numpy as np
 import os
 
-import streamlit_nested_layout
-from streamlit_plotly_events import plotly_events
-from pygwalker.api.streamlit import StreamlitRenderer, init_streamlit_comm
 import extra_streamlit_components as stx
-
-from util.settings import draw_type_mapper_session_level, draw_type_layout_definition
-
-from util.streamlit import (aggrid_interactive_table_session,
-                            aggrid_interactive_table_curriculum, add_session_filter, data_selector,
-                            add_xy_selector, add_xy_setting, add_auto_train_manager, add_dot_property_mapper,
-                            _plot_population_x_y)
-from util.aws_s3 import (
-    load_data,
-    draw_session_plots_quick_preview,
-    show_session_level_img_by_key_and_prefix,
-    show_debug_info,
-)
-from util.url_query_helper import (
-    sync_URL_to_session_state, sync_session_state_to_URL,
-    slider_wrapper_for_url_query, checkbox_wrapper_for_url_query,
-    multiselect_wrapper_for_url_query, number_input_wrapper_for_url_query,
-)
-
-from util.fetch_data_docDB import load_data_from_docDB
-
-from aind_auto_train.curriculum_manager import CurriculumManager
-from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
+import numpy as np
+import pandas as pd
+import streamlit as st
+import streamlit_nested_layout
 from aind_auto_train import __version__ as auto_train_version
-
+from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
+from aind_auto_train.curriculum_manager import CurriculumManager
+from pygwalker.api.streamlit import StreamlitRenderer, init_streamlit_comm
+from streamlit_plotly_events import plotly_events
+from util.aws_s3 import (draw_session_plots_quick_preview, load_data,
+                         show_debug_info,
+                         show_session_level_img_by_key_and_prefix)
+from util.fetch_data_docDB import load_data_from_docDB
+from util.settings import (draw_type_layout_definition,
+                           draw_type_mapper_session_level)
+from util.streamlit import (_plot_population_x_y, add_auto_train_manager,
+                            add_dot_property_mapper, add_session_filter,
+                            add_xy_selector, add_xy_setting,
+                            aggrid_interactive_table_curriculum,
+                            aggrid_interactive_table_session, data_selector)
+from util.url_query_helper import (checkbox_wrapper_for_url_query,
+                                   multiselect_wrapper_for_url_query,
+                                   number_input_wrapper_for_url_query,
+                                   slider_wrapper_for_url_query,
+                                   sync_session_state_to_URL,
+                                   sync_URL_to_session_state)
 
 try:
     st.set_page_config(layout="wide", 

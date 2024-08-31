@@ -1,13 +1,13 @@
-from PIL import Image
 import json
 
-import s3fs
 import pandas as pd
+import s3fs
 import streamlit as st
+from PIL import Image
 
-from .settings import (
-    draw_type_layout_definition, draw_type_mapper_session_level, draw_types_quick_preview
-)
+from .settings import (draw_type_layout_definition,
+                       draw_type_mapper_session_level,
+                       draw_types_quick_preview)
 
 # --------------------------------------
 data_sources = ['bonsai', 'bpod']

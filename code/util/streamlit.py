@@ -1,36 +1,30 @@
-from collections import OrderedDict
-import pandas as pd
-import streamlit as st
-from datetime import datetime
-from st_aggrid import AgGrid, GridOptionsBuilder
-from st_aggrid.shared import GridUpdateMode, ColumnsAutoSizeMode, DataReturnMode
-from pandas.api.types import (
-    is_categorical_dtype,
-    is_numeric_dtype,
-    is_string_dtype,
-)
 import json
-import streamlit.components.v1 as components
-from streamlit_plotly_events import plotly_events
+from collections import OrderedDict
+from datetime import datetime
 
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import plotly
 import plotly.express as px
-import numpy as np
 import plotly.graph_objects as go
 import statsmodels.api as sm
+import streamlit as st
+import streamlit.components.v1 as components
+from pandas.api.types import (is_categorical_dtype, is_numeric_dtype,
+                              is_string_dtype)
 from scipy.stats import linregress
-
-from .url_query_helper import (
-    checkbox_wrapper_for_url_query, 
-    selectbox_wrapper_for_url_query, 
-    slider_wrapper_for_url_query, 
-    multiselect_wrapper_for_url_query,
-    get_filter_type,
-    )
-from .plot_autotrain_manager import plot_manager_all_progress
+from st_aggrid import AgGrid, GridOptionsBuilder
+from st_aggrid.shared import (ColumnsAutoSizeMode, DataReturnMode,
+                              GridUpdateMode)
+from streamlit_plotly_events import plotly_events
 
 from .aws_s3 import draw_session_plots_quick_preview
+from .plot_autotrain_manager import plot_manager_all_progress
+from .url_query_helper import (checkbox_wrapper_for_url_query, get_filter_type,
+                               multiselect_wrapper_for_url_query,
+                               selectbox_wrapper_for_url_query,
+                               slider_wrapper_for_url_query)
 
 custom_css = {
 ".ag-root.ag-unselectable.ag-layout-normal": {"font-size": "15px !important",

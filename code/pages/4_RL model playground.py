@@ -1,14 +1,14 @@
 """Playground for RL models of dynamic foraging
 """
 
+import inspect
+from typing import _LiteralGenericAlias, get_type_hints
+
 import streamlit as st
 import streamlit_nested_layout
-from typing import get_type_hints, _LiteralGenericAlias
-import inspect
-
-from aind_behavior_gym.dynamic_foraging.task import (
-    CoupledBlockTask, UncoupledBlockTask, RandomWalkTask
-    )
+from aind_behavior_gym.dynamic_foraging.task import (CoupledBlockTask,
+                                                     RandomWalkTask,
+                                                     UncoupledBlockTask)
 from aind_dynamic_foraging_models import generative_model
 from aind_dynamic_foraging_models.generative_model import ForagerCollection
 from aind_dynamic_foraging_models.generative_model.params import ParamsSymbols
