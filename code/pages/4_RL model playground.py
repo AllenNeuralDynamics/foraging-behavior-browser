@@ -6,7 +6,9 @@ import streamlit_nested_layout
 from typing import get_type_hints, _LiteralGenericAlias
 import inspect
 
-from aind_behavior_gym.dynamic_foraging.task import CoupledBlockTask
+from aind_behavior_gym.dynamic_foraging.task import (
+    CoupledBlockTask, UncoupledBlockTask, RandomWalkTask
+    )
 from aind_dynamic_foraging_models import generative_model
 from aind_dynamic_foraging_models.generative_model import ForagerCollection
 from aind_dynamic_foraging_models.generative_model.params import ParamsSymbols
@@ -26,6 +28,12 @@ except:
 model_families = {
     "Q-learning": "ForagerQLearning",
     "Loss counting": "ForagerLossCounting"
+}
+
+task_families = {
+    "Coupled block task": "CoupledBlockTask",
+    "Uncoupled block task": "UncoupledBlockTask",
+    "Random walk task": "RandomWalkTask",
 }
 
 para_range_override = {
@@ -108,7 +116,7 @@ def select_params(params_options):
             )
     return params
 
-def set_forager(model_family, seed=42):
+def select_forager(model_family, seed=42):
     # -- Select agent --
     agent_class = getattr(generative_model, model_families[model_family])
     agent_args_options = _get_agent_args_options(agent_class)
@@ -124,23 +132,96 @@ def set_forager(model_family, seed=42):
     forager.set_params(**params)
     return forager
 
+def select_task(task_family, reward_baiting, n_trials, seed):
+    # Task parameters (hard coded for now)
+    if task_family == "Coupled block task":
+        block_min, block_max = st.slider("Block length range", 0, 200, [40, 80])
+        block_beta = st.slider("Block beta", 0, 100, 20)
+        p_reward_contrast = st.multiselect(
+            "Reward contrasts",
+            options=["1:1", "1:3", "1:6", "1:8"],
+            default=["1:1", "1:3", "1:6", "1:8"],)
+        p_reward_sum = st.slider("p_reward sum", 0.0, 1.0, 0.45)
+        
+        p_reward_pairs = []
+        for contrast in p_reward_contrast:
+            p1, p2 = contrast.split(":")
+            p1, p2 = int(p1), int(p2)
+            p_reward_pairs.append(
+                [p1 * p_reward_sum / (p1 + p2), 
+                 p2 * p_reward_sum / (p1 + p2)]
+            )
+            
+        # Create task
+        return CoupledBlockTask(
+            block_min=block_min,
+            block_max=block_max,
+            p_reward_pairs=p_reward_pairs,
+            block_beta=block_beta,
+            reward_baiting=reward_baiting, 
+            num_trials=n_trials, 
+            seed=seed)
+        
+    if task_family == "Uncoupled block task":
+        block_min, block_max = st.slider(
+            "Block length range on each side", 0, 200, [20, 35]
+            )
+        rwd_prob_array = st.selectbox(
+            "Reward probabilities",
+            options=[[0.1, 0.5, 0.9], 
+                     [0.1, 0.4, 0.7],
+                     [0.1, 0.3, 0.5],
+                     ],
+            index=0,
+        )
+        return UncoupledBlockTask(
+            rwd_prob_array=rwd_prob_array,
+            block_min=block_min,
+            block_max=block_max,
+            persev_add=True,
+            perseverative_limit=4,
+            max_block_tally=4,
+            num_trials=n_trials,
+            seed=seed,
+        )
+        
+    if task_family == "Random walk task":
+        p_min, p_max = st.slider("p_reward range", 0.0, 1.0, [0.0, 1.0])
+        sigma = st.slider("Random walk $\sigma$", 0.0, 1.0, 0.15)
+        return RandomWalkTask(
+            p_min=[p_min, p_min],
+            p_max=[p_max, p_max],
+            sigma=[sigma, sigma],
+            mean=[0, 0],
+            num_trials=n_trials,
+            seed=seed,
+        )
+
 def app():
     
     with st.sidebar:
         seed = st.number_input("Random seed", value=42)
         
-    
     # -- Select forager family --
     agent_family = st.selectbox("Select model family", list(model_families.keys()))
     
     # -- Select forager --
-    forager = set_forager(agent_family, seed=seed)
+    forager = select_forager(agent_family, seed=seed)
 
     # forager_collection = ForagerCollection()
     # all_presets = forager_collection.FORAGER_PRESETS.keys()
 
-    # Create the task environment
-    task = CoupledBlockTask(reward_baiting=True, num_trials=1000, seed=seed) 
+    # -- Select task family --
+    task_family = st.selectbox(
+        "Select task family", 
+        list(task_families.keys()),
+        index=0,
+    )
+    reward_baiting = st.checkbox("Reward baiting", value=True)
+    n_trials = st.slider("Number of trials", 100, 5000, 1000)
+
+    # -- Select task --
+    task = select_task(task_family, reward_baiting, n_trials, seed)
 
     # -- Run the model --
     forager.perform(task)
@@ -148,12 +229,12 @@ def app():
     if_plot_latent = st.checkbox("Plot latent variables", value=False)
 
     # Capture the results
-    ground_truth_params = forager.params.model_dump()
-    ground_truth_choice_prob = forager.choice_prob
-    ground_truth_q_value = forager.q_value
-    # Get the history
-    choice_history = forager.get_choice_history()
-    reward_history = forager.get_reward_history()
+    # ground_truth_params = forager.params.model_dump()
+    # ground_truth_choice_prob = forager.choice_prob
+    # ground_truth_q_value = forager.q_value
+    # # Get the history
+    # choice_history = forager.get_choice_history()
+    # reward_history = forager.get_reward_history()
 
     # Plot the session results
     fig, axes = forager.plot_session(if_plot_latent=if_plot_latent)  
