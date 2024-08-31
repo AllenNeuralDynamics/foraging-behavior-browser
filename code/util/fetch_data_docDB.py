@@ -1,14 +1,17 @@
 """Code to fetch data from docDB by David Feng
 """
 
-import pandas as pd
 import logging
 import time
+
+import pandas as pd
 import semver
 import streamlit as st
+
 logger = logging.getLogger(__name__)
 
 from aind_data_access_api.document_db import MetadataDbClient
+
 
 @st.cache_data(ttl=3600*12) # Cache the df_docDB up to 12 hours
 def load_data_from_docDB():

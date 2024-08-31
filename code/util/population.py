@@ -1,11 +1,9 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-import seaborn as sns
 import scipy
-
+import seaborn as sns
 from statannotations.Annotator import Annotator
-
 
 
 def _draw_variable_trial_back(df, beta_name, trials_back, ax=None):

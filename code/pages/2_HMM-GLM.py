@@ -4,12 +4,12 @@ Han, ChatGPT
 """
 import os
 import re
-import numpy as np
-from PIL import Image
 
-import streamlit as st
+import numpy as np
 import s3fs
+import streamlit as st
 import streamlit_nested_layout
+from PIL import Image
 
 try:
     st.set_page_config(layout="wide", 
