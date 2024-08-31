@@ -96,7 +96,10 @@ def select_agent_args(agent_args_options):
         )
     return agent_args
 
-def select_params(params_options):
+def select_params(forager):
+    # Get params schema
+    params_options = _get_params_options(forager.ParamModel)
+
     params = {}
     # Select agent parameters
     for n, para_name in enumerate(params_options.keys()):
@@ -123,13 +126,8 @@ def select_forager(model_family, seed=42):
     agent_args = select_agent_args(agent_args_options)
     
     # -- Select agent parameters --
-    # Initialize the agent
+    # Initialize the agent``
     forager = agent_class(**agent_args, seed=seed)
-    # Get params options
-    params_options = _get_params_options(forager.ParamModel)
-    params = select_params(params_options)
-    # Set the parameters
-    forager.set_params(**params)
     return forager
 
 def select_task(task_family, reward_baiting, n_trials, seed):
@@ -202,26 +200,45 @@ def app():
     with st.sidebar:
         seed = st.number_input("Random seed", value=42)
         
-    # -- Select forager family --
-    agent_family = st.selectbox("Select model family", list(model_families.keys()))
+    st.title("RL model playground")
     
-    # -- Select forager --
-    forager = select_forager(agent_family, seed=seed)
+    col0 = st.columns([1, 1])
+    
+    with col0[0]:
+        with st.expander("Agent", expanded=True):
+            col1 = st.columns([1, 2])
+            with col1[0]:
+                # -- Select forager family --
+                agent_family = st.selectbox(
+                    "Select agent family", 
+                    list(model_families.keys())
+                )
+                # -- Select forager --
+                forager = select_forager(agent_family, seed=seed)
+            with col1[1]:
+                # -- Select forager parameters --
+                params = select_params(forager)
+                # Set the parameters
+                forager.set_params(**params)
+            
+            # forager_collection = ForagerCollection()
+            # all_presets = forager_collection.FORAGER_PRESETS.keys()
 
-    # forager_collection = ForagerCollection()
-    # all_presets = forager_collection.FORAGER_PRESETS.keys()
-
-    # -- Select task family --
-    task_family = st.selectbox(
-        "Select task family", 
-        list(task_families.keys()),
-        index=0,
-    )
-    reward_baiting = st.checkbox("Reward baiting", value=True)
-    n_trials = st.slider("Number of trials", 100, 5000, 1000)
-
-    # -- Select task --
-    task = select_task(task_family, reward_baiting, n_trials, seed)
+    with col0[1]:
+        with st.expander("Task", expanded=True):
+            col1 = st.columns([1, 2])
+            with col1[0]:
+                # -- Select task family --
+                task_family = st.selectbox(
+                    "Select task family", 
+                    list(task_families.keys()),
+                    index=0,
+                )
+                reward_baiting = st.checkbox("Reward baiting", value=True)
+                n_trials = st.slider("Number of trials", 100, 5000, 1000)
+            with col1[1]:
+                # -- Select task --
+                task = select_task(task_family, reward_baiting, n_trials, seed)
 
     # -- Run the model --
     forager.perform(task)
@@ -237,7 +254,8 @@ def app():
     # reward_history = forager.get_reward_history()
 
     # Plot the session results
-    fig, axes = forager.plot_session(if_plot_latent=if_plot_latent)  
-    st.pyplot(fig)
+    fig, axes = forager.plot_session(if_plot_latent=if_plot_latent)
+    with st.columns([1, 0.5])[0]:
+        st.pyplot(fig)
 
 app()
