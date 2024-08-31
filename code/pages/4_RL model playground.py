@@ -108,11 +108,7 @@ def select_params(params_options):
             )
     return params
 
-def app():
-    
-    # -- Select agent family --
-    model_family = st.selectbox("Select model family", list(model_families.keys()))
-    
+def set_forager(model_family, seed=42):
     # -- Select agent --
     agent_class = getattr(generative_model, model_families[model_family])
     agent_args_options = _get_agent_args_options(agent_class)
@@ -120,24 +116,36 @@ def app():
     
     # -- Select agent parameters --
     # Initialize the agent
-    forager = agent_class(**agent_args)
+    forager = agent_class(**agent_args, seed=seed)
     # Get params options
     params_options = _get_params_options(forager.ParamModel)
     params = select_params(params_options)
+    # Set the parameters
+    forager.set_params(**params)
+    return forager
+
+def app():
     
-    forager.set_params(
-        softmax_inverse_temperature=5,
-        biasL=0,
-    )
+    with st.sidebar:
+        seed = st.number_input("Random seed", value=42)
+        
+    
+    # -- Select forager family --
+    agent_family = st.selectbox("Select model family", list(model_families.keys()))
+    
+    # -- Select forager --
+    forager = set_forager(agent_family, seed=seed)
 
     # forager_collection = ForagerCollection()
     # all_presets = forager_collection.FORAGER_PRESETS.keys()
 
     # Create the task environment
-    task = CoupledBlockTask(reward_baiting=True, num_trials=1000, seed=42) 
+    task = CoupledBlockTask(reward_baiting=True, num_trials=1000, seed=seed) 
 
-    # Run the model
+    # -- Run the model --
     forager.perform(task)
+    
+    if_plot_latent = st.checkbox("Plot latent variables", value=False)
 
     # Capture the results
     ground_truth_params = forager.params.model_dump()
@@ -148,7 +156,7 @@ def app():
     reward_history = forager.get_reward_history()
 
     # Plot the session results
-    fig, axes = forager.plot_session(if_plot_latent=True)  
+    fig, axes = forager.plot_session(if_plot_latent=if_plot_latent)  
     st.pyplot(fig)
 
 app()
