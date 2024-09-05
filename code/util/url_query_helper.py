@@ -81,7 +81,7 @@ def selectbox_wrapper_for_url_query(st_prefix, label, options, key, default, **k
             if key in st.session_state
             else options.index(st.query_params[key]) 
             if key in st.query_params 
-            else default
+            else options.index(default)
         ),
         key=key,
         **kwargs,
