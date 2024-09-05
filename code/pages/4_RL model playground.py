@@ -13,6 +13,9 @@ from aind_dynamic_foraging_models.generative_model.params import ParamsSymbols
 from aind_dynamic_foraging_models.generative_model.params.util import get_params_options
 from aind_dynamic_foraging_basic_analysis import compute_foraging_efficiency
 
+from util.streamlit import add_footnote
+
+
 try:
     st.set_page_config(layout="wide", 
                     page_title='Foraging behavior browser',
@@ -162,6 +165,7 @@ def app():
     
     with st.sidebar:
         seed = st.number_input("Random seed", value=42)
+        add_footnote()
         
     st.title("RL model playground")
     

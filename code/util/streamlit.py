@@ -2,6 +2,8 @@ import json
 from collections import OrderedDict
 from datetime import datetime
 
+from __init__ import __ver__
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -1110,3 +1112,9 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                      title_standoff=40,
                      ticks = "outside", tickcolor='black', ticklen=10, tickwidth=2, ticksuffix=' ')
     return fig
+
+
+def add_footnote():
+    st.markdown('---')
+    st.markdown(f'#### Han Hou @ 2024 {__ver__}')
+    st.markdown('[bug report / feature request](https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues)')

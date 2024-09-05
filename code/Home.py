@@ -12,8 +12,6 @@ Example queries:
 
 """
 
-__ver__ = 'v2.5.3'
-
 import os
 
 import extra_streamlit_components as stx
@@ -36,7 +34,8 @@ from util.streamlit import (_plot_population_x_y, add_auto_train_manager,
                             add_dot_property_mapper, add_session_filter,
                             add_xy_selector, add_xy_setting,
                             aggrid_interactive_table_curriculum,
-                            aggrid_interactive_table_session, data_selector)
+                            aggrid_interactive_table_session, data_selector,
+                            add_footnote)
 from util.url_query_helper import (checkbox_wrapper_for_url_query,
                                    multiselect_wrapper_for_url_query,
                                    number_input_wrapper_for_url_query,
@@ -49,8 +48,8 @@ try:
                     page_title='Foraging behavior browser',
                     page_icon=':mouse2:',
                         menu_items={
-                        'Report a bug': "https://github.com/hanhou/foraging-behavior-browser/issues",
-                        'About': "Github repo: https://github.com/hanhou/foraging-behavior-browser/"
+                        'Report a bug': "https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues",
+                        'About': "Github repo: https://github.com/AllenNeuralDynamics/foraging-behavior-browser"
                         }
                     )
 except:
@@ -507,19 +506,14 @@ def app():
         add_session_filter(if_bonsai=True,
                            url_query=url_query)
         data_selector()
-    
-        st.markdown('---')
-        st.markdown(f'#### Han Hou @ 2024 {__ver__}')
-        st.markdown('[bug report / feature request](https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues)')
+        add_footnote()
         
         with st.expander('Debug', expanded=False):
-            if st.button('Reload data from AWS S3'):
+            if st.button('Clear session state and reload data'):
                 st.cache_data.clear()
                 init()
                 st.rerun()
         
-    
-
     with st.container():
         # col1, col2 = st.columns([1.5, 1], gap='small')
         # with col1:

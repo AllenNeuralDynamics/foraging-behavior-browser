@@ -11,6 +11,8 @@ import streamlit as st
 import streamlit_nested_layout
 from PIL import Image
 
+from util.streamlit import add_footnote
+
 try:
     st.set_page_config(layout="wide", 
                     page_title='Foraging behavior browser',
@@ -65,7 +67,9 @@ def app():
         if st.button('Reload data from S3'):
             st.cache_data.clear()
             st.rerun()
-                
+
+        add_footnote()
+            
     data_folder_selected = widget_data_folder.selectbox('Select Data Folder', data_folders)
 
     if data_folder_selected:
