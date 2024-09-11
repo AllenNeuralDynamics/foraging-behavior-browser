@@ -44,6 +44,28 @@ def find_probes(r):
         
     return probes
 
+def find_viruses(r):
+    virus_names = []
+    NM_recorded = []
+    
+    if r["procedures"]:
+        procedures = [procedure_i['procedure_type'] for procedure_i in [procedure_i['procedures']
+                                                                        for procedure_i in r['procedures']['subject_procedures']][0]]
+        injection_materials = [procedure_i['injection_materials'] for procedure_i in [procedure_i['procedures']
+                                        for procedure_i in r['procedures']['subject_procedures']][0] 
+                                     if 'injection_materials' in procedure_i and procedure_i['injection_materials']]
+        if len(injection_materials):
+            virus_names = [virus['name'] for virus in [material for material in injection_materials if len(material)][0]]
+        else:
+            virus_names = []
+    
+    NM_patterns = ["DA", "NE", "Ach", "5HT"]
+    for virus_string in virus_names:
+        for NM in NM_patterns:
+            if re.search(NM_pattern, virus_string):
+                NM_recorded.append(NM)
+    return virus_names, NM_recorded
+        
 
 def fetch_fip_data(client):
     # search for records that have the "fib" (for fiber photometry) modality in data_description
@@ -100,20 +122,22 @@ def fetch_fip_data(client):
 def map_record_to_dict(record):
     """ function to map a metadata dictionary to a simpler dictionary with the fields we care about """
     dd = record.get('data_description', {}) or {}
+    co_data_asset_id = record.get('external_links')
     creation_time = dd.get('creation_time', '') or ''
     subject = record.get('subject', {}) or {}
     subject_id = subject.get('subject_id') or ''
     subject_genotype = subject.get('genotype') or ''
 
-
+    virus_names, NM_recorded = 
     return {
         'location': record['location'],
         'session_name': record['name'],
         'creation_time': creation_time,
         'subject_id': subject_id,
         'subject_genotype': subject_genotype,
-        'probes': str(find_probes(record))
-        
+        'probes': str(find_probes(record)),
+        'co_data_asset_ID' : str(co_data_asset_id), 
+            
     }
 
 
