@@ -6,6 +6,8 @@ import logging
 import time
 import semver
 import streamlit as st
+import re
+import numpy as np
 logger = logging.getLogger(__name__)
 
 from aind_data_access_api.document_db import MetadataDbClient
@@ -25,46 +27,59 @@ def load_client():
     )
 
 
-def find_probes(r):
+
+
+def fetch_individual_procedures(r):
     version = semver.Version.parse((r.get('procedures') or {}).get('schema_version', '0.0.0'))
-    
-    probes = []
     if version >= "0.8.1": # post introduction of Surgery concept
-        sub_procs = (r.get('procedures') or {}).get('subject_procedures') or {}
+        sub_procs = (r.get('procedures') or {}).get('subject_procedures') or {}        
         for sub_proc in sub_procs:        
             if sub_proc.get('procedure_type') == 'Surgery':
-                for sp in sub_proc['procedures']:
-                    if sp['procedure_type'] == 'Fiber implant':
-                        probes += sp['probes']
+                yield from sub_proc['procedures']
     else: # pre Surgery
         sub_procs = (r.get('procedures') or {}).get('subject_procedures') or {}
-        for sp in sub_procs:
-            if sp['procedure_type'] == 'Fiber implant':
-                probes += sp['probes']    
+        yield from sub_procs
         
+def fetch_fiber_probes(r):
+    probes = []
+    for sp in fetch_individual_procedures(r):
+        if sp['procedure_type'] == 'Fiber implant':
+            probes += sp['probes']
     return probes
+                
+def fetch_injections(r):    
+    injections=[]
+    for sp in fetch_individual_procedures(r):        
+        if sp['procedure_type'] in ('Nanoject injection', 'Nanoject (Pressure)',"Iontophoresis injection","ICM injection"):
+            ims = sp['injection_materials'] or []
+            injections.append({
+                'injection_materials': [ im['name'] for im in ims ],
+                'ap': sp['injection_coordinate_ap'],
+                'ml': sp['injection_coordinate_ml'],
+                'depth': sp['injection_coordinate_depth'][0] # somehow depth given as a list 
+            })            
+       
+    return injections
+    
 
-def find_viruses(r):
+def get_viruses(injections):
     virus_names = []
     NM_recorded = []
     
-    if r["procedures"]:
-        procedures = [procedure_i['procedure_type'] for procedure_i in [procedure_i['procedures']
-                                                                        for procedure_i in r['procedures']['subject_procedures']][0]]
-        injection_materials = [procedure_i['injection_materials'] for procedure_i in [procedure_i['procedures']
-                                        for procedure_i in r['procedures']['subject_procedures']][0] 
-                                     if 'injection_materials' in procedure_i and procedure_i['injection_materials']]
-        if len(injection_materials):
-            virus_names = [virus['name'] for virus in [material for material in injection_materials if len(material)][0]]
-        else:
-            virus_names = []
+    if injections:
+        virus_names = [inj['injection_materials'][0] for inj in injections if inj['injection_materials']]
+        
+        NM_patterns = {"DA": "DA|dLight", "NE":"NE|NA", "Ach":"Ach", "5HT":"5HT", "GCaMP":"GCaMP"}
+        for inj in injections:
+            for NM, NM_names_in_virus in NM_patterns.items():
+                if inj['injection_materials'] and re.search(NM_names_in_virus, inj['injection_materials'][0]):
+                    if NM_names_in_virus == "GCaMP":
+                        loc = inj['ap'] + ',' + inj['ml'] + ',' + inj['depth']
+                        NM_recorded.append(loc)
+                    else:
+                        NM_recorded.append(NM)
+    return virus_names, NM_recorded   
     
-    NM_patterns = ["DA", "NE", "Ach", "5HT"]
-    for virus_string in virus_names:
-        for NM in NM_patterns:
-            if re.search(NM_pattern, virus_string):
-                NM_recorded.append(NM)
-    return virus_names, NM_recorded
         
 
 def fetch_fip_data(client):
@@ -94,7 +109,7 @@ def fetch_fip_data(client):
     results = [ r for r in results if not 'processed' in r['name'] ]
     
     # make a dataframe
-    records_df = pd.DataFrame.from_records([ map_record_to_dict(d) for d in results ])
+    records_df = pd.DataFrame.from_records([map_record_to_dict(d) for d in results ])
     
     # currently there are some sessions uploaded twice in two different locations.
     # let's filter out the ones in aind-ophys-data, a deprecated location
@@ -122,24 +137,33 @@ def fetch_fip_data(client):
 def map_record_to_dict(record):
     """ function to map a metadata dictionary to a simpler dictionary with the fields we care about """
     dd = record.get('data_description', {}) or {}
-    co_data_asset_id = record.get('external_links')
     creation_time = dd.get('creation_time', '') or ''
     subject = record.get('subject', {}) or {}
     subject_id = subject.get('subject_id') or ''
     subject_genotype = subject.get('genotype') or ''
+    session = record.get('session') or {}
+    task_type = session.get('session_type') or ''
 
-    virus_names, NM_recorded = 
+    try:
+        injections = fetch_injections(record)
+        virus_names, NM_recorded = get_viruses(injections)
+    except:
+        injections, virus_names, NM_recorded = [], [], []
+        print(record)
+        
     return {
         'location': record['location'],
         'session_name': record['name'],
         'creation_time': creation_time,
         'subject_id': subject_id,
         'subject_genotype': subject_genotype,
-        'probes': str(find_probes(record)),
-        'co_data_asset_ID' : str(co_data_asset_id), 
-            
+        'fiber_probes': str(fetch_fiber_probes(record)),
+        'injections': str(injections),
+        'task_type': task_type, 
+        'virus':virus_names, 
+        'NM_recorded':NM_recorded
+        
     }
-
 
 def find_result(x, lookup):
     """ lazy shortcut; we can look for a corresponding result by seeing if part of another record's prefix """
