@@ -1,36 +1,32 @@
-from collections import OrderedDict
-import pandas as pd
-import streamlit as st
-from datetime import datetime
-from st_aggrid import AgGrid, GridOptionsBuilder
-from st_aggrid.shared import GridUpdateMode, ColumnsAutoSizeMode, DataReturnMode
-from pandas.api.types import (
-    is_categorical_dtype,
-    is_numeric_dtype,
-    is_string_dtype,
-)
 import json
-import streamlit.components.v1 as components
-from streamlit_plotly_events import plotly_events
+from collections import OrderedDict
+from datetime import datetime
+
+from __init__ import __ver__
 
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import plotly
 import plotly.express as px
-import numpy as np
 import plotly.graph_objects as go
 import statsmodels.api as sm
+import streamlit as st
+import streamlit.components.v1 as components
+from pandas.api.types import (is_categorical_dtype, is_numeric_dtype,
+                              is_string_dtype)
 from scipy.stats import linregress
-
-from .url_query_helper import (
-    checkbox_wrapper_for_url_query, 
-    selectbox_wrapper_for_url_query, 
-    slider_wrapper_for_url_query, 
-    multiselect_wrapper_for_url_query,
-    get_filter_type,
-    )
-from .plot_autotrain_manager import plot_manager_all_progress
+from st_aggrid import AgGrid, GridOptionsBuilder
+from st_aggrid.shared import (ColumnsAutoSizeMode, DataReturnMode,
+                              GridUpdateMode)
+from streamlit_plotly_events import plotly_events
 
 from .aws_s3 import draw_session_plots_quick_preview
+from .plot_autotrain_manager import plot_manager_all_progress
+from .url_query_helper import (checkbox_wrapper_for_url_query, get_filter_type,
+                               multiselect_wrapper_for_url_query,
+                               selectbox_wrapper_for_url_query,
+                               slider_wrapper_for_url_query)
 
 custom_css = {
 ".ag-root.ag-unselectable.ag-layout-normal": {"font-size": "15px !important",
@@ -395,7 +391,10 @@ def filter_dataframe(df: pd.DataFrame,
                     )
                 
                 if user_text_input:
-                    df = df[df[column].astype(str).str.contains(user_text_input)]
+                    try:
+                        df = df[df[column].astype(str).str.contains(user_text_input, regex=True)]
+                    except:
+                        st.warning('Wrong regular expression!')
 
     return df
 
@@ -1004,9 +1003,8 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
     else:
         df['dot_size'] = dot_size_base
 
-    # Turn column of group_by to string if it's not
-    if not is_string_dtype(df[group_by]):
-        df[group_by] = df[group_by].astype(str)
+    # Always turn group_by column to str
+    df[group_by] = df[group_by].astype(str)
         
     # Add a diagonal line first
     if if_show_diagonal:
@@ -1114,3 +1112,9 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                      title_standoff=40,
                      ticks = "outside", tickcolor='black', ticklen=10, tickwidth=2, ticksuffix=' ')
     return fig
+
+
+def add_footnote():
+    st.markdown('---')
+    st.markdown(f'#### Han Hou @ 2024 {__ver__}')
+    st.markdown('[bug report / feature request](https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues)')

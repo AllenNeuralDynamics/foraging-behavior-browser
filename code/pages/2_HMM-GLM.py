@@ -4,12 +4,14 @@ Han, ChatGPT
 """
 import os
 import re
+
 import numpy as np
+import s3fs
+import streamlit as st
+import streamlit_nested_layout
 from PIL import Image
 
-import streamlit as st
-import s3fs
-import streamlit_nested_layout
+from util.streamlit import add_footnote
 
 try:
     st.set_page_config(layout="wide", 
@@ -65,7 +67,9 @@ def app():
         if st.button('Reload data from S3'):
             st.cache_data.clear()
             st.rerun()
-                
+
+        add_footnote()
+            
     data_folder_selected = widget_data_folder.selectbox('Select Data Folder', data_folders)
 
     if data_folder_selected:

@@ -1,2 +1,8 @@
 [theme]
 base="dark"
+
+[server]
+fileWatcherType = "poll"
+
+[global]
+disableWidgetStateDuplicationWarning = true

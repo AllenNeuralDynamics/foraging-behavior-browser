@@ -1,15 +1,14 @@
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
 import s3fs
 import streamlit as st
+from plotly.subplots import make_subplots
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-import pandas as pd
-import numpy as np
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 from streamlit_plotly_events import plotly_events
-
-from util.streamlit import add_session_filter, data_selector
 from util.aws_s3 import load_data
+from util.streamlit import add_session_filter, data_selector
 
 ss = st.session_state
 

@@ -12,8 +12,16 @@ if [ ! -d "/.vscode/extensions" ]
        code-server --disable-telemetry --extensions-dir=/.vscode/extensions --install-extension ms-python.python
        code-server --disable-telemetry --extensions-dir=/.vscode/extensions --install-extension njpwerner.autodocstring
        code-server --disable-telemetry --extensions-dir=/.vscode/extensions --install-extension KevinRose.vsc-python-indent
-       code-server --disable-telemetry --extensions-dir=/.vscode/extensions --install-extension sugatoray.vscode-git-extension-pack
        code-server --disable-telemetry --extensions-dir=/.vscode/extensions --install-extension mhutchie.git-graph
+       code-server --disable-telemetry --extensions-dir=/.vscode/extensions --install-extension zhuangtongfa.material-theme
+       code-server --disable-telemetry --extensions-dir=/.vscode/extensions --install-extension ms-python.black-formatter
+       code-server --disable-telemetry --extensions-dir=/.vscode/extensions --install-extension eamodio.gitlens
+	  	 code-server --disable-telemetry --extensions-dir=/.vscode/extensions --install-extension ryanluker.vscode-coverage-gutters
+       
+       curl -L -o copilot_1.161.zip https://github.com/user-attachments/files/16859733/copilot_1.161.zip
+       unzip copilot_1.161.zip
+       code-server --extensions-dir=/.vscode/extensions --install-extension GitHub.copilot-1.161.0.vsix
+       rm copilot_1.161.zip GitHub.copilot-1.161.0.vsix
 
        else
           echo "code-server not found"

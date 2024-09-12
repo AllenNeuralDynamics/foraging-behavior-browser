@@ -1,12 +1,8 @@
 import streamlit as st
+from pandas.api.types import (is_categorical_dtype, is_datetime64_any_dtype,
+                              is_numeric_dtype)
 
 from .settings import draw_type_mapper_session_level
-
-from pandas.api.types import (
-    is_categorical_dtype,
-    is_datetime64_any_dtype,
-    is_numeric_dtype,
-)
 
 # Sync widgets with URL query params
 # https://blog.streamlit.io/how-streamlit-uses-streamlit-sharing-contextual-apps/
@@ -85,7 +81,7 @@ def selectbox_wrapper_for_url_query(st_prefix, label, options, key, default, **k
             if key in st.session_state
             else options.index(st.query_params[key]) 
             if key in st.query_params 
-            else default
+            else options.index(default)
         ),
         key=key,
         **kwargs,
