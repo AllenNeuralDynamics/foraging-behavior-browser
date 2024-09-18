@@ -139,6 +139,7 @@ def fetch_fip_data(client):
 def map_record_to_dict(record):
     """ function to map a metadata dictionary to a simpler dictionary with the fields we care about """
     dd = record.get('data_description', {}) or {}
+    co_data_asset_id = record.get('external_links')
     creation_time = dd.get('creation_time', '') or ''
     subject = record.get('subject', {}) or {}
     subject_id = subject.get('subject_id') or ''
@@ -157,6 +158,7 @@ def map_record_to_dict(record):
         'location': record['location'],
         'session_name': record['name'],
         'creation_time': creation_time,
+        'co_data_asset_ID' : str(co_data_asset_id), 
         'subject_id': subject_id,
         'subject_genotype': subject_genotype,
         'fiber_probes': str(fetch_fiber_probes(record)),
