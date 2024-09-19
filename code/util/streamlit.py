@@ -187,7 +187,6 @@ def cache_widget(field, clear=None):
 # def dec_cache_widget_state(widget, ):
 
 
-
 def filter_dataframe(df: pd.DataFrame, 
                      default_filters=['h2o', 'task', 'finished_trials', 'photostim_location'],
                      url_query={}) -> pd.DataFrame:
@@ -405,25 +404,61 @@ def add_session_filter(if_bonsai=False, url_query={}):
                                                                     default_filters=['h2o', 'task', 'session', 'finished_trials', 'foraging_eff', 'photostim_location'],
                                                                     url_query=url_query)
         else:
-            st.session_state.df_session_filtered = filter_dataframe(df=st.session_state.df['sessions_bonsai'],
-                                                                    default_filters=['subject_id', 'task', 'session', 'finished_trials', 'foraging_eff'],
-                                                                    url_query=url_query)
+            st.session_state.df_session_filtered = filter_dataframe(
+                df=st.session_state.df["sessions_bonsai"],
+                default_filters=[
+                    "subject_id",
+                    "task",
+                    "session",
+                    "finished_trials",
+                    "foraging_eff",
+                ],
+                url_query=url_query,
+            )
 
-@st.cache_data(ttl=3600*24)
+
+@st.cache_data(ttl=3600 * 24)
 def _get_grouped_by_fields(if_bonsai):
     if if_bonsai:
-        options = ['h2o', 'task', 'user_name', 'rig', 'data_source', 'weekday']
-        options += [col 
-                for col in st.session_state.df_session_filtered.columns
-                if is_categorical_dtype(st.session_state.df_session_filtered[col]) 
-                or st.session_state.df_session_filtered[col].nunique() < 20
-                and not any([exclude in col for exclude in 
-                             ('date', 'time', 'session', 'finished', 'foraging_eff')])
-        ]
-        options = list(list(OrderedDict.fromkeys(options))) # Remove duplicates
+        options = ["h2o", "task", "user_name", "rig", "data_source", "weekday"]
+
+        for col in st.session_state.df_session_filtered.columns:
+            if any(
+                [
+                    exclude in col
+                    for exclude in (
+                        "date",
+                        "time",
+                        "session",
+                        "finished",
+                        "foraging_eff",
+                    )
+                ]
+            ):
+                continue
+            this_col = st.session_state.df_session_filtered[col]
+            if is_categorical_dtype(this_col):
+                options += [col]
+                continue
+            try:
+                if len(this_col.unique()) < 30:
+                    options += [col]
+                    continue
+            except:
+                print(f"column {col} is unhashable")
+
+        options = list(list(OrderedDict.fromkeys(options)))  # Remove duplicates
     else:
-        options = ['h2o', 'task', 'photostim_location', 'weekday',
-                   'headbar', 'user_name', 'sex', 'rig']
+        options = [
+            "h2o",
+            "task",
+            "photostim_location",
+            "weekday",
+            "headbar",
+            "user_name",
+            "sex",
+            "rig",
+        ]
     return options
 
 
@@ -684,7 +719,7 @@ def data_selector():
             st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
             st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
             st.rerun()
-                    
+
 def _add_download_filtered_session():
     """Download the master table of the filtered session"""
     # Convert DataFrame to CSV format
