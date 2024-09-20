@@ -71,7 +71,7 @@ def get_viruses(injections):
     if injections:
         virus_names = [inj['injection_materials'][0] for inj in injections if inj['injection_materials']]
         
-        NM_patterns = {"DA": "DA|dLight", "NE":"NE|NA", "Ach":"Ach", "5HT":"5HT", "GCaMP":"GCaMP"}
+        NM_patterns = {"DA": "DA|dLight", "NE":"NE|NA|nLight", "Ach":"Ach", "5HT":"5HT", "GCaMP":"GCaMP"}
         for inj in injections:
             for NM, NM_names_in_virus in NM_patterns.items():
                 if inj['injection_materials'] and re.search(NM_names_in_virus, inj['injection_materials'][0]):
