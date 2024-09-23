@@ -71,7 +71,7 @@ def get_viruses(injections):
     if injections:
         virus_names = [inj['injection_materials'][0] for inj in injections if inj['injection_materials']]
         
-        NM_patterns = {"DA": "DA|dLight", "NE":"NE|NA", "Ach":"Ach", "5HT":"5HT", "GCaMP":"GCaMP"}
+        NM_patterns = {"DA": "DA|dLight", "NE":"NE|NA|nLight", "Ach":"Ach", "5HT":"5HT", "GCaMP":"GCaMP"}
         for inj in injections:
             for NM, NM_names_in_virus in NM_patterns.items():
                 if inj['injection_materials'] and re.search(NM_names_in_virus, inj['injection_materials'][0]):
@@ -139,6 +139,7 @@ def fetch_fip_data(client):
 def map_record_to_dict(record):
     """ function to map a metadata dictionary to a simpler dictionary with the fields we care about """
     dd = record.get('data_description', {}) or {}
+    co_data_asset_id = record.get('external_links')
     creation_time = dd.get('creation_time', '') or ''
     subject = record.get('subject', {}) or {}
     subject_id = subject.get('subject_id') or ''
@@ -157,6 +158,7 @@ def map_record_to_dict(record):
         'location': record['location'],
         'session_name': record['name'],
         'creation_time': creation_time,
+        'co_data_asset_ID' : str(co_data_asset_id), 
         'subject_id': subject_id,
         'subject_genotype': subject_genotype,
         'fiber_probes': str(fetch_fiber_probes(record)),
