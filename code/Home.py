@@ -455,10 +455,10 @@ def init():
     _df["docDB_status"] = _df.apply(
         lambda row: (
             "0_not uploaded"
-            if pd.isnull(row["location"])
+            if pd.isnull(row["session_loc"])
             else (
                 "1_uploaded but not processed"
-                if pd.isnull(row["results_location"])
+                if pd.isnull(row["processed_session_loc"])
                 else "2_uploaded and processed"
             )
         ),
