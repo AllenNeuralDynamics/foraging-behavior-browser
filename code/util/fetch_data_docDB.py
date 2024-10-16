@@ -29,8 +29,6 @@ def load_client():
     )
 
 
-
-
 def fetch_individual_procedures(r):
     version = semver.Version.parse((r.get('procedures') or {}).get('schema_version', '0.0.0'))
     if version >= "0.8.1": # post introduction of Surgery concept
@@ -58,7 +56,7 @@ def fetch_injections(r):
                 'injection_materials': [ im['name'] for im in ims ],
                 'ap': sp['injection_coordinate_ap'],
                 'ml': sp['injection_coordinate_ml'],
-                'depth': sp['injection_coordinate_depth'][0] # somehow depth given as a list 
+                'depth': sp['injection_coordinate_depth'] # somehow depth given as a list 
             })            
        
     return injections
@@ -70,8 +68,15 @@ def get_viruses(injections):
     
     if injections:
         virus_names = [inj['injection_materials'][0] for inj in injections if inj['injection_materials']]
+        # TODO: fixing this once we have a better mapping of virus to NM. 
+        # Not including this in the newest version of streamlit to avoid confusion 
+        NM_patterns = {"DA": "DA|dLight", 
+                       "NE":"NE|nLight", 
+                       "Ach":"Ach", 
+                       "5HT":"5HT", 
+                       "GCaMP":"GCaMP"}
         
-        NM_patterns = {"DA": "DA|dLight", "NE":"NE|NA|nLight", "Ach":"Ach", "5HT":"5HT", "GCaMP":"GCaMP"}
+        
         for inj in injections:
             for NM, NM_names_in_virus in NM_patterns.items():
                 if inj['injection_materials'] and re.search(NM_names_in_virus, inj['injection_materials'][0]):
@@ -82,7 +87,27 @@ def get_viruses(injections):
                         NM_recorded.append(NM)
     return virus_names, NM_recorded   
     
-        
+
+def strip_dict_for_id(co_asset_id_dict_list):
+    result_list = []
+    
+    for asset_id in co_asset_id_dict_list:
+        try:
+            if asset_id is None or len(asset_id) == 0:
+                result_list.append(None)
+            elif isinstance(asset_id, list):
+                result_list.append(asset_id[0]['Code Ocean'])
+            elif isinstance(asset_id, dict) and 'Code Ocean' in asset_id:
+                if len(asset_id['Code Ocean']) == 0:
+                    result_list.append(None)
+                else:
+                    result_list.append(asset_id['Code Ocean'][0])
+            else:
+                result_list.append(None)  # Default case if none of the conditions are met
+        except (KeyError, IndexError, TypeError):
+            result_list.append(None)  # Catch any errors and append None
+            
+    return result_list                   
 
 def fetch_fip_data(client):
     # search for records that have the "fib" (for fiber photometry) modality in data_description
@@ -113,11 +138,14 @@ def fetch_fip_data(client):
     # make a dataframe
     records_df = pd.DataFrame.from_records([map_record_to_dict(d) for d in results ])
     
-    # currently there are some sessions uploaded twice in two different locations.
+    # PREVIOUSLY, there are some sessions uploaded twice in two different locations.
     # let's filter out the ones in aind-ophys-data, a deprecated location
+    # this is no longer a problem-- so I'm taking off the drop but keeping the dupe check on. 
     dup_df = records_df[records_df.duplicated('session_name',keep=False)]
-    dup_df = dup_df[dup_df.location.str.contains("aind-ophys-data")]
-    records_df = records_df.drop(dup_df.index.values)
+    dup_df = dup_df[dup_df.session_loc.str.contains("aind-ophys-data")]
+    if len(dup_df):
+        logger.warning('duplicated entries found, please fix')
+    # records_df = records_df.drop(dup_df.index.values)
     
     # let's get processed results too
     logger.warning("fetching processed results...")
@@ -129,17 +157,21 @@ def fetch_fip_data(client):
     processed_results_by_name = { r['name']: r for r in processed_results }  
         
     # adding two columns to our master dataframe - result name and result s3 location
-    records_df['results'] = records_df.session_name.apply(lambda x: find_result(x, processed_results_by_name).get('name'))
-    records_df['results_location'] = records_df.session_name.apply(lambda x: find_result(x, processed_results_by_name).get('location'))
-    
+    records_df['processed_session_name'] = records_df.session_name.apply(lambda x: find_result(x, processed_results_by_name).get('name'))
+    records_df['processed_session_loc'] = records_df.session_name.apply(lambda x: find_result(x, processed_results_by_name).get('location'))
+    # get external_links, strip it down to the string 
+    co_data_asset_id_processed = records_df.session_name.apply(lambda x: find_result(x, processed_results_by_name).get('external_links'))
+    records_df['processed_CO_dataID'] = strip_dict_for_id(co_data_asset_id_processed)
+    records_df['CO_dataID'] = strip_dict_for_id(records_df['CO_dataID'])
     return records_df
+
 
 
 
 def map_record_to_dict(record):
     """ function to map a metadata dictionary to a simpler dictionary with the fields we care about """
     dd = record.get('data_description', {}) or {}
-    co_data_asset_id = record.get('external_links')
+    co_data_asset_id_raw = record.get('external_links')
     creation_time = dd.get('creation_time', '') or ''
     subject = record.get('subject', {}) or {}
     subject_id = subject.get('subject_id') or ''
@@ -152,20 +184,19 @@ def map_record_to_dict(record):
         virus_names, NM_recorded = get_viruses(injections)
     except:
         injections, virus_names, NM_recorded = [], [], []
-        print(record)
         
     return {
-        'location': record['location'],
+        'session_loc': record['location'],
         'session_name': record['name'],
         'creation_time': creation_time,
-        'co_data_asset_ID' : str(co_data_asset_id), 
+        'CO_dataID' : co_data_asset_id_raw,
         'subject_id': subject_id,
         'subject_genotype': subject_genotype,
         'fiber_probes': str(fetch_fiber_probes(record)),
         'injections': str(injections),
         'task_type': task_type, 
         'virus':virus_names, 
-        'NM_recorded':NM_recorded
+        # 'NM_recorded':NM_recorded
         
     }
 
