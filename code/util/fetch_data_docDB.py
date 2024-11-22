@@ -43,7 +43,7 @@ def fetch_individual_procedures(r):
 def fetch_fiber_probes(r):
     probes = []
     for sp in fetch_individual_procedures(r):
-        if sp['procedure_type'] == 'Fiber implant':
+        if sp.get('procedure_type') == 'Fiber implant':
             probes += sp['probes']
     return probes
                 
