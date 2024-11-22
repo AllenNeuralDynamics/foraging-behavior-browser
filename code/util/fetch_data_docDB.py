@@ -110,10 +110,11 @@ def strip_dict_for_id(co_asset_id_dict_list):
     return result_list                   
 
 def fetch_fip_data(client):
-    # search for records that have the "fib" (for fiber photometry) modality in data_description
-    logger.warning("fetching 'fib' records...")
+    # To compare the FIP pipeline with my temporary pipeline for all behavior sessions, we should 
+    # query "behavior" from the data_description.modality.abbreviation field.
+    logger.warning("fetching 'behavior' records...")
     modality_results = client.retrieve_docdb_records(
-        filter_query={"data_description.modality.abbreviation": "fib"},
+        filter_query={"data_description.modality.abbreviation": "behavior"},
         paginate_batch_size=500
     )              
     logger.warning(f"found {len(modality_results)} results")
