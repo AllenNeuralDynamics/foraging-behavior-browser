@@ -39,14 +39,14 @@ def fetch_individual_procedures(r):
     else: # pre Surgery
         sub_procs = (r.get('procedures') or {}).get('subject_procedures') or {}
         yield from sub_procs
-        
+
 def fetch_fiber_probes(r):
     probes = []
     for sp in fetch_individual_procedures(r):
         if sp.get('procedure_type') == 'Fiber implant':
             probes += sp['probes']
     return probes
-                
+
 def fetch_injections(r):    
     injections=[]
     for sp in fetch_individual_procedures(r):        
@@ -60,7 +60,7 @@ def fetch_injections(r):
             })            
        
     return injections
-    
+
 
 def get_viruses(injections):
     virus_names = []
@@ -86,7 +86,7 @@ def get_viruses(injections):
                     else:
                         NM_recorded.append(NM)
     return virus_names, NM_recorded   
-    
+
 
 def strip_dict_for_id(co_asset_id_dict_list):
     result_list = []
@@ -166,8 +166,6 @@ def fetch_dynamic_foraging_data(client):
     return records_df
 
 
-
-
 def map_record_to_dict(record):
     """ function to map a metadata dictionary to a simpler dictionary with the fields we care about """
     dd = record.get('data_description', {}) or {}
@@ -175,16 +173,28 @@ def map_record_to_dict(record):
     creation_time = dd.get('creation_time', '') or ''
     subject = record.get('subject', {}) or {}
     subject_id = subject.get('subject_id') or ''
-    subject_genotype = subject.get('genotype') or ''
-    session = record.get('session') or {}
-    task_type = session.get('session_type') or ''
+    subject_genotype = subject.get("genotype") or ""
+    session = record.get("session") or {}
+    task_type = session.get("session_type") or ""
+
+    # -- Check whether FIP exists
+    # per this issue, https://github.com/AllenNeuralDynamics/dynamic-foraging-task/issues/1056
+    # here I check whether fib exists in the data streams
+    data_streams = session.get("data_streams") or []
+    has_fib_in_data_streams = any(
+        [
+            "fib" in (mod.get("abbreviation") or "")
+            for ds in (session.get("data_streams") or [])
+            for mod in (ds.get("stream_modalities") or [])
+        ]
+    )
 
     try:
         injections = fetch_injections(record)
         virus_names, NM_recorded = get_viruses(injections)
     except:
         injections, virus_names, NM_recorded = [], [], []
-        
+
     return {
         'session_loc': record['location'],
         'session_name': record['name'],
@@ -196,6 +206,7 @@ def map_record_to_dict(record):
         'injections': str(injections),
         'task_type': task_type, 
         'virus':virus_names, 
+        'has_fib_in_data_streams': has_fib_in_data_streams,
         # 'NM_recorded':NM_recorded
         
     }
@@ -206,5 +217,3 @@ def find_result(x, lookup):
         if result_name.startswith(x):
             return result
     return {}
-    
-
