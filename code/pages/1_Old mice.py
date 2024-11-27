@@ -12,6 +12,7 @@ import plotly.express as px
 import plotly
 import plotly.graph_objects as go
 import statsmodels.api as sm
+import io
 
 from PIL import Image, ImageColor
 import streamlit.components.v1 as components
@@ -391,10 +392,30 @@ def plot_x_y_session():
         # st.plotly_chart(fig)
         selected = plotly_events(fig, click_event=True, hover_event=False, select_event=True, 
                                  override_height=fig.layout.height * 1.1, override_width=fig.layout.width)
+        
+        # Function to save Plotly figure to SVG
+        def save_plotly_to_svg(fig):
+            # Save the Plotly figure to an SVG file in memory
+            svg_io = io.BytesIO()
+            fig.write_image(svg_io, format='svg')
+            svg_io.seek(0)  # Reset file pointer to the beginning
+            return svg_io
+
+        # Save the SVG figure to a file-like object
+        svg_file = save_plotly_to_svg(fig)
+
+        # Add a download button to download the SVG file
+        st.download_button(
+            label="Download SVG",
+            data=svg_file,
+            file_name="plot.svg",
+            mime="image/svg+xml"
+        )
       
     if len(selected):
         df_selected_from_plotly = df_x_y_session.merge(pd.DataFrame(selected).rename({'x': x_name, 'y': y_name}, axis=1), 
                                                     on=[x_name, y_name], how='inner')
+        
 
     return df_selected_from_plotly, cols
 
