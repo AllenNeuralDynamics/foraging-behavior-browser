@@ -47,6 +47,7 @@ def app():
     
 def do_pca(df, name):
     df = df.dropna(axis=0, how='any')
+    df = df[~df.isin([np.nan, np.inf, -np.inf]).any(axis=1)] 
     
     # Standardize the features
     x = StandardScaler().fit_transform(df.drop(columns=['subject_id', 'session']))
