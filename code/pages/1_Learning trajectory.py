@@ -32,7 +32,7 @@ def app():
     # -- get cols --
     col_task = [s for s in df.metadata.columns
                 if not any(ss in s for ss in ['lickspout', 'weight', 'water', 'time', 'rig',
-                                              'user_name', 'experiment', 'task', 'notes']
+                                              'user_name', 'experiment', 'task', 'notes', 'laser']
                 )
     ]
     
@@ -47,9 +47,13 @@ def app():
     
 def do_pca(df, name):
     df = df.dropna(axis=0, how='any')
+    df = df[~df.isin([np.nan, np.inf, -np.inf]).any(axis=1)]
+    
+    df_to_pca = df.drop(columns=['subject_id', 'session'])
+    df_to_pca = df_to_pca.select_dtypes(include=[np.number, float, int])
     
     # Standardize the features
-    x = StandardScaler().fit_transform(df.drop(columns=['subject_id', 'session']))
+    x = StandardScaler().fit_transform(df_to_pca)
     
     # Apply PCA
     pca = PCA(n_components=10)  # Reduce to 2 dimensions for visualization
@@ -62,6 +66,7 @@ def do_pca(df, name):
     principalDf.reset_index(inplace=True)
     
     # -- trajectory --
+    st.markdown(f'### PCA on {name} metrics')
     fig = go.Figure()
 
     for mouse_id in principalDf['subject_id'].unique():
@@ -108,7 +113,7 @@ def do_pca(df, name):
     
     # -- pca components --
     pca_components = pd.DataFrame(pca.components_, 
-                                  columns=df.drop(columns=['subject_id', 'session']).columns)
+                                  columns=df_to_pca.columns)
     pca_components
     fig = make_subplots(rows=3, cols=1)
     
