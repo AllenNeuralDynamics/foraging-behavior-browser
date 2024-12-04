@@ -11,6 +11,7 @@ from sklearn.preprocessing import StandardScaler
 from streamlit_plotly_events import plotly_events
 from util.aws_s3 import load_data
 from util.streamlit import add_session_filter, data_selector
+from scipy.stats import gaussian_kde
 
 import extra_streamlit_components as stx
 
@@ -146,6 +147,7 @@ def app():
         # Checkbox to use density or not
         bins = st.slider("Number of bins", 10, 100, 20, 5)
         use_density = st.checkbox("Use Density", value=False)
+        use_kernel_smooth = st.checkbox("Use Kernel Smoothing", value=False)
 
         # Multiselect for choosing numeric columns
         numeric_columns = df.select_dtypes(include="number").columns
@@ -159,18 +161,27 @@ def app():
                 f"{'Density' if use_density else 'Histogram'} Plot of {column} grouped by 'current_stage_actual'"
             )
             fig = go.Figure()
+            
+            stage_data_all = df[column].dropna()
+            stage_data_all = stage_data_all[~stage_data_all.isin([np.inf, -np.inf])]
+            bin_edges = np.linspace(stage_data_all.min(), stage_data_all.max(), bins)            
+            
             for stage in df["current_stage_actual"].cat.categories:
                 if stage not in df["current_stage_actual"].unique():
                     continue
                 stage_data = df[df["current_stage_actual"] == stage][column].dropna()
                 count = len(stage_data)
-                y_vals, x_vals = np.histogram(stage_data, bins=bins, density=use_density)
-                percentiles = [(np.sum(stage_data <= x) / len(stage_data)) * 100 for x in x_vals[1:]]
+                if use_kernel_smooth:
+                    kde = gaussian_kde(stage_data)
+                    y_vals = kde(bin_edges)
+                else:
+                    y_vals, _ = np.histogram(stage_data, bins=bin_edges, density=use_density)
+                percentiles = [(np.sum(stage_data <= x) / len(stage_data)) * 100 for x in bin_edges[1:]]
                 customdata = np.array([percentiles]).T
                 
                 fig.add_trace(
                     go.Scatter(
-                        x=(x_vals[1:] + x_vals[:-1]) / 2, 
+                        x=(bin_edges[1:] + bin_edges[:-1]) / 2, 
                         y=y_vals, 
                         mode="lines",
                         line=dict(color=stage_color_mapper[stage]),
