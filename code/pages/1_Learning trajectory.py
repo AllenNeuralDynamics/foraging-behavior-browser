@@ -165,12 +165,12 @@ def app():
                 stage_data = df[df["current_stage_actual"] == stage][column].dropna()
                 count = len(stage_data)
                 y_vals, x_vals = np.histogram(stage_data, bins=bins, density=use_density)
-                percentiles = [np.percentile(stage_data, (np.sum(stage_data <= x) / len(stage_data)) * 100) for x in x_vals[:-1]]
+                percentiles = [(np.sum(stage_data <= x) / len(stage_data)) * 100 for x in x_vals[1:]]
                 customdata = np.array([percentiles]).T
                 
                 fig.add_trace(
                     go.Scatter(
-                        x=x_vals[:-1], 
+                        x=(x_vals[1:] + x_vals[:-1]) / 2, 
                         y=y_vals, 
                         mode="lines",
                         line=dict(color=stage_color_mapper[stage]),
