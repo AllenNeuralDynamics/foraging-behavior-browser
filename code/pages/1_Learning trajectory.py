@@ -263,17 +263,17 @@ def metrics_grouped_by_stages(df):
     cols = st.columns([1, 1, 1])
     
     selected_perf_columns = multiselect_wrapper_for_url_query(
-        cols[0],
+        st,
         label= "Performance metrics to plot",
         options=COL_PERF,
         default=["finished_trials", "finished_rage", "foraging_eff_random_seed"],
         key='stage_distribution_selected_perf_columns',
     )
     selected_task_columns = multiselect_wrapper_for_url_query(
-        cols[1],
+        st,
         label= "Task parameters to plot",
         options=COL_TASK,
-        default=["effective_block_length_median", "duration_iti_median", "p_reward_contrast_mean"],
+        default=["effective_block_length_median", "duration_iti_mean", "p_reward_contrast_mean"],
         key='stage_distribution_selected_task_columns',
     )            
     selected_columns = selected_perf_columns + selected_task_columns
