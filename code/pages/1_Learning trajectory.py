@@ -136,17 +136,15 @@ def app():
             "STAGE_FINAL",
             "GRADUATED",
         ]
-        
         stage_color_mapper = get_stage_color_mapper(stage_order)
-        
-        stage_color_mapper
-        
+                
         df["current_stage_actual"] = pd.Categorical(
             df["current_stage_actual"], categories=stage_order, ordered=True
         )
         df = df.sort_values("current_stage_actual")
 
         # Checkbox to use density or not
+        bins = st.slider("Number of bins", 10, 100, 20, 5)
         use_density = st.checkbox("Use Density", value=False)
 
         # Multiselect for choosing numeric columns
@@ -165,25 +163,30 @@ def app():
                 if stage not in df["current_stage_actual"].unique():
                     continue
                 stage_data = df[df["current_stage_actual"] == stage][column].dropna()
-                y_vals, x_vals = np.histogram(stage_data, bins=20, density=use_density)
+                count = len(stage_data)
+                y_vals, x_vals = np.histogram(stage_data, bins=bins, density=use_density)
+                percentiles = [np.percentile(stage_data, (np.sum(stage_data <= x) / len(stage_data)) * 100) for x in x_vals[:-1]]
+                customdata = np.array([percentiles]).T
+                
                 fig.add_trace(
                     go.Scatter(
                         x=x_vals[:-1], 
                         y=y_vals, 
                         mode="lines",
                         line=dict(color=stage_color_mapper[stage]),
-                        name=stage,
-                        )
+                        name=f"{stage} (n={count})",
+                        customdata=customdata,
+                        hovertemplate=f"Percentile: %{{customdata[0]:.2f}}%<br><extra></extra>"
+                    )
                 )
-
             fig.update_layout(
                 title=f"{'Density' if use_density else 'Histogram'} Plot of {column} by Current Stage",
                 xaxis_title=column,
                 yaxis_title="Density" if use_density else "Count",
+                hovermode="x unified",
             )
             st.plotly_chart(fig)
 
-        pass
 
     # Update back to URL
     sync_session_state_to_URL()
