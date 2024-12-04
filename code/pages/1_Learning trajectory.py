@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 import s3fs
 import streamlit as st
 import matplotlib.pyplot as plt
+import matplotlib
 from plotly.subplots import make_subplots
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -132,17 +133,18 @@ def app():
             "STAGE_2",
             "STAGE_3",
             "STAGE_4",
-            "STAGE_5",
             "STAGE_FINAL",
             "GRADUATED",
         ]
+        
+        stage_color_mapper = get_stage_color_mapper(stage_order)
+        
+        stage_color_mapper
+        
         df["current_stage_actual"] = pd.Categorical(
             df["current_stage_actual"], categories=stage_order, ordered=True
         )
         df = df.sort_values("current_stage_actual")
-
-        # Start of Streamlit app
-        st.title("Histogram Visualization by Current Stage")
 
         # Checkbox to use density or not
         use_density = st.checkbox("Use Density", value=False)
@@ -162,7 +164,7 @@ def app():
             for stage in df["current_stage_actual"].cat.categories:
                 if stage not in df["current_stage_actual"].unique():
                     continue
-                stage_data = df[df["current_stage_actual"] == stage][column]
+                stage_data = df[df["current_stage_actual"] == stage][column].dropna()
                 y_vals, x_vals = np.histogram(stage_data, bins=20, density=use_density)
                 fig.add_trace(
                     go.Scatter(x=x_vals[:-1], y=y_vals, mode="lines", name=stage)
@@ -180,6 +182,17 @@ def app():
     # Update back to URL
     sync_session_state_to_URL()
 
+
+def get_stage_color_mapper(stage_list):
+    # Mapping stages to colors from red to green, return rgb values
+    # Interpolate between red and green using the number of stages
+    cmap = plt.cm.get_cmap('RdYlGn', 100)
+    stage_color_mapper = {
+        stage: matplotlib.colors.rgb2hex(
+            cmap(i / (len(stage_list) - 1))) 
+        for i, stage in enumerate(stage_list)
+    }
+    return stage_color_mapper
 
 def do_pca(df, name):
     df = df.dropna(axis=0, how="any")
