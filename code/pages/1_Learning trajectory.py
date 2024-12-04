@@ -57,6 +57,7 @@ STAGE_ORDER = [
     "GRADUATED",
 ]
 
+@st.cache_data()
 def get_stage_color_mapper(stage_list):
     # Mapping stages to colors from red to green, return rgb values
     # Interpolate between red and green using the number of stages
@@ -105,6 +106,7 @@ def _get_metadata_col():
     ]
     return col_perf, col_task
 
+COL_PERF, COL_TASK = _get_metadata_col()
 
 def app():
     with st.sidebar:
@@ -141,13 +143,12 @@ def app():
     st.session_state.tab_id_learning_trajectory = chosen_id
 
     if chosen_id == "tab_PCA":
-        col_perf, col_task = _get_metadata_col()
         do_pca(
-            ss.df_session_filtered.loc[:, ["subject_id", "session"] + col_perf],
+            ss.df_session_filtered.loc[:, ["subject_id", "session"] + COL_PERF],
             "performance",
         )
         do_pca(
-            ss.df_session_filtered.loc[:, ["subject_id", "session"] + col_task], "task"
+            ss.df_session_filtered.loc[:, ["subject_id", "session"] + COL_TASK], "task"
         )
     elif chosen_id == "tab_stage":
         st.markdown("### Distributions of metrics and/or parameters grouped by training stages")
@@ -252,9 +253,7 @@ def do_pca(df, name):
 
 
 def metrics_grouped_by_stages(df):
-    
-    col_perf, col_task = _get_metadata_col()
-            
+                
     df["current_stage_actual"] = pd.Categorical(
         df["current_stage_actual"], categories=STAGE_ORDER, ordered=True
     )
@@ -262,12 +261,21 @@ def metrics_grouped_by_stages(df):
 
     # Multiselect for choosing numeric columns
     cols = st.columns([1, 1, 1])
-    selected_perf_columns = cols[0].multiselect(
-        "Performance metrics to plot", col_perf
+    
+    selected_perf_columns = multiselect_wrapper_for_url_query(
+        cols[0],
+        label= "Performance metrics to plot",
+        options=COL_PERF,
+        default=["finished_trials", "finished_rage", "foraging_eff_random_seed"],
+        key='stage_distribution_selected_perf_columns',
     )
-    selected_task_columns = cols[1].multiselect(
-        "Task parameters to plot", col_task
-    )
+    selected_task_columns = multiselect_wrapper_for_url_query(
+        cols[1],
+        label= "Task parameters to plot",
+        options=COL_TASK,
+        default=["effective_block_length_median", "duration_iti_median", "p_reward_contrast_mean"],
+        key='stage_distribution_selected_task_columns',
+    )            
     selected_columns = selected_perf_columns + selected_task_columns
 
     # Checkbox to use density or not
@@ -278,7 +286,6 @@ def metrics_grouped_by_stages(df):
     else:
         use_density = st.checkbox("Use Density", value=False)
         bins = st.slider("Number of bins", 10, 100, 20, 5)
-
 
     # Create a density plot for each selected column grouped by 'current_stage_actual'
     for column in selected_columns:
