@@ -123,80 +123,7 @@ def app():
             ss.df_session_filtered.loc[:, ["subject_id", "session"] + col_task], "task"
         )
     elif chosen_id == "tab_stage":
-
-        df = ss.df_session_filtered
-
-        # Sort stages in the desired order
-        stage_order = [
-            "STAGE_1_WARMUP",
-            "STAGE_1",
-            "STAGE_2",
-            "STAGE_3",
-            "STAGE_4",
-            "STAGE_FINAL",
-            "GRADUATED",
-        ]
-        stage_color_mapper = get_stage_color_mapper(stage_order)
-                
-        df["current_stage_actual"] = pd.Categorical(
-            df["current_stage_actual"], categories=stage_order, ordered=True
-        )
-        df = df.sort_values("current_stage_actual")
-
-        # Checkbox to use density or not
-        bins = st.slider("Number of bins", 10, 100, 20, 5)
-        use_kernel_smooth = st.checkbox("Use Kernel Smoothing", value=False)
-        if not use_kernel_smooth:
-            use_density = st.checkbox("Use Density", value=False)
-        else:
-            use_density = None
-
-        # Multiselect for choosing numeric columns
-        numeric_columns = df.select_dtypes(include="number").columns
-        selected_columns = st.multiselect(
-            "Select columns to plot histograms", numeric_columns
-        )
-
-        # Create a density plot for each selected column grouped by 'current_stage_actual'
-        for column in selected_columns:
-            fig = go.Figure()
-            
-            stage_data_all = df[column].dropna()
-            stage_data_all = stage_data_all[~stage_data_all.isin([np.inf, -np.inf])]
-            bin_edges = np.linspace(stage_data_all.min(), stage_data_all.max(), bins)            
-            
-            for stage in df["current_stage_actual"].cat.categories:
-                if stage not in df["current_stage_actual"].unique():
-                    continue
-                stage_data = df[df["current_stage_actual"] == stage][column].dropna()
-                count = len(stage_data)
-                if use_kernel_smooth:
-                    kde = gaussian_kde(stage_data)
-                    y_vals = kde(bin_edges)
-                else:
-                    y_vals, _ = np.histogram(stage_data, bins=bin_edges, density=use_density)
-                percentiles = [(np.sum(stage_data <= x) / len(stage_data)) * 100 for x in bin_edges[1:]]
-                customdata = np.array([percentiles]).T
-                
-                fig.add_trace(
-                    go.Scatter(
-                        x=(bin_edges[1:] + bin_edges[:-1]) / 2, 
-                        y=y_vals, 
-                        mode="lines",
-                        line=dict(color=stage_color_mapper[stage]),
-                        name=f"{stage} (n={count})",
-                        customdata=customdata,
-                        hovertemplate=f"Percentile: %{{customdata[0]:.2f}}%<br><extra></extra>"
-                    )
-                )
-            fig.update_layout(
-                title=f"{column}",
-                xaxis_title=column,
-                yaxis_title="Kernel density" if use_kernel_smooth else "Density" if use_density else "Count",
-                hovermode="x unified",
-            )
-            st.plotly_chart(fig)
-
+        metrics_grouped_by_stages(df=ss.df_session_filtered)
 
     # Update back to URL
     sync_session_state_to_URL()
@@ -306,6 +233,79 @@ def do_pca(df, name):
     )
     st.plotly_chart(fig)
 
+
+def metrics_grouped_by_stages(df):
+
+    # Sort stages in the desired order
+    stage_order = [
+        "STAGE_1_WARMUP",
+        "STAGE_1",
+        "STAGE_2",
+        "STAGE_3",
+        "STAGE_4",
+        "STAGE_FINAL",
+        "GRADUATED",
+    ]
+    stage_color_mapper = get_stage_color_mapper(stage_order)
+            
+    df["current_stage_actual"] = pd.Categorical(
+        df["current_stage_actual"], categories=stage_order, ordered=True
+    )
+    df = df.sort_values("current_stage_actual")
+
+    # Checkbox to use density or not
+    bins = st.slider("Number of bins", 10, 100, 20, 5)
+    use_kernel_smooth = st.checkbox("Use Kernel Smoothing", value=False)
+    if not use_kernel_smooth:
+        use_density = st.checkbox("Use Density", value=False)
+    else:
+        use_density = None
+
+    # Multiselect for choosing numeric columns
+    numeric_columns = df.select_dtypes(include="number").columns
+    selected_columns = st.multiselect(
+        "Select columns to plot histograms", numeric_columns
+    )
+
+    # Create a density plot for each selected column grouped by 'current_stage_actual'
+    for column in selected_columns:
+        fig = go.Figure()
+        
+        stage_data_all = df[column].dropna()
+        stage_data_all = stage_data_all[~stage_data_all.isin([np.inf, -np.inf])]
+        bin_edges = np.linspace(stage_data_all.min(), stage_data_all.max(), bins)            
+        
+        for stage in df["current_stage_actual"].cat.categories:
+            if stage not in df["current_stage_actual"].unique():
+                continue
+            stage_data = df[df["current_stage_actual"] == stage][column].dropna()
+            count = len(stage_data)
+            if use_kernel_smooth:
+                kde = gaussian_kde(stage_data)
+                y_vals = kde(bin_edges)
+            else:
+                y_vals, _ = np.histogram(stage_data, bins=bin_edges, density=use_density)
+            percentiles = [(np.sum(stage_data <= x) / len(stage_data)) * 100 for x in bin_edges[1:]]
+            customdata = np.array([percentiles]).T
+            
+            fig.add_trace(
+                go.Scatter(
+                    x=(bin_edges[1:] + bin_edges[:-1]) / 2, 
+                    y=y_vals, 
+                    mode="lines",
+                    line=dict(color=stage_color_mapper[stage]),
+                    name=f"{stage} (n={count})",
+                    customdata=customdata,
+                    hovertemplate=f"Percentile: %{{customdata[0]:.2f}}%<br><extra></extra>"
+                )
+            )
+        fig.update_layout(
+            title=f"{column}",
+            xaxis_title=column,
+            yaxis_title="Kernel density" if use_kernel_smooth else "Density" if use_density else "Count",
+            hovermode="x unified",
+        )
+        st.plotly_chart(fig)
 
 if "df" not in st.session_state or "sessions_bonsai" not in st.session_state.df.keys():
     init(if_load_docDB=False)
