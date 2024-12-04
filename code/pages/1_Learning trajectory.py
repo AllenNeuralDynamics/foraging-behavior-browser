@@ -10,6 +10,16 @@ from streamlit_plotly_events import plotly_events
 from util.aws_s3 import load_data
 from util.streamlit import add_session_filter, data_selector
 
+import extra_streamlit_components as stx
+
+from util.url_query_helper import (checkbox_wrapper_for_url_query,
+                                   multiselect_wrapper_for_url_query,
+                                   number_input_wrapper_for_url_query,
+                                   slider_wrapper_for_url_query,
+                                   sync_session_state_to_URL,
+                                   sync_URL_to_session_state)
+
+
 from Home import init
 
 ss = st.session_state
@@ -29,18 +39,8 @@ try:
 except:
     pass
 
-
-def app():
-    
-    with st.sidebar:
-        add_session_filter(if_bonsai=True)
-        data_selector()
-        
-    if not hasattr(ss, 'df'):
-        st.write('##### Data not loaded yet, start from Home:')
-        st.page_link('Home.py', label='Home', icon="🏠")
-        return
-    
+@st.cache_data()
+def _get_metadata_col():
     df = load_data()['sessions_bonsai']
     
     # -- get cols --
@@ -54,9 +54,40 @@ def app():
                 if not any(ss in s for ss in ['performance']
                 )
     ]
+    return col_perf, col_task
+
+
+def app():
+    with st.sidebar:
+        add_session_filter(if_bonsai=True)
+        data_selector()
+        
+    if not hasattr(ss, 'df'):
+        st.write('##### Data not loaded yet, start from Home:')
+        st.page_link('Home.py', label='Home', icon="🏠")
+        return
     
-    do_pca(ss.df_session_filtered.loc[:, ['subject_id', 'session'] + col_perf], 'performance')
-    do_pca(ss.df_session_filtered.loc[:, ['subject_id', 'session'] + col_task], 'task')
+    # === Main tabs ===
+    chosen_id = stx.tab_bar(data=[
+            stx.TabBarItemData(id="tab_PCA", title="PCA", description="PCA on performance and task parameters"),
+            stx.TabBarItemData(id="tab_stage", title="Training stages", description="Compare across training stages"),
+        ], default=st.query_params['tab_id_learning_trajectory'] if 'tab_id_learning_trajectory' in st.query_params
+                   else st.session_state.tab_id_learning_trajectory)
+
+    placeholder = st.container()
+    st.session_state.tab_id_learning_trajectory = chosen_id
+    st.markdown('---')
+
+    if chosen_id == "tab_PCA":
+        col_perf, col_task = _get_metadata_col()
+        do_pca(ss.df_session_filtered.loc[:, ['subject_id', 'session'] + col_perf], 'performance')
+        do_pca(ss.df_session_filtered.loc[:, ['subject_id', 'session'] + col_task], 'task')
+    elif chosen_id == "tab_stage":
+        pass
+
+
+    # Update back to URL
+    sync_session_state_to_URL()
 
     
 def do_pca(df, name):
