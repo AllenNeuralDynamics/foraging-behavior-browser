@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import s3fs
 import streamlit as st
+import matplotlib.pyplot as plt
 from plotly.subplots import make_subplots
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -83,6 +84,45 @@ def app():
         do_pca(ss.df_session_filtered.loc[:, ['subject_id', 'session'] + col_perf], 'performance')
         do_pca(ss.df_session_filtered.loc[:, ['subject_id', 'session'] + col_task], 'task')
     elif chosen_id == "tab_stage":
+        
+        df = ss.df_session_filtered
+        
+        # Sort stages in the desired order
+        stage_order = [
+            "STAGE_1_WARMUP", "STAGE_1", "STAGE_2", "STAGE_3", "STAGE_4", "STAGE_5",
+            "STAGE_6", "STAGE_7", "STAGE_8", "STAGE_9", "STAGE_10", "STAGE_FINAL", "GRADUATED"
+        ]
+        df['current_stage_actual'] = pd.Categorical(df['current_stage_actual'], categories=stage_order, ordered=True)
+        df = df.sort_values('current_stage_actual')
+
+        # Start of Streamlit app
+        st.title("Histogram Visualization by Current Stage")
+
+        # Checkbox to use density or not
+        use_density = st.checkbox("Use Density", value=False)
+
+        # Multiselect for choosing numeric columns
+        numeric_columns = df.select_dtypes(include='number').columns
+        selected_columns = st.multiselect("Select columns to plot histograms", numeric_columns)
+
+        # Create a density plot for each selected column grouped by 'current_stage_actual'
+        for column in selected_columns:
+            st.subheader(f"{'Density' if use_density else 'Histogram'} Plot of {column} grouped by 'current_stage_actual'")
+            fig = go.Figure()
+            for stage in df['current_stage_actual'].cat.categories:
+                if stage not in df['current_stage_actual'].unique():
+                    continue
+                stage_data = df[df['current_stage_actual'] == stage][column]
+                y_vals, x_vals = np.histogram(stage_data, bins=20, density=use_density)
+                fig.add_trace(go.Scatter(x=x_vals[:-1], y=y_vals, mode='lines', name=stage))
+            
+            fig.update_layout(
+                title=f"{'Density' if use_density else 'Histogram'} Plot of {column} by Current Stage",
+                xaxis_title=column,
+                yaxis_title='Density' if use_density else 'Count'
+            )
+            st.plotly_chart(fig)
+        
         pass
 
 
