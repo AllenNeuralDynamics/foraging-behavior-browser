@@ -12,6 +12,7 @@ from streamlit_plotly_events import plotly_events
 from util.aws_s3 import load_data
 from util.streamlit import add_session_filter, data_selector
 from scipy.stats import gaussian_kde
+import streamlit_nested_layout
 
 import extra_streamlit_components as stx
 
@@ -149,6 +150,7 @@ def app():
             ss.df_session_filtered.loc[:, ["subject_id", "session"] + col_task], "task"
         )
     elif chosen_id == "tab_stage":
+        st.markdown("### Distributions of metrics and/or parameters grouped by training stages")
         metrics_grouped_by_stages(df=ss.df_session_filtered)
 
     # Update back to URL
@@ -258,8 +260,18 @@ def metrics_grouped_by_stages(df):
     )
     df = df.sort_values("current_stage_actual")
 
+    # Multiselect for choosing numeric columns
+    cols = st.columns([1, 1, 1])
+    selected_perf_columns = cols[0].multiselect(
+        "Performance metrics to plot", col_perf
+    )
+    selected_task_columns = cols[1].multiselect(
+        "Task parameters to plot", col_task
+    )
+    selected_columns = selected_perf_columns + selected_task_columns
+
     # Checkbox to use density or not
-    use_kernel_smooth = st.checkbox("Use Kernel Smoothing", value=False)
+    use_kernel_smooth = st.checkbox("Use Kernel Smoothing", value=True)
     if use_kernel_smooth:
         use_density = False
         bins = 100
@@ -267,14 +279,6 @@ def metrics_grouped_by_stages(df):
         use_density = st.checkbox("Use Density", value=False)
         bins = st.slider("Number of bins", 10, 100, 20, 5)
 
-    # Multiselect for choosing numeric columns
-    selected_perf_columns = st.multiselect(
-        "Performance metrics", col_perf
-    )
-    selected_task_columns = st.multiselect(
-        "Task parameters", col_task
-    )
-    selected_columns = selected_perf_columns + selected_task_columns
 
     # Create a density plot for each selected column grouped by 'current_stage_actual'
     for column in selected_columns:
