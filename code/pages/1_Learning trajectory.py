@@ -264,7 +264,7 @@ def metrics_grouped_by_stages(df):
     
     selected_perf_columns = multiselect_wrapper_for_url_query(
         st,
-        label= "Performance metrics to plot",
+        label= "Animal performance to plot",
         options=COL_PERF,
         default=["finished_trials", "finished_rage", "foraging_eff_random_seed"],
         key='stage_distribution_selected_perf_columns',
@@ -325,7 +325,7 @@ def _plot_histograms(df, column, bins, use_kernel_smooth, use_density):
             )
         )
     fig.update_layout(
-        title=f"{column}",
+        title=f'{"Animal performance: " if column in COL_PERF else "Task parameters: "}{column}',
         xaxis_title=column,
         yaxis_title="Kernel density" if use_kernel_smooth else "Density" if use_density else "Count",
         hovermode="x unified",
