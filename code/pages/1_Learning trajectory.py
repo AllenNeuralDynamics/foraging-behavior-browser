@@ -284,8 +284,8 @@ def metrics_grouped_by_stages(df):
         use_density = False
         bins = 100
     else:
+        bins = st.columns([1, 5])[0].slider("Number of bins", 10, 100, 20, 5)
         use_density = st.checkbox("Use Density", value=False)
-        bins = st.slider("Number of bins", 10, 100, 20, 5)
 
     # Create a density plot for each selected column grouped by 'current_stage_actual'
     for column in selected_columns:
