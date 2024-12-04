@@ -146,8 +146,11 @@ def app():
 
         # Checkbox to use density or not
         bins = st.slider("Number of bins", 10, 100, 20, 5)
-        use_density = st.checkbox("Use Density", value=False)
         use_kernel_smooth = st.checkbox("Use Kernel Smoothing", value=False)
+        if not use_kernel_smooth:
+            use_density = st.checkbox("Use Density", value=False)
+        else:
+            use_density = None
 
         # Multiselect for choosing numeric columns
         numeric_columns = df.select_dtypes(include="number").columns
@@ -157,9 +160,6 @@ def app():
 
         # Create a density plot for each selected column grouped by 'current_stage_actual'
         for column in selected_columns:
-            st.subheader(
-                f"{'Density' if use_density else 'Histogram'} Plot of {column} grouped by 'current_stage_actual'"
-            )
             fig = go.Figure()
             
             stage_data_all = df[column].dropna()
@@ -191,9 +191,9 @@ def app():
                     )
                 )
             fig.update_layout(
-                title=f"{'Density' if use_density else 'Histogram'} Plot of {column} by Current Stage",
+                title=f"{column}",
                 xaxis_title=column,
-                yaxis_title="Density" if use_density else "Count",
+                yaxis_title="Kernel density" if use_kernel_smooth else "Density" if use_density else "Count",
                 hovermode="x unified",
             )
             st.plotly_chart(fig)
