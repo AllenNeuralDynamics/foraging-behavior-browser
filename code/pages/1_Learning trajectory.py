@@ -112,7 +112,6 @@ def app():
 
     placeholder = st.container()
     st.session_state.tab_id_learning_trajectory = chosen_id
-    st.markdown("---")
 
     if chosen_id == "tab_PCA":
         col_perf, col_task = _get_metadata_col()
