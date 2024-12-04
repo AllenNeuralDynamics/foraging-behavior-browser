@@ -167,7 +167,13 @@ def app():
                 stage_data = df[df["current_stage_actual"] == stage][column].dropna()
                 y_vals, x_vals = np.histogram(stage_data, bins=20, density=use_density)
                 fig.add_trace(
-                    go.Scatter(x=x_vals[:-1], y=y_vals, mode="lines", name=stage)
+                    go.Scatter(
+                        x=x_vals[:-1], 
+                        y=y_vals, 
+                        mode="lines",
+                        line=dict(color=stage_color_mapper[stage]),
+                        name=stage,
+                        )
                 )
 
             fig.update_layout(
