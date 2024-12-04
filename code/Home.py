@@ -385,6 +385,8 @@ def init(if_load_docDB=True):
     _df.loc[_df['water_in_session_manual'] > 100, 
             ['water_in_session_manual', 'water_in_session_total', 'water_after_session']] = np.nan
 
+    _df.loc[_df['duration_iti_median'] < 0,
+            ['duration_iti_median', 'duration_iti_mean', 'duration_iti_std', 'duration_iti_min', 'duration_iti_max']] = np.nan
     
     # # add something else
     # add abs(bais) to all terms that have 'bias' in name
