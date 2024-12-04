@@ -254,12 +254,12 @@ def metrics_grouped_by_stages(df):
     df = df.sort_values("current_stage_actual")
 
     # Checkbox to use density or not
-    bins = st.slider("Number of bins", 10, 100, 20, 5)
     use_kernel_smooth = st.checkbox("Use Kernel Smoothing", value=False)
-    if not use_kernel_smooth:
-        use_density = st.checkbox("Use Density", value=False)
+    if use_kernel_smooth:
+        bins = 100
     else:
-        use_density = None
+        use_density = st.checkbox("Use Density", value=False)
+        bins = st.slider("Number of bins", 10, 100, 20, 5)
 
     # Multiselect for choosing numeric columns
     numeric_columns = df.select_dtypes(include="number").columns
