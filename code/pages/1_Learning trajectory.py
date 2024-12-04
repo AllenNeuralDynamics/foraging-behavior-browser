@@ -10,10 +10,24 @@ from streamlit_plotly_events import plotly_events
 from util.aws_s3 import load_data
 from util.streamlit import add_session_filter, data_selector
 
+from Home import init
+
 ss = st.session_state
 
 fs = s3fs.S3FileSystem(anon=False)
 cache_folder = 'aind-behavior-data/foraging_nwb_bonsai_processed/'
+
+try:
+    st.set_page_config(layout="wide", 
+                    page_title='Foraging behavior browser',
+                    page_icon=':mouse2:',
+                        menu_items={
+                        'Report a bug': "https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues",
+                        'About': "Github repo: https://github.com/AllenNeuralDynamics/foraging-behavior-browser"
+                        }
+                    )
+except:
+    pass
 
 
 def app():
@@ -134,4 +148,8 @@ def do_pca(df, name):
                       )
     st.plotly_chart(fig)
     
+    
+if 'df' not in st.session_state or 'sessions_bonsai' not in st.session_state.df.keys():
+    init(if_load_docDB=False)
+
 app()

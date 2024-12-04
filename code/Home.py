@@ -280,7 +280,7 @@ def show_curriculums():
     pass
 
 # ------- Layout starts here -------- #
-def init():
+def init(if_load_docDB=True):
     
     # Clear specific session state and all filters
     for key in st.session_state:
@@ -449,21 +449,22 @@ def init():
     
 
     # --- Load data from docDB ---
-    _df = merge_in_df_docDB(_df)
-    
-    # add docDB_status column
-    _df["docDB_status"] = _df.apply(
-        lambda row: (
-            "0_not uploaded"
-            if pd.isnull(row["session_loc"])
-            else (
-                "1_uploaded but not processed"
-                if pd.isnull(row["processed_session_loc"])
-                else "2_uploaded and processed"
-            )
-        ),
-        axis=1,
-    )
+    if if_load_docDB:
+        _df = merge_in_df_docDB(_df)
+        
+        # add docDB_status column
+        _df["docDB_status"] = _df.apply(
+            lambda row: (
+                "0_not uploaded"
+                if pd.isnull(row["session_loc"])
+                else (
+                    "1_uploaded but not processed"
+                    if pd.isnull(row["processed_session_loc"])
+                    else "2_uploaded and processed"
+                )
+            ),
+            axis=1,
+        )
 
     st.session_state.df['sessions_bonsai'] = _df  # Somehow _df loses the reference to the original dataframe
     st.session_state.session_stats_names = [keys for keys in _df.keys()]
@@ -753,9 +754,10 @@ def app():
     
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
 
-ok = True
-if 'df' not in st.session_state or 'sessions_bonsai' not in st.session_state.df.keys(): 
-    ok = init()
+if __name__ == "__main__":
+    ok = True
+    if 'df' not in st.session_state or 'sessions_bonsai' not in st.session_state.df.keys(): 
+        ok = init()
 
-if ok:
-    app()
+    if ok:
+        app()
