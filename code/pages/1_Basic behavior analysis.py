@@ -10,7 +10,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from streamlit_plotly_events import plotly_events
 from util.aws_s3 import load_data
-from util.streamlit import add_session_filter, data_selector
+from util.streamlit import add_session_filter, data_selector, add_footnote
 from scipy.stats import gaussian_kde
 import streamlit_nested_layout
 
@@ -126,6 +126,7 @@ def app():
     with st.sidebar:
         add_session_filter(if_bonsai=True)
         data_selector()
+        add_footnote()
 
     if not hasattr(ss, "df"):
         st.write("##### Data not loaded yet, start from Home:")
