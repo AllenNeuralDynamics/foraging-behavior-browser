@@ -65,15 +65,20 @@ to_sync_with_url_query_default = {
         "finished_rate",
         "foraging_eff_random_seed",
         "abs(logistic_Su2022_bias)",
+        'logistic_Su2022_RewC_amp',
+        'logistic_Su2022_RewC_tau',
+        'logistic_Su2022_UnrC_amp',
+        'logistic_Su2022_UnrC_tau',
+        'logistic_Su2022_score_mean',
         "early_lick_rate",
         "invalid_lick_ratio",
         "double_dipping_rate_finished_trials",
-        "lick_consistency_mean_finished_trials",
     ],
     "stage_distribution_selected_task_columns": [
         "effective_block_length_median",
         "duration_iti_mean",
         "p_reward_contrast_mean",
+        "weight_after_ratio",
     ],
 }
 

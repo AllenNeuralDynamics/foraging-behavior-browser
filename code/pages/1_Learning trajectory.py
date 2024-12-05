@@ -23,6 +23,7 @@ from util.url_query_helper import (
     slider_wrapper_for_url_query,
     sync_session_state_to_URL,
     sync_URL_to_session_state,
+    to_sync_with_url_query_default,
 )
 
 
@@ -99,6 +100,7 @@ def _get_metadata_col():
         )
     ] + [
         'avg_trial_length_in_seconds',
+        'weight_after_ratio',
     ]
 
     col_perf = [
@@ -276,14 +278,14 @@ def metrics_grouped_by_stages(df):
         st,
         label= "Animal performance metrics to plot",
         options=COL_PERF,
-        default=["finished_trials", "finished_rate", "foraging_eff_random_seed"],
+        default=to_sync_with_url_query_default["stage_distribution_selected_perf_columns"],
         key='stage_distribution_selected_perf_columns',
     )
     selected_task_columns = multiselect_wrapper_for_url_query(
         st,
         label= "Task parameters to plot",
         options=COL_TASK,
-        default=["effective_block_length_median", "duration_iti_mean", "p_reward_contrast_mean"],
+        default=to_sync_with_url_query_default["stage_distribution_selected_task_columns"],
         key='stage_distribution_selected_task_columns',
     )            
     selected_columns = selected_perf_columns + selected_task_columns
