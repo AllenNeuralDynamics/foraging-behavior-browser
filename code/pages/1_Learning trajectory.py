@@ -262,7 +262,7 @@ def metrics_grouped_by_stages(df):
     # Multiselect for choosing numeric columns    
     selected_perf_columns = multiselect_wrapper_for_url_query(
         st,
-        label= "Animal performance to plot",
+        label= "Animal performance metrics to plot",
         options=COL_PERF,
         default=["finished_trials", "finished_rate", "foraging_eff_random_seed"],
         key='stage_distribution_selected_perf_columns',
