@@ -109,6 +109,7 @@ def _get_metadata_col():
         #TODO: build column groups in Home.py. Now I'm hardcoding.
         'abs(bias_naive)',
         'abs(logistic_Su2022_bias)',
+        'logistic_Su2022_RewC_amp',
         'logistic_Su2022_RewC_tau',
         'logistic_Su2022_UnrC_amp',
         'logistic_Su2022_UnrC_tau',
