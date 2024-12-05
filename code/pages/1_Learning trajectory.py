@@ -133,14 +133,14 @@ def app():
     chosen_id = stx.tab_bar(
         data=[
             stx.TabBarItemData(
-                id="tab_PCA",
-                title="PCA",
-                description="PCA on performance and task parameters",
-            ),
-            stx.TabBarItemData(
                 id="tab_stage",
                 title="Training stages",
                 description="Compare across training stages",
+            ),
+            stx.TabBarItemData(
+                id="tab_PCA",
+                title="PCA",
+                description="PCA on performance and task parameters",
             ),
         ],
         default=(

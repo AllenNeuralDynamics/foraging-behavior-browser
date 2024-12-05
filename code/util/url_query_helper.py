@@ -59,7 +59,7 @@ to_sync_with_url_query_default = {
     "auto_training_curriculum_schema_version": "1.0",
     "auto_training_history_recent_weeks": 8,
     
-    "tab_id_learning_trajectory": "tab_PCA",
+    "tab_id_learning_trajectory": "tab_stage",
     "stage_distribution_selected_perf_columns": [
         "finished_trials",
         "finished_rate",
