@@ -142,7 +142,7 @@ def app():
             ),
             stx.TabBarItemData(
                 id="tab_PCA",
-                title="PCA",
+                title="Learning trajectory",
                 description="PCA on performance and task parameters",
             ),
         ],
