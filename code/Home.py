@@ -388,6 +388,9 @@ def init(if_load_docDB=True):
     _df.loc[(_df['duration_iti_median'] < 0) | (_df['duration_iti_mean'] < 0),
             ['duration_iti_median', 'duration_iti_mean', 'duration_iti_std', 'duration_iti_min', 'duration_iti_max']] = np.nan
     
+    _df.loc[_df['invalid_lick_ratio'] < 0, 
+            ['invalid_lick_ratio']]= np.nan
+    
     # # add something else
     # add abs(bais) to all terms that have 'bias' in name
     for col in _df.columns:
