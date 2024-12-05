@@ -300,7 +300,7 @@ def metrics_grouped_by_stages(df):
     st.markdown("---")
 
     # Create a density plot for each selected column grouped by 'current_stage_actual'
-    unique_curriculum_name = df["curriculum_name"].unique()
+    unique_curriculum_name = ['Uncoupled Without Baiting', 'Uncoupled Baiting', 'Coupled Baiting']
     for curriculum_name in [name for name in unique_curriculum_name if name != "None"]:
         st.markdown(f"### Curriculum name: {curriculum_name}")
 
@@ -308,7 +308,7 @@ def metrics_grouped_by_stages(df):
         cols = st.columns([1] * num_plot_cols)
         for n, column in enumerate(selected_columns):
             with cols[n % num_plot_cols]:
-                st.markdown(f'''<h6 style='text-align: center; color: orange;'>Animal performance: {column}''' 
+                st.write(f'''<h6 style='text-align: center; color: orange;'>Animal performance: {column}''' 
                             if column in COL_PERF 
                             else f"<h6 style='text-align: center; color: blue;'>Task parameter: {column}", 
                             unsafe_allow_html=True)
