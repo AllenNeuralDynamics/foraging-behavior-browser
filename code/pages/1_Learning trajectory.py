@@ -306,8 +306,11 @@ def _plot_histograms(df, column, bins, use_kernel_smooth, use_density):
     for stage in df["current_stage_actual"].cat.categories:
         if stage not in df["current_stage_actual"].unique():
             continue
-        stage_data = df[df["current_stage_actual"] == stage][column].dropna()
-        count = len(stage_data)
+        stage_data = df[df["current_stage_actual"] == stage][[column, "subject_id"]].dropna()
+        n_sessions = len(stage_data)
+        n_mice = len(stage_data["subject_id"].unique())
+        
+        stage_data = stage_data[column]
         if use_kernel_smooth:
             kde = gaussian_kde(stage_data)
             y_vals = kde(bin_edges)
@@ -322,7 +325,7 @@ def _plot_histograms(df, column, bins, use_kernel_smooth, use_density):
                 y=y_vals, 
                 mode="lines",
                 line=dict(color=STAGE_COLOR_MAPPER[stage]),
-                name=f"{stage} (n={count})",
+                name=f"{stage}<br>({n_mice} mice, {n_sessions} sessions)",
                 customdata=customdata,
                 hovertemplate=f"Percentile: %{{customdata[0]:.2f}}%<br><extra></extra>"
             )
