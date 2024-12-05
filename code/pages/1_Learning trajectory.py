@@ -308,6 +308,10 @@ def metrics_grouped_by_stages(df):
         cols = st.columns([1] * num_plot_cols)
         for n, column in enumerate(selected_columns):
             with cols[n % num_plot_cols]:
+                st.markdown(f'''<h6 style='text-align: center; color: orange;'>Animal performance: {column}''' 
+                            if column in COL_PERF 
+                            else f"<h6 style='text-align: center; color: blue;'>Task parameter: {column}", 
+                            unsafe_allow_html=True)
                 fig = _plot_histograms(
                     df[df["curriculum_name"] == curriculum_name],
                     column,
@@ -362,7 +366,6 @@ def _plot_histograms(df, column, bins, use_kernel_smooth, use_density):
             )
         )
     fig.update_layout(
-        title=f'{"Animal performance: " if column in COL_PERF else "Task parameters: "}{column}',
         xaxis_title=column,
         yaxis_title="Kernel density" if use_kernel_smooth else "Density" if use_density else "Count",
         hovermode="x unified",
