@@ -97,12 +97,23 @@ def _get_metadata_col():
                 "branch",
             ]  # exclude some columns
         )
+    ] + [
+        'avg_trial_length_in_seconds',
     ]
 
     col_perf = [
         s
         for s in df.session_stats.columns
         if not any(ss in s for ss in ["performance"])
+    ] + [
+        #TODO: build column groups in Home.py. Now I'm hardcoding.
+        'abs(bias_naive)',
+        'abs(logistic_Su2022_bias)',
+        'logistic_Su2022_RewC_tau',
+        'logistic_Su2022_UnrC_amp',
+        'logistic_Su2022_UnrC_tau',
+        'logistic_Su2022_bias',
+        'logistic_Su2022_score_mean',
     ]
     return col_perf, col_task
 
@@ -286,6 +297,7 @@ def metrics_grouped_by_stages(df):
         use_density = st.checkbox("Use Density", value=False)
 
     num_plot_cols = st.columns([1, 7])[0].slider("Number of plotting columns", 1, 5, 4)
+    st.markdown("---")
 
     # Create a density plot for each selected column grouped by 'current_stage_actual'
     unique_curriculum_name = df["curriculum_name"].unique()
