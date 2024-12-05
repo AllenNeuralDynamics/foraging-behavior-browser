@@ -253,13 +253,13 @@ def do_pca(df, name):
 
 
 def metrics_grouped_by_stages(df):
-                
+
     df["current_stage_actual"] = pd.Categorical(
         df["current_stage_actual"], categories=STAGE_ORDER, ordered=True
     )
     df = df.sort_values("current_stage_actual")
 
-    # Multiselect for choosing numeric columns    
+    # Multiselect for choosing numeric columns
     selected_perf_columns = multiselect_wrapper_for_url_query(
         st,
         label= "Animal performance metrics to plot",
@@ -284,17 +284,30 @@ def metrics_grouped_by_stages(df):
     else:
         bins = st.columns([1, 5])[0].slider("Number of bins", 10, 100, 20, 5)
         use_density = st.checkbox("Use Density", value=False)
-        
-    # Columns to plot
+
     num_plot_cols = st.columns([1, 7])[0].slider("Number of plotting columns", 1, 5, 4)
-    cols = st.columns([1] * num_plot_cols)
 
     # Create a density plot for each selected column grouped by 'current_stage_actual'
-    for n, column in enumerate(selected_columns):
-        with cols[n % num_plot_cols]:
-            fig = _plot_histograms(df, column, bins, use_kernel_smooth, use_density)
-            st.plotly_chart(fig, use_container_width=True)
-        
+    unique_curriculum_name = df["curriculum_name"].unique()
+    for curriculum_name in [name for name in unique_curriculum_name if name != "None"]:
+        st.markdown(f"### Curriculum name: {curriculum_name}")
+
+        # Columns to plot
+        cols = st.columns([1] * num_plot_cols)
+        for n, column in enumerate(selected_columns):
+            with cols[n % num_plot_cols]:
+                fig = _plot_histograms(
+                    df[df["curriculum_name"] == curriculum_name],
+                    column,
+                    bins,
+                    use_kernel_smooth,
+                    use_density,
+                )
+                st.plotly_chart(fig, use_container_width=True)
+                
+        st.markdown("---")
+
+
 @st.cache_data()
 def _plot_histograms(df, column, bins, use_kernel_smooth, use_density):
     fig = go.Figure()
@@ -312,7 +325,13 @@ def _plot_histograms(df, column, bins, use_kernel_smooth, use_density):
         
         stage_data = stage_data[column]
         if use_kernel_smooth:
-            kde = gaussian_kde(stage_data)
+            if len(stage_data.unique()) == 1:
+                # Handle case with only one unique value
+                unique_value = stage_data.iloc[0]
+                # Create a small range around the unique value for KDE
+                kde = lambda x: np.exp(-((x - unique_value) ** 2) / (unique_value/100))  # Fallback
+            else:
+                kde = gaussian_kde(stage_data)
             y_vals = kde(bin_edges)
         else:
             y_vals, _ = np.histogram(stage_data, bins=bin_edges, density=use_density)
