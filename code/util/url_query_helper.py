@@ -9,56 +9,78 @@ from .settings import draw_type_mapper_session_level
 # dict of "key": default pairs
 # Note: When creating the widget, add argument "value"/"index" as well as "key" for all widgets you want to sync with URL
 to_sync_with_url_query_default = {
-    'if_load_bpod_sessions': False,
+    "if_load_bpod_sessions": False,
+    "to_filter_columns": [
+        "subject_id",
+        "task",
+        "session",
+        "finished_trials",
+        "foraging_eff",
+    ],
+    "filter_subject_id": "",
+    "filter_session": [0.0, None],
+    "filter_finished_trials": [0.0, None],
+    "filter_foraging_eff": [0.0, None],
+    "filter_task": ["all"],
+    "table_height": 300,
+    "tab_id": "tab_auto_train_history",
+    "x_y_plot_xname": "session",
+    "x_y_plot_yname": "foraging_performance_random_seed",
+    "x_y_plot_group_by": "h2o",
+    "x_y_plot_if_show_dots": True,
+    "x_y_plot_if_aggr_each_group": True,
+    "x_y_plot_aggr_method_group": "lowess",
+    "x_y_plot_if_aggr_all": True,
+    "x_y_plot_aggr_method_all": "mean +/- sem",
+    "x_y_plot_smooth_factor": 5,
+    "x_y_plot_if_use_x_quantile_group": False,
+    "x_y_plot_q_quantiles_group": 20,
+    "x_y_plot_if_use_x_quantile_all": False,
+    "x_y_plot_q_quantiles_all": 20,
+    "x_y_plot_if_show_diagonal": False,
+    "x_y_plot_dot_size": 10,
+    "x_y_plot_dot_opacity": 0.3,
+    "x_y_plot_line_width": 2.0,
+    "x_y_plot_figure_width": 1300,
+    "x_y_plot_figure_height": 900,
+    "x_y_plot_font_size_scale": 1.0,
+    "x_y_plot_selected_color_map": "Plotly",
+    "x_y_plot_size_mapper": "finished_trials",
+    "x_y_plot_size_mapper_gamma": 1.0,
+    "x_y_plot_size_mapper_range": [3, 20],
+    "session_plot_mode": "sessions selected from table or plot",
+    "session_plot_selected_draw_types": list(draw_type_mapper_session_level.keys()),
+    "session_plot_number_cols": 3,
+    "auto_training_history_x_axis": "date",
+    "auto_training_history_sort_by": "first_date",
+    "auto_training_history_sort_order": "descending",
+    "auto_training_curriculum_name": "Uncoupled Baiting",
+    "auto_training_curriculum_version": "1.0",
+    "auto_training_curriculum_schema_version": "1.0",
+    "auto_training_history_recent_weeks": 8,
     
-    'to_filter_columns': ['subject_id', 'task', 'session', 'finished_trials', 'foraging_eff'],
-    'filter_subject_id': '',
-    'filter_session': [0.0, None],
-    'filter_finished_trials': [0.0, None],
-    'filter_foraging_eff': [0.0, None],
-    'filter_task': ['all'],
-    
-    'table_height': 300,
-    
-    'tab_id': 'tab_auto_train_history',
-    'x_y_plot_xname': 'session',
-    'x_y_plot_yname': 'foraging_performance_random_seed',
-    'x_y_plot_group_by': 'h2o',
-    'x_y_plot_if_show_dots': True,
-    'x_y_plot_if_aggr_each_group': True,
-    'x_y_plot_aggr_method_group': 'lowess',
-    'x_y_plot_if_aggr_all': True,
-    'x_y_plot_aggr_method_all': 'mean +/- sem',
-    'x_y_plot_smooth_factor': 5,
-    'x_y_plot_if_use_x_quantile_group': False,
-    'x_y_plot_q_quantiles_group': 20,
-    'x_y_plot_if_use_x_quantile_all': False,
-    'x_y_plot_q_quantiles_all': 20,
-    'x_y_plot_if_show_diagonal': False,
-    'x_y_plot_dot_size': 10,
-    'x_y_plot_dot_opacity': 0.3,
-    'x_y_plot_line_width': 2.0,
-    'x_y_plot_figure_width': 1300,
-    'x_y_plot_figure_height': 900,
-    'x_y_plot_font_size_scale': 1.0,
-    'x_y_plot_selected_color_map': 'Plotly',
-    
-    'x_y_plot_size_mapper': 'finished_trials',
-    'x_y_plot_size_mapper_gamma': 1.0,
-    'x_y_plot_size_mapper_range': [3, 20],
-    
-    'session_plot_mode': 'sessions selected from table or plot',
-    'session_plot_selected_draw_types': list(draw_type_mapper_session_level.keys()),
-    'session_plot_number_cols': 3,
-
-    'auto_training_history_x_axis': 'date',
-    'auto_training_history_sort_by': 'first_date',
-    'auto_training_history_sort_order': 'descending',
-    'auto_training_curriculum_name': 'Uncoupled Baiting',
-    'auto_training_curriculum_version': '1.0',
-    'auto_training_curriculum_schema_version': '1.0',
-    'auto_training_history_recent_weeks': 8,
-    }
+    "tab_id_learning_trajectory": "tab_stage",
+    "stage_distribution_selected_perf_columns": [
+        "finished_trials",
+        "finished_rate",
+        "foraging_eff_random_seed",
+        "abs(logistic_Su2022_bias)",
+        'logistic_Su2022_RewC_amp',
+        'logistic_Su2022_RewC_tau',
+        'logistic_Su2022_UnrC_amp',
+        'logistic_Su2022_UnrC_tau',
+        'logistic_Su2022_score_mean',
+        "early_lick_rate",
+        "invalid_lick_ratio",
+        "double_dipping_rate_finished_trials",
+    ],
+    "stage_distribution_selected_task_columns": [
+        "effective_block_length_median",
+        "duration_iti_mean",
+        "p_reward_contrast_mean",
+        "weight_after_ratio",
+    ],
+}
 
 def checkbox_wrapper_for_url_query(st_prefix, label, key, default, **kwargs):
     return st_prefix.checkbox(
@@ -86,7 +108,7 @@ def selectbox_wrapper_for_url_query(st_prefix, label, options, key, default, **k
         key=key,
         **kwargs,
     )
-    
+
 def multiselect_wrapper_for_url_query(st_prefix, label, options, key, default, **kwargs):
     return st_prefix.multiselect(
         label,
@@ -124,8 +146,8 @@ def slider_wrapper_for_url_query(st_prefix, label, min_value, max_value, key, de
         key=key,
         **kwargs,
     )
-    
-    
+
+
 def number_input_wrapper_for_url_query(st_prefix, label, min_value, max_value, key, default, **kwargs):
     return st_prefix.number_input(
         label=label,
@@ -141,8 +163,8 @@ def number_input_wrapper_for_url_query(st_prefix, label, min_value, max_value, k
         key=key,
         **kwargs,
     )
-    
-    
+
+
 def sync_URL_to_session_state():
     """Assign session_state to sync with URL"""
     
@@ -209,7 +231,7 @@ def sync_URL_to_session_state():
                 st.session_state[key] = default
             except:
                 print(f'Failed to set {key} to {default}')
-                        
+
 
 def sync_session_state_to_URL():
     # Add all 'filter_' fields to the default list 
@@ -231,8 +253,8 @@ def sync_session_state_to_URL():
             st.query_params.update({key: st.session_state[key]})
         except:
             print(f'Failed to update {key} to URL query')
-            
-            
+
+
 def get_filter_type(df, column):
     if is_numeric_dtype(df[column]):
         return 'slider_range_float'

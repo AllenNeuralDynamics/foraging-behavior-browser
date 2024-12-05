@@ -691,13 +691,14 @@ def add_dot_property_mapper():
 
 def data_selector():
             
-    with st.expander(f'Session selector', expanded=True):
-        # --- add a download button ---
-        _add_download_filtered_session()
-        
+    with st.expander(f'Session selector', expanded=True):        
         with st.expander(f"Filtered: {len(st.session_state.df_session_filtered)} sessions, "
                          f"{len(st.session_state.df_session_filtered.h2o.unique())} mice", expanded=False):
             st.dataframe(st.session_state.df_session_filtered)
+            
+        # --- add a download button ---
+        with st.columns([1, 10])[1]:
+            _add_download_filtered_session()
         
         # cols = st.columns([4, 1])
         # with cols[0].expander(f"From dataframe: {len(st.session_state.df_selected_from_dataframe)} sessions", expanded=False):
