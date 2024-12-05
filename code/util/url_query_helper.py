@@ -60,7 +60,7 @@ to_sync_with_url_query_default = {
     'auto_training_history_recent_weeks': 8,
     
     'tab_id_learning_trajectory': 'tab_PCA',
-    'stage_distribution_selected_perf_columns': ["finished_trials", "finished_rage", "foraging_eff_random_seed"],
+    'stage_distribution_selected_perf_columns': ["finished_trials", "finished_rate", "foraging_eff_random_seed"],
     'stage_distribution_selected_task_columns': ["effective_block_length_median", "duration_iti_mean", "p_reward_contrast_mean"],
     }
 

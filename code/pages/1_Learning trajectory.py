@@ -259,14 +259,12 @@ def metrics_grouped_by_stages(df):
     )
     df = df.sort_values("current_stage_actual")
 
-    # Multiselect for choosing numeric columns
-    cols = st.columns([1, 1, 1])
-    
+    # Multiselect for choosing numeric columns    
     selected_perf_columns = multiselect_wrapper_for_url_query(
         st,
         label= "Animal performance to plot",
         options=COL_PERF,
-        default=["finished_trials", "finished_rage", "foraging_eff_random_seed"],
+        default=["finished_trials", "finished_rate", "foraging_eff_random_seed"],
         key='stage_distribution_selected_perf_columns',
     )
     selected_task_columns = multiselect_wrapper_for_url_query(
@@ -286,11 +284,16 @@ def metrics_grouped_by_stages(df):
     else:
         bins = st.columns([1, 5])[0].slider("Number of bins", 10, 100, 20, 5)
         use_density = st.checkbox("Use Density", value=False)
+        
+    # Columns to plot
+    num_plot_cols = st.columns([1, 7])[0].slider("Number of plotting columns", 1, 5, 4)
+    cols = st.columns([1] * num_plot_cols)
 
     # Create a density plot for each selected column grouped by 'current_stage_actual'
-    for column in selected_columns:
-        fig = _plot_histograms(df, column, bins, use_kernel_smooth, use_density)
-        st.plotly_chart(fig)
+    for n, column in enumerate(selected_columns):
+        with cols[n % num_plot_cols]:
+            fig = _plot_histograms(df, column, bins, use_kernel_smooth, use_density)
+            st.plotly_chart(fig, use_container_width=True)
         
 @st.cache_data()
 def _plot_histograms(df, column, bins, use_kernel_smooth, use_density):
