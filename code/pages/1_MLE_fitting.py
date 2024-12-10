@@ -1,0 +1,3 @@
+from util.fetch_data_docDB_mle_fitting import load_mle_results_from_docDB
+
+load_mle_results_from_docDB()
