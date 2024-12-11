@@ -26,14 +26,31 @@ def load_client():
         database="behavior_analysis",
         collection="mle_fitting"
     )
-    
+
 client = load_client()
 
-@st.cache_data(ttl=3600*12) # Cache the df_docDB up to 12 hours
-def fetch_mle_fitting_results(model_presets=["Hattori2019", "Bari2019"]):
+
+@st.cache_data(ttl=3600 * 12)  # Cache the df_docDB up to 12 hours
+def fetch_mle_fitting_results(
+    model_presets=["Hattori2019", "Bari2019"],
+    fields=[
+        "params",
+        "log_likelihood",
+        "AIC",
+        "BIC",
+        "LPT",
+        "LPT_AIC",
+        "LPT_BIC",
+        "prediction_accuracy",
+        "cross_validation.prediction_accuracy_test",
+        "cross_validation.prediction_accuracy_fit",
+        "cross_validation.prediction_accuracy_test_bias_only",        
+    ],
+):
     """Fetch mle fitting results from docDB
-    
+
     model_presets: list of str. The model presets to fetch.
+    fields: list of str. The fields to fetch.
     """
 
     # --- Fetch MLE fitting results ---
@@ -50,13 +67,16 @@ def fetch_mle_fitting_results(model_presets=["Hattori2019", "Bari2019"]):
                 "$project": {
                     "_id": 0,
                     "nwb_name": 1,
-                    f"{model_preset}": "$analysis_results.params",
+                    **{
+                        f"{model_preset}.{field}": f"$analysis_results.{field}"
+                        for field in fields
+                    },
                 }
             },
         ]
         records = client.aggregate_docdb_records(pipeline=pipeline)
         dfs.append(pd.json_normalize(records))
-    
+
     # Merge the dfs
     df = reduce(lambda left, right: pd.merge(left, right, on="nwb_name", how="outer"), dfs)
 
@@ -98,8 +118,5 @@ def split_nwb_name(nwb_name):
     return subject_id, session_date, nwb_suffix
 
 
-
-
 df = fetch_mle_fitting_results(model_alias="Hattori2019")
 st.write(df)
-
