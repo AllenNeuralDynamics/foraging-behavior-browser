@@ -4,6 +4,7 @@ Han Hou
 
 import logging
 import time
+from functools import reduce
 
 import pandas as pd
 import streamlit as st
@@ -11,7 +12,7 @@ import numpy as np
 
 from aind_data_access_api.document_db import MetadataDbClient
 
-FORAGER_PRESET = {
+MAPPER_PRESET_TO_ALIAS = {
     "Win-Stay-Lose-Shift": "WSLS",
     "Rescorla-Wagner": "QLearning_L1F0_epsi",
     "Bari2019": "QLearning_L1F1_CK1_softmax",
@@ -29,28 +30,35 @@ def load_client():
 client = load_client()
 
 @st.cache_data(ttl=3600*12) # Cache the df_docDB up to 12 hours
-def fetch_mle_fitting_results(model_alias="Hattori2019"):
+def fetch_mle_fitting_results(model_presets=["Hattori2019", "Bari2019"]):
     """Fetch mle fitting results from docDB
+    
+    model_presets: list of str. The model presets to fetch.
     """
 
     # --- Fetch MLE fitting results ---
-    pipeline = [
-        {
-            "$match": {
-                "analysis_results.fit_settings.agent_alias": FORAGER_PRESET[model_alias],
-            }
-        },
-        {
-            "$project": {
-                "_id": 0,
-                "nwb_name": 1,
-                f"{model_alias}": "$analysis_results.params",
-            }
-        },
-    ]
-    records = client.aggregate_docdb_records(pipeline=pipeline)
-    df = pd.json_normalize(records)
+    dfs = []
+    for model_preset in model_presets:
+        model_alias = MAPPER_PRESET_TO_ALIAS[model_preset]
+        pipeline = [
+            {
+                "$match": {
+                    "analysis_results.fit_settings.agent_alias": model_alias,
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0,
+                    "nwb_name": 1,
+                    f"{model_preset}": "$analysis_results.params",
+                }
+            },
+        ]
+        records = client.aggregate_docdb_records(pipeline=pipeline)
+        dfs.append(pd.json_normalize(records))
     
+    # Merge the dfs
+    df = reduce(lambda left, right: pd.merge(left, right, on="nwb_name", how="outer"), dfs)
 
     # Apply the function to create new columns
     df[["subject_id", "session_date", "nwb_suffix"]] = df["nwb_name"].apply(
