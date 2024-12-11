@@ -11,24 +11,50 @@ import numpy as np
 
 from aind_data_access_api.document_db import MetadataDbClient
 
-@st.cache_data(ttl=3600*12) # Cache the df_docDB up to 12 hours
-def load_mle_results_from_docDB():
-    client = load_client()
-    df = fetch_mle_fitting_results(client)
-    return df
-
-
 @st.cache_resource
 def load_client():
     return MetadataDbClient(
         host="api.allenneuraldynamics-test.org",    # From the test docDB  
-        database="metadata_index",
-        collection="data_assets"
+        database="behavior_analysis",
+        collection="mle_fitting"
     )
+    
+client = load_client()
 
-
-def fetch_mle_fitting_results(client):
+def fetch_mle_fitting_results():
     """Fetch mle fitting results from docDB
     """
+
+    import time 
+    start_time = time.time()
     
-    pass
+    results = client.retrieve_docdb_records(
+        filter_query={
+            "analysis_results.fit_settings.agent_alias": "QLearning_L1F1_CK1_softmax",
+        },
+        projection={"nwb_name": 1, "analysis_results.params": 1},
+    )
+    print(f"Time elapsed: {time.time() - start_time:.2f} seconds")
+    
+    start_time = time.time()
+    
+    pipeline = [
+        {
+            "$match": {
+                "analysis_results.fit_settings.agent_alias": "QLearning_L1F1_CK1_softmax"
+            }
+        },
+        {
+            "$project": {
+                "_id": 0,
+                "nwb_name": 1,
+                "params": "$analysis_results.params",
+            }
+        },
+    ]
+    
+    records = client.aggregate_docdb_records(pipeline=pipeline)
+    
+    print(f"Time elapsed: {time.time() - start_time:.2f} seconds")
+    
+    
