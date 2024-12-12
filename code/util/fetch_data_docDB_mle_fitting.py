@@ -79,10 +79,7 @@ def fetch_mle_fitting_results(
             },
         ]
         records = client.aggregate_docdb_records(pipeline=pipeline)
-        
-        import time
-        time.sleep(3)
-        
+                
         dfs.append(pd.json_normalize(records))
 
     # Merge the dfs
