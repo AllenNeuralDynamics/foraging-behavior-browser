@@ -12,13 +12,6 @@ import numpy as np
 
 from aind_data_access_api.document_db import MetadataDbClient
 
-MAPPER_PRESET_TO_ALIAS = {
-    "Win-Stay-Lose-Shift": "WSLS",
-    "Rescorla-Wagner": "QLearning_L1F0_epsi",
-    "Bari2019": "QLearning_L1F1_CK1_softmax",
-    "Hattori2019": "QLearning_L2F1_softmax",
-}
-
 @st.cache_resource
 def load_client():
     return MetadataDbClient(
@@ -29,10 +22,16 @@ def load_client():
 
 client = load_client()
 
+MAPPER_PRESET_TO_ALIAS = {
+    "Win-Stay-Lose-Shift": "WSLS",
+    "Rescorla-Wagner": "QLearning_L1F0_epsi",
+    "Bari2019": "QLearning_L1F1_CK1_softmax",
+    "Hattori2019": "QLearning_L2F1_softmax",
+}
 
 @st.cache_data(ttl=3600 * 12)  # Cache the df_docDB up to 12 hours
 def fetch_mle_fitting_results(
-    model_presets=["Hattori2019", "Bari2019"],
+    model_presets=MAPPER_PRESET_TO_ALIAS.keys(),
     fields=[
         "params",
         "log_likelihood",
@@ -42,21 +41,26 @@ def fetch_mle_fitting_results(
         "LPT_AIC",
         "LPT_BIC",
         "prediction_accuracy",
-        "cross_validation.prediction_accuracy_test",
-        "cross_validation.prediction_accuracy_fit",
-        "cross_validation.prediction_accuracy_test_bias_only",        
+        # "cross_validation.prediction_accuracy_test",
+        # "cross_validation.prediction_accuracy_fit",
+        # "cross_validation.prediction_accuracy_test_bias_only",        
     ],
 ):
     """Fetch mle fitting results from docDB
 
     model_presets: list of str. The model presets to fetch.
     fields: list of str. The fields to fetch.
+    
+    returns: pd.DataFrame. The fetched data.
     """
 
     # --- Fetch MLE fitting results ---
     dfs = []
     for model_preset in model_presets:
+        st.write(f"Fetching {model_preset}...")
         model_alias = MAPPER_PRESET_TO_ALIAS[model_preset]
+        
+        # Using pipeline (seems to be faster than using filter and projection with retrieve_docdb_records())
         pipeline = [
             {
                 "$match": {
@@ -67,14 +71,18 @@ def fetch_mle_fitting_results(
                 "$project": {
                     "_id": 0,
                     "nwb_name": 1,
-                    **{
-                        f"{model_preset}.{field}": f"$analysis_results.{field}"
-                        for field in fields
-                    },
+                     **{
+                         f"{model_preset}.{field}": f"$analysis_results.{field}"
+                         for field in fields
+                     },
                 }
             },
         ]
         records = client.aggregate_docdb_records(pipeline=pipeline)
+        
+        import time
+        time.sleep(3)
+        
         dfs.append(pd.json_normalize(records))
 
     # Merge the dfs
@@ -116,7 +124,3 @@ def split_nwb_name(nwb_name):
     except:
         nwb_suffix = 0
     return subject_id, session_date, nwb_suffix
-
-
-df = fetch_mle_fitting_results(model_alias="Hattori2019")
-st.write(df)
