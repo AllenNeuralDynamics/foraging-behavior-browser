@@ -60,25 +60,23 @@ def fetch_mle_fitting_results(
         st.write(f"Fetching {model_preset}...")
         model_alias = MAPPER_PRESET_TO_ALIAS[model_preset]
         
-        # Using pipeline (seems to be faster than using filter and projection with retrieve_docdb_records())
-        pipeline = [
-            {
-                "$match": {
-                    "analysis_results.fit_settings.agent_alias": model_alias,
-                }
-            },
-            {
-                "$project": {
+        # Using filter/projection with paginate
+        filter = {"analysis_results.fit_settings.agent_alias": model_alias}
+        projection = {       
                     "_id": 0,
                     "nwb_name": 1,
-                     **{
-                         f"{model_preset}.{field}": f"$analysis_results.{field}"
-                         for field in fields
-                     },
+                    **{
+                        f"{model_preset}.{field}": f"$analysis_results.{field}"
+                        for field in fields
+                    },
                 }
-            },
-        ]
-        records = client.aggregate_docdb_records(pipeline=pipeline)
+        
+        records = client.retrieve_docdb_records(
+            filter_query=filter, 
+            projection=projection,
+            paginate=True,
+            paginate_batch_size=5000,
+            )
                 
         dfs.append(pd.json_normalize(records))
 
