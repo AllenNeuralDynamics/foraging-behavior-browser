@@ -16,8 +16,8 @@ from aind_data_access_api.document_db import MetadataDbClient
 def load_client():
     return MetadataDbClient(
         host="api.allenneuraldynamics-test.org",    # From the test docDB  
-        database="behavior_analysis",
-        collection="mle_fitting"
+        database="analysis",
+        collection="dynamic_foraging_analysis",
     )
 
 client = load_client()
@@ -57,7 +57,8 @@ def fetch_mle_fitting_results(
     # --- Fetch MLE fitting results ---
     dfs = []
     for model_preset in model_presets:
-        st.write(f"Fetching {model_preset}...")
+        start = time.time()
+        print(f"Fetching {model_preset}...")
         model_alias = MAPPER_PRESET_TO_ALIAS[model_preset]
         
         # Using filter/projection with paginate
@@ -79,6 +80,7 @@ def fetch_mle_fitting_results(
             )
                 
         dfs.append(pd.json_normalize(records))
+        print(f"finished in {time.time() - start} sec.")
 
     # Merge the dfs
     df = reduce(lambda left, right: pd.merge(left, right, on="nwb_name", how="outer"), dfs)
