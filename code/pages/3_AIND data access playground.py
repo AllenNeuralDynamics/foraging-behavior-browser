@@ -37,23 +37,37 @@ except:
 client = load_client()
 
 queries = {
-    "'dynamic_foraging' in software name, raw": {
+    "raw, 'dynamic_foraging' in ANY software name": {
+        "$or":[
+            {"session.data_streams.software.name": "dynamic-foraging-task"},
+            {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
+        ],
+        "name": {"$not": {"$regex": ".*processed.*"}},
+    },
+    "raw, 'dynamic_foraging' in data_streams software name": {
         "session.data_streams.software.name": "dynamic-foraging-task",
         "name": {"$not": {"$regex": ".*processed.*"}},
     },
-    "'dynamic_foraging' in software name, processed": {
-        "session.data_streams.software.name": "dynamic-foraging-task",
+    "raw, 'dynamic_foraging' in stimulus_epochs software name": {
+        "session.stimulus_epochs.software.name": "dynamic-foraging-task",            
+        "name": {"$not": {"$regex": ".*processed.*"}},
+    },
+    "processed, 'dynamic_foraging' in ANY software name": {
+        "$or":[
+            {"session.data_streams.software.name": "dynamic-foraging-task"},
+            {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
+        ],
         "name": {"$regex": ".*processed.*"},
     },
-    "'fib' in 'data_description.modality', raw": {
+    "raw, 'fib' in 'data_description.modality'": {
         "data_description.modality.abbreviation": "fib",
         "name": {"$not": {"$regex": ".*processed.*"}},
     },
-    "'fib' in 'rig.modalities', raw": {
+    "raw, 'fib' in 'rig.modalities'": {
         "rig.modalities.abbreviation": "fib",
         "name": {"$not": {"$regex": ".*processed.*"}},        
     },
-    "'fib' in 'session.data_streams', raw": {
+    "raw, 'fib' in 'session.data_streams'": {
         "session.data_streams.stream_modalities.abbreviation": "fib",
         "name": {"$not": {"$regex": ".*processed.*"}},
     }
