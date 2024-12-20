@@ -11,16 +11,6 @@ from streamlit_dynamic_filters import DynamicFilters
 
 from util.fetch_data_docDB import load_data_from_docDB, load_client
 
-st.markdown(
-"""
-<style>
-    .stMultiSelect [data-baseweb=select] span{
-        max-width: 1000px;
-    }
-</style>""",
-unsafe_allow_html=True,
-)
-
 try:
     st.set_page_config(layout="wide", 
                     page_title='Foraging behavior browser',
@@ -33,10 +23,19 @@ try:
 except:
     pass
 
+st.markdown(
+"""
+<style>
+    .stMultiSelect [data-baseweb=select] span{
+        max-width: 1000px;
+    }
+</style>""",
+unsafe_allow_html=True,
+)
 
 client = load_client()
 
-queries = {
+QUERY_PRESET = {
     "raw, 'dynamic_foraging' in ANY software name": {
         "$or":[
             {"session.data_streams.software.name": "dynamic-foraging-task"},
@@ -85,9 +84,16 @@ def get_session_from_query(query):
 
 
 def app():
+    
+    # 
+    with st.expander("Show docDB queries", expanded=False):
+        st.write('See how to use these queries [here](https://aind-data-access-api.readthedocs.io/en/latest/UserGuide.html#document-database-docdb)')
+        for key, query in QUERY_PRESET.items():
+            st.markdown(f"**{key}**")
+            st.code(query)
 
     # Multiselect for selecting queries up to three
-    query_keys = list(queries.keys())
+    query_keys = list(QUERY_PRESET.keys())
     selected_queries = st.multiselect(
         "Select queries to filter sessions",
         query_keys,
@@ -96,7 +102,7 @@ def app():
     )
 
     # Generage venn diagram of the selected queries
-    query_results = {key: set(get_session_from_query(queries[key])) for key in selected_queries}
+    query_results = {key: set(get_session_from_query(QUERY_PRESET[key])) for key in selected_queries}
 
 
     # -- Show venn --
