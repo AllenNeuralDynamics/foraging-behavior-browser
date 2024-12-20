@@ -83,39 +83,54 @@ def get_session_from_query(query):
     sessions = [re.sub(r'_processed.*$', '', r["name"]) for r in results]
     return sessions
 
-# Multiselect for selecting queries up to three
-query_keys = list(queries.keys())
-selected_queries = st.multiselect(
-    "Select queries to filter sessions",
-    query_keys,
-    default=query_keys[:3],
-    key="selected_queries",
-)
 
-# Generage venn diagram of the selected queries
-query_results = {key: set(get_session_from_query(queries[key])) for key in selected_queries}
+def app():
 
-fig, ax = plt.subplots()
-if len(selected_queries) == 2:
-    venn2(
-        [query_results[key] for key in selected_queries],
-        set_labels=selected_queries,
+    # Multiselect for selecting queries up to three
+    query_keys = list(queries.keys())
+    selected_queries = st.multiselect(
+        "Select queries to filter sessions",
+        query_keys,
+        default=query_keys[:3],
+        key="selected_queries",
     )
-else:
-    venn3(
-        [query_results[key] for key in selected_queries],
-        set_labels=selected_queries,
-    )
+
+    # Generage venn diagram of the selected queries
+    query_results = {key: set(get_session_from_query(queries[key])) for key in selected_queries}
+
+
+    # -- Show venn --
+    fig, ax = plt.subplots()
+    if len(selected_queries) == 2:
+        venn2(
+            [query_results[key] for key in selected_queries],
+            set_labels=selected_queries,
+        )
+    else:
+        venn3(
+            [query_results[key] for key in selected_queries],
+            set_labels=selected_queries,
+        )
+        
+    st.columns([1, 1])[0].pyplot(fig, use_container_width=True)
     
-st.columns([1, 1])[0].pyplot(fig, use_container_width=True)
+    
+    # -- Show dataframe that summarize the selected queries --
+    st.markdown(f"### Summary of selected queries")
+    query_results
+    
 
 
-# df = load_data_from_docDB()
+    # df = load_data_from_docDB()
 
-# st.markdown(f'### Note: the dataframe showing here has been merged in to the master table on the Home page!')
+    # st.markdown(f'### Note: the dataframe showing here has been merged in to the master table on the Home page!')
 
-# dynamic_filters = DynamicFilters(
-#     df=df, 
-#     filters=['subject_id', 'subject_genotype'])
-# dynamic_filters.display_filters()
-# dynamic_filters.display_df()
+    # dynamic_filters = DynamicFilters(
+    #     df=df, 
+    #     filters=['subject_id', 'subject_genotype'])
+    # dynamic_filters.display_filters()
+    # dynamic_filters.display_df()
+    
+    
+if __name__ == "__main__":
+    app()
