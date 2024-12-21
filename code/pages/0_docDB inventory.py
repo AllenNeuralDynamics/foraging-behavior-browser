@@ -108,27 +108,11 @@ def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
         mime='text/csv'
     )
 
-def app():
 
-    #
-    with st.expander("Show docDB queries", expanded=False):
-        st.write('See how to use these queries [here](https://aind-data-access-api.readthedocs.io/en/latest/UserGuide.html#document-database-docdb)')
-        for key, query in QUERY_PRESET.items():
-            st.markdown(f"**{key}**")
-            st.code(query)
-
-    # Multiselect for selecting queries up to three
-    query_keys = list(QUERY_PRESET.keys())
-    selected_queries = st.multiselect(
-        "Select queries to filter sessions",
-        query_keys,
-        default=query_keys[:3],
-        key="selected_queries",
-    )
-
-    # Generate combined dataframe
+def get_merged_queries(selected_queries):
+    """ Get merged queries from selected queries """
+    
     dfs = []
-
     progress_bar = st.progress(0, text="Querying docDB")
     
     for n, key in enumerate(selected_queries):
@@ -156,20 +140,55 @@ def app():
     st.markdown(f"#### Merged dataframe")
     st.write(df_merged)
     download_df(df_merged, label="Download merged df as CSV", file_name="df_docDB_queries.csv")
+    
+    return df_merged
 
-    # -- Show venn --
+def venn(df, columns_to_venn):
+    """ Show venn diagram """
+    if len(columns_to_venn) > 3:
+        st.write("Venn diagram only supports up to 3 columns.")
+        return
+    
     fig, ax = plt.subplots()
-    if len(selected_queries) == 2:
+    
+    if len(columns_to_venn) == 2:
         venn2(
-            [query_results[key] for key in selected_queries],
-            set_labels=selected_queries,
+            [set(df.index[df[col]==True]) for col in columns_to_venn],
+            set_labels=columns_to_venn,
         )
     else:
         venn3(
-            [query_results[key] for key in selected_queries],
-            set_labels=selected_queries,
+            [set(df.index[df[col]==True]) for col in columns_to_venn],
+            set_labels=columns_to_venn,
         )
+    return fig
 
+
+def app():
+
+    #
+    with st.expander("Show docDB queries", expanded=False):
+        st.write('See how to use these queries [here](https://aind-data-access-api.readthedocs.io/en/latest/UserGuide.html#document-database-docdb)')
+        for key, query in QUERY_PRESET.items():
+            st.markdown(f"**{key}**")
+            st.code(query)
+
+    # Multiselect for selecting queries up to three
+    query_keys = list(QUERY_PRESET.keys())
+    selected_queries = st.multiselect(
+        "Select queries to filter sessions",
+        query_keys,
+        default=query_keys[:3],
+        key="selected_queries",
+    )
+
+    # Generate combined dataframe
+    df_merged = get_merged_queries(selected_queries)
+    
+    columns_to_venn = selected_queries
+
+    # -- Show venn --
+    fig = venn(df_merged, columns_to_venn)
     st.columns([1, 1])[0].pyplot(fig, use_container_width=True)
 
     # df = load_data_from_docDB()
