@@ -94,6 +94,18 @@ def query_sessions_from_docDB(query):
     return sessions
 
 
+def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
+    """ Download df as csv """
+    csv = df.to_csv(index=True)
+    
+    # Create download buttons
+    st.download_button(
+        label=label,
+        data=csv,
+        file_name=file_name,
+        mime='text/csv'
+    )
+
 def app():
 
     #
@@ -120,20 +132,28 @@ def app():
 
     dfs = []
     for query_name, query_result in query_results.items():
-        df = pd.DataFrame(query_result, columns=[f"nwb_name_{query_name}"])
+        df = pd.DataFrame(query_result, columns=[f"nwb_name"])
 
-        # Apply the function to create new columns
-        df[["subject_id", "session_date", "nwb_suffix"]] = df["nwb_name"].apply(
+        # Create index that can be joined with other dfs and my main df
+        df[["subject_id", "session_date", "nwb_suffix"]] = df[f"nwb_name"].apply(
             lambda x: pd.Series(split_nwb_name(x))
         )
         
         df[query_name] = True
+        df.set_index(["subject_id", "session_date", "nwb_suffix"], inplace=True)
         dfs.append(df)
 
-    # Out merge all dataframes
-    df_merged = reduce(
-        lambda left, right: pd.merge(left, right, on=["subject_id", "session_date", "nwb_suffix"], how="outer"), dfs
-    )
+    # # Out merge all dataframes
+    # df_merged = reduce(
+    #     lambda left, right: left.join(right, how="outer"), dfs
+    # )
+    
+    df_merged = dfs[0]
+    for df in dfs[1:]:
+        df_merged = df_merged.combine_first(df)
+    
+    st.write(df_merged)
+    download_df(df_merged, label="Download merged df as CSV", file_name="df_docDB_queries.csv")
 
     # -- Show venn --
     fig, ax = plt.subplots()
