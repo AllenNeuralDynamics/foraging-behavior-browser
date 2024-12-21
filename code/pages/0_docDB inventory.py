@@ -39,14 +39,14 @@ unsafe_allow_html=True,
 client = load_client()
 
 QUERY_PRESET = {
-    "raw, 'dynamic_foraging' in ANY software name": {
+    "{raw, 'dynamic_foraging' in ANY software name}": {
         "$or":[
             {"session.data_streams.software.name": "dynamic-foraging-task"},
             {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
         ],
         "name": {"$not": {"$regex": ".*processed.*"}},
     },
-    "raw, ('dynamic_foraging' in ANY software name) AND ('ecephys' in data_description.modality)": {
+    "{raw, ('dynamic_foraging' in ANY software name) AND ('ecephys' in data_description.modality)}": {
         "$or":[
             {"session.data_streams.software.name": "dynamic-foraging-task"},
             {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
@@ -54,30 +54,30 @@ QUERY_PRESET = {
         "data_description.modality.abbreviation": "ecephys",
         "name": {"$not": {"$regex": ".*processed.*"}},        
     },
-    "raw, 'dynamic_foraging' in data_streams software name": {
+    "{raw, 'dynamic_foraging' in data_streams software name}": {
         "session.data_streams.software.name": "dynamic-foraging-task",
         "name": {"$not": {"$regex": ".*processed.*"}},
     },
-    "raw, 'dynamic_foraging' in stimulus_epochs software name": {
+    "{raw, 'dynamic_foraging' in stimulus_epochs software name}": {
         "session.stimulus_epochs.software.name": "dynamic-foraging-task",            
         "name": {"$not": {"$regex": ".*processed.*"}},
     },
-    "processed, 'dynamic_foraging' in ANY software name": {
+    "{processed, 'dynamic_foraging' in ANY software name}": {
         "$or":[
             {"session.data_streams.software.name": "dynamic-foraging-task"},
             {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
         ],
         "name": {"$regex": ".*processed.*"},
     },
-    "raw, 'fib' in 'data_description.modality'": {
+    "{raw, 'fib' in 'data_description.modality'}": {
         "data_description.modality.abbreviation": "fib",
         "name": {"$not": {"$regex": ".*processed.*"}},
     },
-    "raw, 'fib' in 'rig.modalities'": {
+    "{raw, 'fib' in 'rig.modalities'}": {
         "rig.modalities.abbreviation": "fib",
         "name": {"$not": {"$regex": ".*processed.*"}},        
     },
-    "raw, 'fib' in 'session.data_streams'": {
+    "{raw, 'fib' in 'session.data_streams'}": {
         "session.data_streams.stream_modalities.abbreviation": "fib",
         "name": {"$not": {"$regex": ".*processed.*"}},
     }
@@ -85,13 +85,15 @@ QUERY_PRESET = {
 
 @st.cache_data(ttl=3600 * 12)  # Cache the df_docDB up to 12 hours
 def query_sessions_from_docDB(query):
-    results = client.retrieve_docdb_records(
+    return client.retrieve_docdb_records(
         filter_query=query,
-        projection={"name": 1, "_id": 0},
+        projection={
+            "_id": 0,
+            "name": 1,
+            "rig.rig_id": 1,
+            "session.experimenter_full_name": 1,
+        },
     )
-    
-    sessions = [re.sub(r'_processed.*$', '', r["name"]) for r in results]
-    return sessions
 
 
 def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
@@ -124,34 +126,34 @@ def app():
         key="selected_queries",
     )
 
-    # Generage venn diagram of the selected queries
-    query_results = {key: query_sessions_from_docDB(QUERY_PRESET[key]) for key in selected_queries}
-
-    # -- Show dataframe that summarize the selected queries --
-    st.markdown(f"#### Merged dataframe")
-
+    # Generate combined dataframe
     dfs = []
-    for query_name, query_result in query_results.items():
-        df = pd.DataFrame(query_result, columns=[f"nwb_name"])
+
+    progress_bar = st.progress(0, text="Querying docDB")
+    
+    for n, key in enumerate(selected_queries):
+        progress_bar.progress(n / len(selected_queries), text=f"Querying docDB: {key}")
+
+        # Query docDB
+        query_result = query_sessions_from_docDB(QUERY_PRESET[key])
+        df = pd.json_normalize(query_result)
 
         # Create index that can be joined with other dfs and my main df
-        df[["subject_id", "session_date", "nwb_suffix"]] = df[f"nwb_name"].apply(
+        df[["subject_id", "session_date", "nwb_suffix"]] = df[f"name"].apply(
             lambda x: pd.Series(split_nwb_name(x))
         )
         
-        df[query_name] = True
+        df[key] = True
         df.set_index(["subject_id", "session_date", "nwb_suffix"], inplace=True)
         dfs.append(df)
-
-    # # Out merge all dataframes
-    # df_merged = reduce(
-    #     lambda left, right: left.join(right, how="outer"), dfs
-    # )
+        
+        progress_bar.progress((n+1) / len(selected_queries), text=f"Querying docDB: {key}")
     
     df_merged = dfs[0]
     for df in dfs[1:]:
-        df_merged = df_merged.combine_first(df)
+        df_merged = df_merged.combine_first(df)  # Combine nwb_names
     
+    st.markdown(f"#### Merged dataframe")
     st.write(df_merged)
     download_df(df_merged, label="Download merged df as CSV", file_name="df_docDB_queries.csv")
 
