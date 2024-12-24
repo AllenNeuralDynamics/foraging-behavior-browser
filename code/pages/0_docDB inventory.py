@@ -125,14 +125,14 @@ def query_single_query(key):
     return df
 
 
-def get_merged_queries(selected_queries):
+def get_merged_queries(queries_to_merge):
     """ Get merged queries from selected queries """
     
     dfs = []
     progress_bar = st.progress(0, text="Querying docDB")
     
-    with ThreadPoolExecutor(max_workers=len(selected_queries)) as executor:
-        future_to_query = {executor.submit(query_single_query, key): key for key in selected_queries}
+    with ThreadPoolExecutor(max_workers=len(queries_to_merge)) as executor:
+        future_to_query = {executor.submit(query_single_query, key): key for key in queries_to_merge}
         for i, future in enumerate(as_completed(future_to_query), 1):
             key = future_to_query[future]
             try:
@@ -141,7 +141,7 @@ def get_merged_queries(selected_queries):
             except Exception as e:
                 logging.error(f"Error querying {key}: {e}")
             finally:
-                progress_bar.progress(i / len(selected_queries), text=f"Querying docDB ... {key} done!")           
+                progress_bar.progress(i / len(queries_to_merge), text=f"Fetching  docDB ({i}/{len(queries_to_merge)})... {key} done!")           
     
     # Combine queried dfs
     df_merged = dfs[0]
@@ -196,7 +196,7 @@ def app():
     # Generate combined dataframe
     import time
     start = time.time()
-    df_merged = get_merged_queries(selected_queries)
+    df_merged = get_merged_queries(queries_to_merge=QUERY_PRESET.keys())
     st.write(f"Time taken to query and merge: {time.time() - start:.2f} seconds")
     
     columns_to_venn = selected_queries
