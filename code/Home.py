@@ -280,7 +280,7 @@ def show_curriculums():
     pass
 
 # ------- Layout starts here -------- #
-def init(if_load_docDB=True):
+def init(if_load_docDB_override=None):
     
     # Clear specific session state and all filters
     for key in st.session_state:
@@ -454,7 +454,14 @@ def init(if_load_docDB=True):
     
 
     # --- Load data from docDB ---
-    if if_load_docDB:
+    if_load_docDb = if_load_docDB_override if if_load_docDB_override is not None else (
+        st.query_params['if_load_docDB'].lower() == 'true'
+        if 'if_load_docDB' in st.query_params
+        else st.session_state.if_load_docDB 
+        if 'if_load_docDB' in st.session_state
+        else False)
+           
+    if if_load_docDb:
         _df = merge_in_df_docDB(_df)
         
         # add docDB_status column
@@ -525,25 +532,33 @@ def app():
         # with col1:
         # -- 1. unit dataframe --
         
-        cols = st.columns([2, 2, 4, 1])
+        cols = st.columns([2, 4, 1])
         cols[0].markdown(f'### Filter the sessions on the sidebar\n'
                          f'#####  {len(st.session_state.df_session_filtered)} sessions, '
                          f'{len(st.session_state.df_session_filtered.h2o.unique())} mice filtered')
-    
-        if_load_bpod_sessions = checkbox_wrapper_for_url_query(
-            st_prefix=cols[1],
-            label='Include old Bpod sessions (reload after change)',
-            key='if_load_bpod_sessions',
-            default=False,
-        )
-                                                                   
-        with cols[1]:        
-            if st.button('  Reload data  ', type='primary'):
-                st.cache_data.clear()
-                init()
-                st.rerun()  
+        with cols[1]:
+            with st.form(key='load_settings', clear_on_submit=False):
+                if_load_bpod_sessions = checkbox_wrapper_for_url_query(
+                    st_prefix=st,
+                    label='Include old Bpod sessions (reload after change)',
+                    key='if_load_bpod_sessions',
+                    default=False,
+                )
+                if_load_docDB = checkbox_wrapper_for_url_query(
+                    st_prefix=st,
+                    label='Load metadata from docDB (reload after change)',
+                    key='if_load_docDB',
+                    default=False,
+                )
+                                                                    
+                submitted = st.form_submit_button("Reload data! 🔄", type='primary')
+                if submitted:
+                    st.cache_data.clear()
+                    sync_session_state_to_URL()
+                    init()
+                    st.rerun()  # Reload the page to apply the changes
               
-        table_height = slider_wrapper_for_url_query(st_prefix=cols[3],
+        table_height = slider_wrapper_for_url_query(st_prefix=cols[2],
                                                     label='Table height',
                                                     min_value=0,
                                                     max_value=2000,

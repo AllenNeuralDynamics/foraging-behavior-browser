@@ -791,7 +791,7 @@ def add_auto_train_manager():
     recent_weeks = slider_wrapper_for_url_query(cols[5],
                                                 label="only recent weeks",
                                                 min_value=1,
-                                                max_value=26,
+                                                max_value=52,
                                                 step=1,
                                                 key='auto_training_history_recent_weeks',
                                                 default=8,
@@ -808,7 +808,6 @@ def add_auto_train_manager():
         highlight_subjects = []
 
     fig_auto_train = plot_manager_all_progress(
-        st.session_state.auto_train_manager,
         x_axis=x_axis,
         recent_days=recent_weeks*7,
         sort_by=sort_by,

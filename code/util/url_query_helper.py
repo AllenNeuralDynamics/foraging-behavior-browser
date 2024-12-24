@@ -10,6 +10,7 @@ from .settings import draw_type_mapper_session_level
 # Note: When creating the widget, add argument "value"/"index" as well as "key" for all widgets you want to sync with URL
 to_sync_with_url_query_default = {
     "if_load_bpod_sessions": False,
+    "if_load_docDB": False,
     "to_filter_columns": [
         "subject_id",
         "task",
