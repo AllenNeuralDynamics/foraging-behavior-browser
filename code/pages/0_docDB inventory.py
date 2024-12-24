@@ -3,7 +3,8 @@
 
 import logging
 import re
-from functools import reduce
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
 
 from matplotlib_venn import venn2, venn3
 import matplotlib.pyplot as plt
@@ -108,6 +109,21 @@ def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
         mime='text/csv'
     )
 
+@st.cache_data(ttl=3600 * 12)  # Cache the df_docDB up to 12 hours
+def query_single_query(key):
+    """ Query a single query from QUERY_PRESET and process the result """
+    query_result = query_sessions_from_docDB(QUERY_PRESET[key])
+    df = pd.json_normalize(query_result)
+    
+    # Create index that can be joined with other dfs and main df
+    df[["subject_id", "session_date", "nwb_suffix"]] = df[f"name"].apply(
+        lambda x: pd.Series(split_nwb_name(x))
+    )
+    df[key] = True
+    df.set_index(["subject_id", "session_date", "nwb_suffix"], inplace=True)
+    
+    return df
+
 
 def get_merged_queries(selected_queries):
     """ Get merged queries from selected queries """
@@ -115,24 +131,19 @@ def get_merged_queries(selected_queries):
     dfs = []
     progress_bar = st.progress(0, text="Querying docDB")
     
-    for n, key in enumerate(selected_queries):
-        progress_bar.progress(n / len(selected_queries), text=f"Querying docDB: {key}")
-
-        # Query docDB
-        query_result = query_sessions_from_docDB(QUERY_PRESET[key])
-        df = pd.json_normalize(query_result)
-
-        # Create index that can be joined with other dfs and my main df
-        df[["subject_id", "session_date", "nwb_suffix"]] = df[f"name"].apply(
-            lambda x: pd.Series(split_nwb_name(x))
-        )
-        
-        df[key] = True
-        df.set_index(["subject_id", "session_date", "nwb_suffix"], inplace=True)
-        dfs.append(df)
-        
-        progress_bar.progress((n+1) / len(selected_queries), text=f"Querying docDB: {key}")
+    with ThreadPoolExecutor(max_workers=len(selected_queries)) as executor:
+        future_to_query = {executor.submit(query_single_query, key): key for key in selected_queries}
+        for i, future in enumerate(as_completed(future_to_query), 1):
+            key = future_to_query[future]
+            try:
+                df = future.result()
+                dfs.append(df)
+            except Exception as e:
+                logging.error(f"Error querying {key}: {e}")
+            finally:
+                progress_bar.progress(i / len(selected_queries), text=f"Querying docDB ... {key} done!")           
     
+    # Combine queried dfs
     df_merged = dfs[0]
     for df in dfs[1:]:
         df_merged = df_merged.combine_first(df)  # Combine nwb_names
@@ -183,7 +194,10 @@ def app():
     )
 
     # Generate combined dataframe
+    import time
+    start = time.time()
     df_merged = get_merged_queries(selected_queries)
+    st.write(f"Time taken to query and merge: {time.time() - start:.2f} seconds")
     
     columns_to_venn = selected_queries
 
