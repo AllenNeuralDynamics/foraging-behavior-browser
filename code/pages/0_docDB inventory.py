@@ -175,10 +175,10 @@ def app():
         st.markdown('## docDB query presets ')
         st.markdown('#### See how to use these queries [in this doc.](https://aind-data-access-api.readthedocs.io/en/latest/UserGuide.html#document-database-docdb)')
         for key, query in QUERY_PRESET.items():
-            st.markdown(f"**{key}**")
-            # Turn query to json with indent=4
-            query_json = json.dumps(query, indent=4)
-            st.code(query_json)
+            with st.expander(f"{key}"):
+                # Turn query to json with indent=4
+                query_json = json.dumps(query, indent=4)
+                st.code(query_json)
 
     # Generate combined dataframe
     df_merged = get_merged_queries(queries_to_merge=list(QUERY_PRESET.keys()))
