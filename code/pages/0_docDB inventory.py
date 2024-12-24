@@ -1,6 +1,3 @@
-'''Migrated from David's toy app https://codeocean.allenneuraldynamics.org/capsule/9532498/tree
-'''
-
 import logging
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -40,58 +37,69 @@ unsafe_allow_html=True,
 
 client = load_client()
 
-QUERY_PRESET = {
-    "{raw, 'dynamic_foraging' in ANY software name}": {
-        "$or":[
-            {"session.data_streams.software.name": "dynamic-foraging-task"},
-            {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
-        ],
-        "name": {"$not": {"$regex": ".*processed.*"}},
-    },
-    "{raw, 'dynamic_foraging' in data_streams software name}": {
-        "session.data_streams.software.name": "dynamic-foraging-task",
-        "name": {"$not": {"$regex": ".*processed.*"}},
-    },
-    "{raw, 'dynamic_foraging' in stimulus_epochs software name}": {
-        "session.stimulus_epochs.software.name": "dynamic-foraging-task",            
-        "name": {"$not": {"$regex": ".*processed.*"}},
-    },
-    "{raw, 'fib' in 'data_description.modality'}": {
-        "data_description.modality.abbreviation": "fib",
-        "name": {"$not": {"$regex": ".*processed.*"}},
-    },
-    "{raw, 'fib' in 'rig.modalities'}": {
-        "rig.modalities.abbreviation": "fib",
-        "name": {"$not": {"$regex": ".*processed.*"}},        
-    },
-    "{raw, 'fib' in 'session.data_streams'}": {
-        "session.data_streams.stream_modalities.abbreviation": "fib",
-        "name": {"$not": {"$regex": ".*processed.*"}},
-    },
-    "{raw, ('dynamic_foraging' in ANY software name) AND ('ecephys' in data_description.modality)}": {
-        "$or":[
-            {"session.data_streams.software.name": "dynamic-foraging-task"},
-            {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
-        ],
-        "data_description.modality.abbreviation": "ecephys",
-        "name": {"$not": {"$regex": ".*processed.*"}},        
-    },
-    "{raw, 'FIP' in name}":{
-        "name": {"$regex": "^FIP.*"},
-        "name": {"$not": {"$regex": ".*processed.*"}}
-    },
-    "{processed, 'dynamic_foraging' in ANY software name}": {
-        "$or":[
-            {"session.data_streams.software.name": "dynamic-foraging-task"},
-            {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
-        ],
-        "name": {"$regex": ".*processed.*"},
-    },
-}
+QUERY_PRESET = [
+    {"alias": "{raw, 'dynamic_foraging' in ANY software name}",
+     "filter": {
+         "$or":[
+             {"session.data_streams.software.name": "dynamic-foraging-task"},
+             {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
+         ],
+         "name": {"$not": {"$regex": ".*processed.*"}},
+     }},
+    {"alias": "{raw, 'dynamic_foraging' in data_streams software name}",
+     "filter": {
+         "session.data_streams.software.name": "dynamic-foraging-task",
+         "name": {"$not": {"$regex": ".*processed.*"}},
+     }},
+    {"alias": "{raw, 'dynamic_foraging' in stimulus_epochs software name}",
+     "filter": {
+         "session.stimulus_epochs.software.name": "dynamic-foraging-task",            
+         "name": {"$not": {"$regex": ".*processed.*"}},
+     }},
+    {"alias": "{raw, 'fib' in 'data_description.modality'}",
+     "filter": {
+         "data_description.modality.abbreviation": "fib",
+         "name": {"$not": {"$regex": ".*processed.*"}},
+     }},
+    {"alias": "{raw, 'fib' in 'rig.modalities'}",
+     "filter": {
+         "rig.modalities.abbreviation": "fib",
+         "name": {"$not": {"$regex": ".*processed.*"}},        
+     }},
+    {"alias": "{raw, 'fib' in 'session.data_streams'}",
+     "filter": {
+         "session.data_streams.stream_modalities.abbreviation": "fib",
+         "name": {"$not": {"$regex": ".*processed.*"}},
+     }},
+    {"alias": "{raw, ('dynamic_foraging' in ANY software name) AND ('ecephys' in data_description.modality)}",
+     "filter": {
+         "$or":[
+             {"session.data_streams.software.name": "dynamic-foraging-task"},
+             {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
+         ],
+         "data_description.modality.abbreviation": "ecephys",
+         "name": {"$not": {"$regex": ".*processed.*"}},        
+     }},
+    {"alias": "{raw, 'FIP' in name}",
+     "filter": {
+        "name": {
+            "$regex": "^FIP.*",
+            "$not": {"$regex": ".*processed.*"}
+        }
+    }},
+    {"alias": "{processed, 'dynamic_foraging' in ANY software name}",
+     "filter": {
+         "$or":[
+             {"session.data_streams.software.name": "dynamic-foraging-task"},
+             {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
+         ],
+         "name": {"$regex": ".*processed.*"},
+     }},
+]
 
 def query_sessions_from_docDB(query):
     return client.retrieve_docdb_records(
-        filter_query=query,
+        filter_query=query["filter"],
         projection={
             "_id": 0,
             "name": 1,
@@ -115,14 +123,14 @@ def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
 
 def query_single_query(key):
     """ Query a single query from QUERY_PRESET and process the result """
-    query_result = query_sessions_from_docDB(QUERY_PRESET[key])
+    query_result = query_sessions_from_docDB(key)
     df = pd.json_normalize(query_result)
     
     # Create index that can be joined with other dfs and main df
     df[["subject_id", "session_date", "nwb_suffix"]] = df[f"name"].apply(
         lambda x: pd.Series(split_nwb_name(x))
     )
-    df[key] = True
+    df[key["alias"]] = True
     df.set_index(["subject_id", "session_date", "nwb_suffix"], inplace=True)
     
     return df
@@ -148,6 +156,9 @@ def get_merged_queries(queries_to_merge):
     df_merged = dfs[0]
     for df in dfs[1:]:
         df_merged = df_merged.combine_first(df)  # Combine nwb_names
+    
+    # Recover the order of QUERY_PRESET
+    df_merged = df_merged.reindex(columns=[query["alias"] for query in queries_to_merge])
         
     return df_merged
 
@@ -178,21 +189,21 @@ def app():
     with st.sidebar:
         st.markdown('## docDB query presets ')
         st.markdown('#### See how to use these queries [in this doc.](https://aind-data-access-api.readthedocs.io/en/latest/UserGuide.html#document-database-docdb)')
-        for key, query in QUERY_PRESET.items():
-            with st.expander(f"{key}"):
+        for query in QUERY_PRESET:
+            with st.expander(f"{query['alias']}"):
                 # Turn query to json with indent=4
-                query_json = json.dumps(query, indent=4)
+                query_json = json.dumps(query["filter"], indent=4)
                 st.code(query_json)
 
     # Generate combined dataframe
-    df_merged = get_merged_queries(queries_to_merge=list(QUERY_PRESET.keys()))
+    df_merged = get_merged_queries(queries_to_merge=QUERY_PRESET)
     
     st.markdown(f"#### Merged dataframe")
     st.write(df_merged)
     download_df(df_merged, label="Download merged df as CSV", file_name="df_docDB_queries.csv")
 
     # Multiselect for selecting queries up to three
-    query_keys = list(QUERY_PRESET.keys())
+    query_keys = [query["alias"] for query in QUERY_PRESET]
     selected_queries = st.multiselect(
         "Select queries to filter sessions",
         query_keys,
@@ -203,16 +214,6 @@ def app():
     columns_to_venn = selected_queries
     fig = venn(df_merged, columns_to_venn)
     st.columns([1, 1])[0].pyplot(fig, use_container_width=True)
-
-    # df = load_data_from_docDB()
-
-    # st.markdown(f'### Note: the dataframe showing here has been merged in to the master table on the Home page!')
-
-    # dynamic_filters = DynamicFilters(
-    #     df=df,
-    #     filters=['subject_id', 'subject_genotype'])
-    # dynamic_filters.display_filters()
-    # dynamic_filters.display_df()
 
 
 if __name__ == "__main__":
