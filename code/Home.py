@@ -532,32 +532,33 @@ def app():
         # with col1:
         # -- 1. unit dataframe --
         
-        cols = st.columns([2, 2, 4, 1])
+        cols = st.columns([2, 4, 1])
         cols[0].markdown(f'### Filter the sessions on the sidebar\n'
                          f'#####  {len(st.session_state.df_session_filtered)} sessions, '
                          f'{len(st.session_state.df_session_filtered.h2o.unique())} mice filtered')
-    
-        if_load_bpod_sessions = checkbox_wrapper_for_url_query(
-            st_prefix=cols[1],
-            label='Include old Bpod sessions (reload after change)',
-            key='if_load_bpod_sessions',
-            default=False,
-        )
-        
-        if_load_docDB = checkbox_wrapper_for_url_query(
-            st_prefix=cols[2],
-            label='Load metadata from docDB (reload after change)',
-            key='if_load_docDB',
-            default=False,
-        )
-                                                                   
-        with cols[1]:        
-            if st.button('  Reload data  ', type='primary'):
-                st.cache_data.clear()
-                init()
-                st.rerun()  
+        with cols[1]:
+            with st.form(key='load_settings', clear_on_submit=False):
+                if_load_bpod_sessions = checkbox_wrapper_for_url_query(
+                    st_prefix=st,
+                    label='Include old Bpod sessions (reload after change)',
+                    key='if_load_bpod_sessions',
+                    default=False,
+                )
+                if_load_docDB = checkbox_wrapper_for_url_query(
+                    st_prefix=st,
+                    label='Load metadata from docDB (reload after change)',
+                    key='if_load_docDB',
+                    default=False,
+                )
+                                                                    
+                submitted = st.form_submit_button("Reload data! 🔄", type='primary')
+                if submitted:
+                    st.cache_data.clear()
+                    sync_session_state_to_URL()
+                    init()
+                    st.rerun()  # Reload the page to apply the changes
               
-        table_height = slider_wrapper_for_url_query(st_prefix=cols[3],
+        table_height = slider_wrapper_for_url_query(st_prefix=cols[2],
                                                     label='Table height',
                                                     min_value=0,
                                                     max_value=2000,
