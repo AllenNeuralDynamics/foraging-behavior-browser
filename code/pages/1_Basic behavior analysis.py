@@ -377,6 +377,6 @@ def _plot_histograms(df, column, bins, use_kernel_smooth, use_density):
     return fig
 
 if "df" not in st.session_state or "sessions_bonsai" not in st.session_state.df.keys():
-    init(if_load_docDB=False)
+    init(if_load_docDB_override=False)
 
 app()
