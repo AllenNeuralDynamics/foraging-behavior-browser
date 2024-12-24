@@ -280,7 +280,7 @@ def show_curriculums():
     pass
 
 # ------- Layout starts here -------- #
-def init(if_load_docDB=True):
+def init(if_load_docDB_override=None):
     
     # Clear specific session state and all filters
     for key in st.session_state:
@@ -454,7 +454,14 @@ def init(if_load_docDB=True):
     
 
     # --- Load data from docDB ---
-    if if_load_docDB:
+    if_load_docDb = if_load_docDB_override if if_load_docDB_override is not None else (
+        st.query_params['if_load_docDB'].lower() == 'true'
+        if 'if_load_docDB' in st.query_params
+        else st.session_state.if_load_docDB 
+        if 'if_load_docDB' in st.session_state
+        else False)
+           
+    if if_load_docDb:
         _df = merge_in_df_docDB(_df)
         
         # add docDB_status column
@@ -534,6 +541,13 @@ def app():
             st_prefix=cols[1],
             label='Include old Bpod sessions (reload after change)',
             key='if_load_bpod_sessions',
+            default=False,
+        )
+        
+        if_load_docDB = checkbox_wrapper_for_url_query(
+            st_prefix=cols[2],
+            label='Load metadata from docDB (reload after change)',
+            key='if_load_docDB',
             default=False,
         )
                                                                    
