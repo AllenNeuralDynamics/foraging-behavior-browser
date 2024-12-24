@@ -5,6 +5,7 @@ import logging
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
+import json
 
 from matplotlib_venn import venn2, venn3
 import matplotlib.pyplot as plt
@@ -84,7 +85,6 @@ QUERY_PRESET = {
     }
 }
 
-@st.cache_data(ttl=3600 * 12)  # Cache the df_docDB up to 12 hours
 def query_sessions_from_docDB(query):
     return client.retrieve_docdb_records(
         filter_query=query,
@@ -94,8 +94,8 @@ def query_sessions_from_docDB(query):
             "rig.rig_id": 1,
             "session.experimenter_full_name": 1,
         },
+        paginate=False,
     )
-
 
 def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
     """ Download df as csv """
@@ -109,7 +109,6 @@ def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
         mime='text/csv'
     )
 
-@st.cache_data(ttl=3600 * 12)  # Cache the df_docDB up to 12 hours
 def query_single_query(key):
     """ Query a single query from QUERY_PRESET and process the result """
     query_result = query_sessions_from_docDB(QUERY_PRESET[key])
@@ -124,13 +123,13 @@ def query_single_query(key):
     
     return df
 
-
+@st.cache_data(ttl=3600 * 24)
 def get_merged_queries(queries_to_merge):
     """ Get merged queries from selected queries """
     
     dfs = []
-    progress_bar = st.progress(0, text="Querying docDB")
     
+    # Fetch data in parallel
     with ThreadPoolExecutor(max_workers=len(queries_to_merge)) as executor:
         future_to_query = {executor.submit(query_single_query, key): key for key in queries_to_merge}
         for i, future in enumerate(as_completed(future_to_query), 1):
@@ -139,19 +138,13 @@ def get_merged_queries(queries_to_merge):
                 df = future.result()
                 dfs.append(df)
             except Exception as e:
-                logging.error(f"Error querying {key}: {e}")
-            finally:
-                progress_bar.progress(i / len(queries_to_merge), text=f"Fetching  docDB ({i}/{len(queries_to_merge)})... {key} done!")           
+                print(f"Error querying {key}: {e}")
     
     # Combine queried dfs
     df_merged = dfs[0]
     for df in dfs[1:]:
         df_merged = df_merged.combine_first(df)  # Combine nwb_names
-    
-    st.markdown(f"#### Merged dataframe")
-    st.write(df_merged)
-    download_df(df_merged, label="Download merged df as CSV", file_name="df_docDB_queries.csv")
-    
+        
     return df_merged
 
 def venn(df, columns_to_venn):
@@ -178,11 +171,21 @@ def venn(df, columns_to_venn):
 def app():
 
     #
-    with st.expander("Show docDB queries", expanded=False):
-        st.write('See how to use these queries [here](https://aind-data-access-api.readthedocs.io/en/latest/UserGuide.html#document-database-docdb)')
+    with st.sidebar:
+        st.markdown('## docDB query presets ')
+        st.markdown('#### See how to use these queries [in this doc.](https://aind-data-access-api.readthedocs.io/en/latest/UserGuide.html#document-database-docdb)')
         for key, query in QUERY_PRESET.items():
             st.markdown(f"**{key}**")
-            st.code(query)
+            # Turn query to json with indent=4
+            query_json = json.dumps(query, indent=4)
+            st.code(query_json)
+
+    # Generate combined dataframe
+    df_merged = get_merged_queries(queries_to_merge=list(QUERY_PRESET.keys()))
+    
+    st.markdown(f"#### Merged dataframe")
+    st.write(df_merged)
+    download_df(df_merged, label="Download merged df as CSV", file_name="df_docDB_queries.csv")
 
     # Multiselect for selecting queries up to three
     query_keys = list(QUERY_PRESET.keys())
@@ -192,16 +195,8 @@ def app():
         default=query_keys[:3],
         key="selected_queries",
     )
-
-    # Generate combined dataframe
-    import time
-    start = time.time()
-    df_merged = get_merged_queries(queries_to_merge=QUERY_PRESET.keys())
-    st.write(f"Time taken to query and merge: {time.time() - start:.2f} seconds")
     
     columns_to_venn = selected_queries
-
-    # -- Show venn --
     fig = venn(df_merged, columns_to_venn)
     st.columns([1, 1])[0].pyplot(fig, use_container_width=True)
 
