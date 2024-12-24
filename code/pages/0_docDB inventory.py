@@ -185,20 +185,22 @@ def venn(df, columns_to_venn):
 
 def app():
 
-    #
+    # Generate combined dataframe
+    df_merged = get_merged_queries(queries_to_merge=QUERY_PRESET)
+    
+    # Sidebar
     with st.sidebar:
         st.markdown('## docDB query presets ')
         st.markdown('#### See how to use these queries [in this doc.](https://aind-data-access-api.readthedocs.io/en/latest/UserGuide.html#document-database-docdb)')
         for query in QUERY_PRESET:
-            with st.expander(f"{query['alias']}"):
+            results_this = df_merged[query["alias"]].sum()
+            with st.expander(f"n = {results_this}, {query['alias']}"):
                 # Turn query to json with indent=4
                 query_json = json.dumps(query["filter"], indent=4)
                 st.code(query_json)
 
-    # Generate combined dataframe
-    df_merged = get_merged_queries(queries_to_merge=QUERY_PRESET)
     
-    st.markdown(f"#### Merged dataframe")
+    st.markdown(f"#### Merged dataframe (n = {len(df_merged)})")
     st.write(df_merged)
     download_df(df_merged, label="Download merged df as CSV", file_name="df_docDB_queries.csv")
 
