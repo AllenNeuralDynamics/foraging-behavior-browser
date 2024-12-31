@@ -139,6 +139,8 @@ def fetch_single_query(key):
     df[key["alias"]] = True
     df = df.set_index(["subject_id", "session_date", "nwb_suffix"]).sort_index()
     
+    # Remove invalid subject_id
+    df = df[df.index.get_level_values("subject_id").astype(int) > 300000]
 
     # Get cases where one mouse has multiple records per day
     subject_date = df.index.to_frame(index=False)[["subject_id", "session_date"]]
