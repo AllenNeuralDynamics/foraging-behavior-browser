@@ -121,46 +121,60 @@ def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
         mime='text/csv'
     )
 
-def query_single_query(key):
-    """ Query a single query from QUERY_PRESET and process the result """
+def fetch_single_query(key):
+    """ Query a single query from QUERY_PRESET and process the result 
+    
+    Return: 
+    - df: the full dataframe
+    - df_multi_sessions_per_day: the dataframe with multiple sessions per day
+    
+    """
     query_result = query_sessions_from_docDB(key)
     df = pd.json_normalize(query_result)
-    
+
     # Create index that can be joined with other dfs and main df
     df[["subject_id", "session_date", "nwb_suffix"]] = df[f"name"].apply(
         lambda x: pd.Series(split_nwb_name(x))
     )
     df[key["alias"]] = True
-    df.set_index(["subject_id", "session_date", "nwb_suffix"], inplace=True)
+    df = df.set_index(["subject_id", "session_date", "nwb_suffix"]).sort_index()
     
-    return df
+
+    # Get cases where one mouse has multiple records per day
+    subject_date = df.index.to_frame(index=False)[["subject_id", "session_date"]]
+    df_multi_sessions_per_day = df[subject_date.duplicated(keep=False).values]
+
+    return df, df_multi_sessions_per_day
 
 @st.cache_data(ttl=3600 * 24)
-def get_merged_queries(queries_to_merge):
+def fetch_all_queries_from_docDB(queries_to_merge):
     """ Get merged queries from selected queries """
-    
-    dfs = []
-    
+
+    dfs = {}
+
     # Fetch data in parallel
     with ThreadPoolExecutor(max_workers=len(queries_to_merge)) as executor:
-        future_to_query = {executor.submit(query_single_query, key): key for key in queries_to_merge}
+        future_to_query = {executor.submit(fetch_single_query, key): key for key in queries_to_merge}
         for i, future in enumerate(as_completed(future_to_query), 1):
             key = future_to_query[future]
             try:
-                df = future.result()
-                dfs.append(df)
+                df, df_multi_sessions_per_day = future.result()
+                dfs[key["alias"]] = {
+                    "df": df,
+                    "df_multi_sessions_per_day": df_multi_sessions_per_day,
+                }
             except Exception as e:
                 print(f"Error querying {key}: {e}")
-    
+
     # Combine queried dfs
-    df_merged = dfs[0]
-    for df in dfs[1:]:
+    df_merged = dfs[queries_to_merge[0]["alias"]]["df"]
+    for df in [dfs[query["alias"]]["df"] for query in queries_to_merge[1:]]:
         df_merged = df_merged.combine_first(df)  # Combine nwb_names
-    
+
     # Recover the order of QUERY_PRESET
     df_merged = df_merged.reindex(columns=[query["alias"] for query in queries_to_merge])
-        
-    return df_merged
+
+    return df_merged, dfs
 
 def venn(df, columns_to_venn):
     """ Show venn diagram """
@@ -186,7 +200,7 @@ def venn(df, columns_to_venn):
 def app():
 
     # Generate combined dataframe
-    df_merged = get_merged_queries(queries_to_merge=QUERY_PRESET)
+    df_merged, dfs = fetch_all_queries_from_docDB(queries_to_merge=QUERY_PRESET)
     
     # Sidebar
     with st.sidebar:
