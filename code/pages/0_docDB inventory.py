@@ -51,50 +51,50 @@ QUERY_PRESET = [
          "session.data_streams.software.name": "dynamic-foraging-task",
          "name": {"$not": {"$regex": ".*processed.*"}},
      }},
-    # {"alias": "{raw, 'dynamic_foraging' in stimulus_epochs software name}",
-    #  "filter": {
-    #      "session.stimulus_epochs.software.name": "dynamic-foraging-task",            
-    #      "name": {"$not": {"$regex": ".*processed.*"}},
-    #  }},
-    # {"alias": "{raw, 'fib' in 'data_description.modality'}",
-    #  "filter": {
-    #      "data_description.modality.abbreviation": "fib",
-    #      "name": {"$not": {"$regex": ".*processed.*"}},
-    #  }},
-    # {"alias": "{raw, 'fib' in 'rig.modalities'}",
-    #  "filter": {
-    #      "rig.modalities.abbreviation": "fib",
-    #      "name": {"$not": {"$regex": ".*processed.*"}},        
-    #  }},
-    # {"alias": "{raw, 'fib' in 'session.data_streams'}",
-    #  "filter": {
-    #      "session.data_streams.stream_modalities.abbreviation": "fib",
-    #      "name": {"$not": {"$regex": ".*processed.*"}},
-    #  }},
-    # {"alias": "{raw, ('dynamic_foraging' in ANY software name) AND ('ecephys' in data_description.modality)}",
-    #  "filter": {
-    #      "$or":[
-    #          {"session.data_streams.software.name": "dynamic-foraging-task"},
-    #          {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
-    #      ],
-    #      "data_description.modality.abbreviation": "ecephys",
-    #      "name": {"$not": {"$regex": ".*processed.*"}},        
-    #  }},
-    # {"alias": "{raw, 'FIP' in name}",
-    #  "filter": {
-    #     "name": {
-    #         "$regex": "^FIP.*",
-    #         "$not": {"$regex": ".*processed.*"}
-    #     }
-    # }},
-    # {"alias": "{processed, 'dynamic_foraging' in ANY software name}",
-    #  "filter": {
-    #      "$or":[
-    #          {"session.data_streams.software.name": "dynamic-foraging-task"},
-    #          {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
-    #      ],
-    #      "name": {"$regex": ".*processed.*"},
-    #  }},
+    {"alias": "{raw, 'dynamic_foraging' in stimulus_epochs software name}",
+     "filter": {
+         "session.stimulus_epochs.software.name": "dynamic-foraging-task",            
+         "name": {"$not": {"$regex": ".*processed.*"}},
+     }},
+    {"alias": "{raw, 'fib' in 'data_description.modality'}",
+     "filter": {
+         "data_description.modality.abbreviation": "fib",
+         "name": {"$not": {"$regex": ".*processed.*"}},
+     }},
+    {"alias": "{raw, 'fib' in 'rig.modalities'}",
+     "filter": {
+         "rig.modalities.abbreviation": "fib",
+         "name": {"$not": {"$regex": ".*processed.*"}},        
+     }},
+    {"alias": "{raw, 'fib' in 'session.data_streams'}",
+     "filter": {
+         "session.data_streams.stream_modalities.abbreviation": "fib",
+         "name": {"$not": {"$regex": ".*processed.*"}},
+     }},
+    {"alias": "{raw, ('dynamic_foraging' in ANY software name) AND ('ecephys' in data_description.modality)}",
+     "filter": {
+         "$or":[
+             {"session.data_streams.software.name": "dynamic-foraging-task"},
+             {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
+         ],
+         "data_description.modality.abbreviation": "ecephys",
+         "name": {"$not": {"$regex": ".*processed.*"}},        
+     }},
+    {"alias": "{raw, 'FIP' in name}",
+     "filter": {
+        "name": {
+            "$regex": "^FIP.*",
+            "$not": {"$regex": ".*processed.*"}
+        }
+    }},
+    {"alias": "{processed, 'dynamic_foraging' in ANY software name}",
+     "filter": {
+         "$or":[
+             {"session.data_streams.software.name": "dynamic-foraging-task"},
+             {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
+         ],
+         "name": {"$regex": ".*processed.*"},
+     }},
 ]
 
 def query_sessions_from_docDB(query):
@@ -193,7 +193,6 @@ def fetch_all_queries_from_docDB(queries_to_merge):
         ]
         + query_cols
     ) 
-
     return df_merged, dfs
 
 def venn(df, columns_to_venn):
