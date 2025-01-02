@@ -51,50 +51,50 @@ QUERY_PRESET = [
          "session.data_streams.software.name": "dynamic-foraging-task",
          "name": {"$not": {"$regex": ".*processed.*"}},
      }},
-    {"alias": "{raw, 'dynamic_foraging' in stimulus_epochs software name}",
-     "filter": {
-         "session.stimulus_epochs.software.name": "dynamic-foraging-task",            
-         "name": {"$not": {"$regex": ".*processed.*"}},
-     }},
-    {"alias": "{raw, 'fib' in 'data_description.modality'}",
-     "filter": {
-         "data_description.modality.abbreviation": "fib",
-         "name": {"$not": {"$regex": ".*processed.*"}},
-     }},
-    {"alias": "{raw, 'fib' in 'rig.modalities'}",
-     "filter": {
-         "rig.modalities.abbreviation": "fib",
-         "name": {"$not": {"$regex": ".*processed.*"}},        
-     }},
-    {"alias": "{raw, 'fib' in 'session.data_streams'}",
-     "filter": {
-         "session.data_streams.stream_modalities.abbreviation": "fib",
-         "name": {"$not": {"$regex": ".*processed.*"}},
-     }},
-    {"alias": "{raw, ('dynamic_foraging' in ANY software name) AND ('ecephys' in data_description.modality)}",
-     "filter": {
-         "$or":[
-             {"session.data_streams.software.name": "dynamic-foraging-task"},
-             {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
-         ],
-         "data_description.modality.abbreviation": "ecephys",
-         "name": {"$not": {"$regex": ".*processed.*"}},        
-     }},
-    {"alias": "{raw, 'FIP' in name}",
-     "filter": {
-        "name": {
-            "$regex": "^FIP.*",
-            "$not": {"$regex": ".*processed.*"}
-        }
-    }},
-    {"alias": "{processed, 'dynamic_foraging' in ANY software name}",
-     "filter": {
-         "$or":[
-             {"session.data_streams.software.name": "dynamic-foraging-task"},
-             {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
-         ],
-         "name": {"$regex": ".*processed.*"},
-     }},
+    # {"alias": "{raw, 'dynamic_foraging' in stimulus_epochs software name}",
+    #  "filter": {
+    #      "session.stimulus_epochs.software.name": "dynamic-foraging-task",            
+    #      "name": {"$not": {"$regex": ".*processed.*"}},
+    #  }},
+    # {"alias": "{raw, 'fib' in 'data_description.modality'}",
+    #  "filter": {
+    #      "data_description.modality.abbreviation": "fib",
+    #      "name": {"$not": {"$regex": ".*processed.*"}},
+    #  }},
+    # {"alias": "{raw, 'fib' in 'rig.modalities'}",
+    #  "filter": {
+    #      "rig.modalities.abbreviation": "fib",
+    #      "name": {"$not": {"$regex": ".*processed.*"}},        
+    #  }},
+    # {"alias": "{raw, 'fib' in 'session.data_streams'}",
+    #  "filter": {
+    #      "session.data_streams.stream_modalities.abbreviation": "fib",
+    #      "name": {"$not": {"$regex": ".*processed.*"}},
+    #  }},
+    # {"alias": "{raw, ('dynamic_foraging' in ANY software name) AND ('ecephys' in data_description.modality)}",
+    #  "filter": {
+    #      "$or":[
+    #          {"session.data_streams.software.name": "dynamic-foraging-task"},
+    #          {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
+    #      ],
+    #      "data_description.modality.abbreviation": "ecephys",
+    #      "name": {"$not": {"$regex": ".*processed.*"}},        
+    #  }},
+    # {"alias": "{raw, 'FIP' in name}",
+    #  "filter": {
+    #     "name": {
+    #         "$regex": "^FIP.*",
+    #         "$not": {"$regex": ".*processed.*"}
+    #     }
+    # }},
+    # {"alias": "{processed, 'dynamic_foraging' in ANY software name}",
+    #  "filter": {
+    #      "$or":[
+    #          {"session.data_streams.software.name": "dynamic-foraging-task"},
+    #          {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
+    #      ],
+    #      "name": {"$regex": ".*processed.*"},
+    #  }},
 ]
 
 def query_sessions_from_docDB(query):
@@ -145,8 +145,15 @@ def fetch_single_query(key):
     # Get cases where one mouse has multiple records per day
     subject_date = df.index.to_frame(index=False)[["subject_id", "session_date"]]
     df_multi_sessions_per_day = df[subject_date.duplicated(keep=False).values]
+    
+    # Create a new column to mark duplicates
+    df.loc[df_multi_sessions_per_day.index, "multiple_sessions_per_day"] = True
+    
+    # Also return a dataframe that removes duplicates (only keep subject_id and session_date as indices)
+    df_removed_multi_sessions_per_day = df[~subject_date.duplicated(keep="last").values]
+    df_removed_multi_sessions_per_day
 
-    return df, df_multi_sessions_per_day
+    return df, df_multi_sessions_per_day, df_removed_multi_sessions_per_day
 
 @st.cache_data(ttl=3600 * 24)
 def fetch_all_queries_from_docDB(queries_to_merge):
@@ -173,8 +180,8 @@ def fetch_all_queries_from_docDB(queries_to_merge):
     for df in [dfs[query["alias"]]["df"] for query in queries_to_merge[1:]]:
         df_merged = df_merged.combine_first(df)  # Combine nwb_names
 
-    # Recover the order of QUERY_PRESET
-    df_merged = df_merged.reindex(columns=[query["alias"] for query in queries_to_merge])
+    # Recover the column order of QUERY_PRESET
+    # df_merged = df_merged.reindex(columns=[query["alias"] for query in queries_to_merge])
 
     return df_merged, dfs
 
@@ -203,19 +210,30 @@ def app():
 
     # Generate combined dataframe
     df_merged, dfs = fetch_all_queries_from_docDB(queries_to_merge=QUERY_PRESET)
-    
+
     # Sidebar
     with st.sidebar:
         st.markdown('## docDB query presets ')
         st.markdown('#### See how to use these queries [in this doc.](https://aind-data-access-api.readthedocs.io/en/latest/UserGuide.html#document-database-docdb)')
         for query in QUERY_PRESET:
-            results_this = df_merged[query["alias"]].sum()
-            with st.expander(f"n = {results_this}, {query['alias']}"):
+            with st.expander(f"{query['alias']}"):
                 # Turn query to json with indent=4
                 query_json = json.dumps(query["filter"], indent=4)
                 st.code(query_json)
 
-    
+                # Show records
+                df = dfs[query["alias"]]["df"]
+                n_records = df_merged[query["alias"]].sum()
+
+                n_multiple_sessions_per_day = len(
+                    dfs[query["alias"]]["df_multi_sessions_per_day"].index.droplevel("nwb_suffix").unique()
+                )
+                st.markdown(
+                    f"{n_records} from merged, {len(df)} from df, {n_multiple_sessions_per_day} has multiple sessions per day"
+                )
+
+                
+
     st.markdown(f"#### Merged dataframe (n = {len(df_merged)})")
     st.write(df_merged)
     download_df(df_merged, label="Download merged df as CSV", file_name="df_docDB_queries.csv")
@@ -228,7 +246,7 @@ def app():
         default=query_keys[:3],
         key="selected_queries",
     )
-    
+
     columns_to_venn = selected_queries
     fig = venn(df_merged, columns_to_venn)
     st.columns([1, 1])[0].pyplot(fig, use_container_width=True)
