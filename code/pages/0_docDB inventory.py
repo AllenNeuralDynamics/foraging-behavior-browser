@@ -127,7 +127,7 @@ def fetch_single_query(key):
     Return: 
     - df: the full dataframe
     - df_multi_sessions_per_day: the dataframe with multiple sessions per day
-    
+    - df_unique_mouse_date: the dataframe with multiple sessions per day combined
     """
     query_result = query_sessions_from_docDB(key)
     df = pd.json_normalize(query_result)
@@ -138,22 +138,26 @@ def fetch_single_query(key):
     )
     df[key["alias"]] = True
     df = df.set_index(["subject_id", "session_date", "nwb_suffix"]).sort_index()
-    
+
     # Remove invalid subject_id
     df = df[df.index.get_level_values("subject_id").astype(int) > 300000]
 
     # Get cases where one mouse has multiple records per day
     subject_date = df.index.to_frame(index=False)[["subject_id", "session_date"]]
     df_multi_sessions_per_day = df[subject_date.duplicated(keep=False).values]
-    
+
     # Create a new column to mark duplicates
     df.loc[df_multi_sessions_per_day.index, "multiple_sessions_per_day"] = True
-    
-    # Also return a dataframe that removes duplicates (only keep subject_id and session_date as indices)
-    df_removed_multi_sessions_per_day = df[~subject_date.duplicated(keep="last").values]
-    df_removed_multi_sessions_per_day
 
-    return df, df_multi_sessions_per_day, df_removed_multi_sessions_per_day
+    # Also return a dataframe with unique mouse-dates,
+    # i.e.,  multiple sessions per day are combined in a list of 'name'
+    df_unique_mouse_date = (
+        df.reset_index()
+        .groupby(["subject_id", "session_date"])
+        .agg({"name": list, **{col: "first" for col in df.columns if col != "name"}})
+    )
+
+    return df, df_multi_sessions_per_day, df_unique_mouse_date
 
 @st.cache_data(ttl=3600 * 24)
 def fetch_all_queries_from_docDB(queries_to_merge):
@@ -167,21 +171,28 @@ def fetch_all_queries_from_docDB(queries_to_merge):
         for i, future in enumerate(as_completed(future_to_query), 1):
             key = future_to_query[future]
             try:
-                df, df_multi_sessions_per_day = future.result()
+                df, df_multi_sessions_per_day, df_unique_mouse_date = future.result()
                 dfs[key["alias"]] = {
                     "df": df,
                     "df_multi_sessions_per_day": df_multi_sessions_per_day,
+                    "df_unique_mouse_date": df_unique_mouse_date,
                 }
             except Exception as e:
                 print(f"Error querying {key}: {e}")
 
-    # Combine queried dfs
-    df_merged = dfs[queries_to_merge[0]["alias"]]["df"]
-    for df in [dfs[query["alias"]]["df"] for query in queries_to_merge[1:]]:
+    # Combine queried dfs using df_unique_mouse_date (on index "subject_id", "session_date" only)
+    df_merged = dfs[queries_to_merge[0]["alias"]]["df_unique_mouse_date"]
+    for df in [dfs[query["alias"]]["df_unique_mouse_date"] for query in queries_to_merge[1:]]:
         df_merged = df_merged.combine_first(df)  # Combine nwb_names
 
     # Recover the column order of QUERY_PRESET
-    # df_merged = df_merged.reindex(columns=[query["alias"] for query in queries_to_merge])
+    query_cols = [query["alias"] for query in queries_to_merge]
+    df_merged = df_merged.reindex(
+        columns=[
+            other_col for other_col in df_merged.columns if other_col not in query_cols
+        ]
+        + query_cols
+    ) 
 
     return df_merged, dfs
 
@@ -223,16 +234,37 @@ def app():
 
                 # Show records
                 df = dfs[query["alias"]]["df"]
-                n_records = df_merged[query["alias"]].sum()
+                df_multi_sessions_per_day = dfs[query["alias"]]["df_multi_sessions_per_day"]
+                df_unique_mouse_date = dfs[query["alias"]]["df_unique_mouse_date"]
 
-                n_multiple_sessions_per_day = len(
-                    dfs[query["alias"]]["df_multi_sessions_per_day"].index.droplevel("nwb_suffix").unique()
-                )
-                st.markdown(
-                    f"{n_records} from merged, {len(df)} from df, {n_multiple_sessions_per_day} has multiple sessions per day"
-                )
+                cols = st.columns([2, 1])
+                cols[0].markdown(f"{len(df)} returned")
+                with cols[1]:
+                    download_df(df, label="Download as CSV", file_name=f"{query['alias']}.csv")
 
-                
+                cols = st.columns([2, 1])
+                cols[0].markdown(
+                    f"{df_unique_mouse_date.multiple_sessions_per_day.sum()} have multiple sessions per day")
+                with cols[1]:
+                    download_df(
+                        df_multi_sessions_per_day,
+                        label="Download as CSV",
+                        file_name=f"{query['alias']}_multi_sessions_per_day.csv",
+                    )
+
+                cols = st.columns([2, 1])
+                cols[0].markdown(
+                    f"{len(df_unique_mouse_date)} unique mouse-date pairs"
+                )
+                with cols[1]:
+                    download_df(
+                        df_unique_mouse_date,
+                        label="Download as CSV",
+                        file_name=f"{query['alias']}_unique_mouse_date.csv",
+                    )
+
+                if len(df_unique_mouse_date) != df_merged[query["alias"]].sum():
+                    st.warning('''len(df_unique_mouse_date) != df_merged[query["alias"]].sum()!''')
 
     st.markdown(f"#### Merged dataframe (n = {len(df_merged)})")
     st.write(df_merged)
