@@ -33,7 +33,7 @@ from util.settings import (draw_type_layout_definition,
 from util.streamlit import (_plot_population_x_y, add_auto_train_manager,
                             add_dot_property_mapper, add_session_filter,
                             add_xy_selector, add_xy_setting,
-                            aggrid_interactive_table_curriculum,
+                            aggrid_interactive_table_basic,
                             aggrid_interactive_table_session, data_selector,
                             add_footnote)
 from util.url_query_helper import (checkbox_wrapper_for_url_query,
@@ -745,7 +745,7 @@ def app():
                     pre_selected_rows = None
             
             # Show df_curriculum       
-            aggrid_interactive_table_curriculum(df=df_curriculums,
+            aggrid_interactive_table_basic(df=df_curriculums,
                                                 pre_selected_rows=pre_selected_rows)        
 
             

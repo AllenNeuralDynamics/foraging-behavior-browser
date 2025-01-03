@@ -106,8 +106,9 @@ def aggrid_interactive_table_session(df: pd.DataFrame, table_height: int = 400):
     
     return selection
 
-def aggrid_interactive_table_curriculum(df: pd.DataFrame,
-                                        pre_selected_rows: list = None):
+def aggrid_interactive_table_basic(df: pd.DataFrame,
+                                   height: int = 200,
+                                   pre_selected_rows: list = None):
     """Creates an st-aggrid interactive table based on a dataframe.
 
     Args:
@@ -121,10 +122,9 @@ def aggrid_interactive_table_curriculum(df: pd.DataFrame,
     )
 
     options.configure_side_bar()
-    
     options.configure_selection(selection_mode=None,
                                 pre_selected_rows=pre_selected_rows)
-        
+
     selection = AgGrid(
         df,
         enable_enterprise_modules=True,
@@ -132,11 +132,10 @@ def aggrid_interactive_table_curriculum(df: pd.DataFrame,
         theme="balham",
         update_mode=GridUpdateMode.NO_UPDATE,
         allow_unsafe_jscode=True,
-        height=200,
+        height=height,
         columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
         custom_css=custom_css,
     )
-    
     return selection
 
 def aggrid_interactive_table_units(df: pd.DataFrame):

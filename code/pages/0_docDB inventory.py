@@ -12,6 +12,7 @@ import pandas as pd
 import time
 import streamlit_nested_layout
 
+from util.streamlit import aggrid_interactive_table_basic
 from util.fetch_data_docDB import load_data_from_docDB, load_client
 from util.reformat import split_nwb_name
 
@@ -244,8 +245,9 @@ def app():
 
     # Sidebar
     with st.sidebar:
-        st.markdown('## docDB query presets ')
-        st.markdown('#### See how to use these queries [in this doc.](https://aind-data-access-api.readthedocs.io/en/latest/UserGuide.html#document-database-docdb)')
+        st.markdown('# Data sources:')
+        st.markdown('## 1. From docDB queries')
+        st.markdown('#### See [how to use these queries](https://aind-data-access-api.readthedocs.io/en/latest/UserGuide.html#document-database-docdb) in your own code.')
         for query in QUERY_PRESET:
             with st.expander(f"### {query['alias']}"):
             
@@ -284,10 +286,14 @@ def app():
                     
         st.markdown(f"Retrieving data took {time.time() - start_time} secs")
 
+    # --- Main contents ---
+    st.markdown(f"# Data inventory for dynamic foraging")
+    cols = st.columns([1, 5])
+    cols[0].markdown(f"### Merged dataframe (n = {len(df_merged)})")
+    with cols[1]:
+        download_df(df_merged, label="Download merged df as CSV", file_name="df_docDB_queries.csv")
 
-    st.markdown(f"#### Merged dataframe (n = {len(df_merged)})")
-    st.write(df_merged)
-    download_df(df_merged, label="Download merged df as CSV", file_name="df_docDB_queries.csv")
+    aggrid_interactive_table_basic(df_merged.reset_index(), height=400)
 
     # Multiselect for selecting queries up to three
     query_keys = [query["alias"] for query in QUERY_PRESET]
