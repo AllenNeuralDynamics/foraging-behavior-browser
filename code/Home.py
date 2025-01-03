@@ -377,6 +377,10 @@ def init(if_load_docDB_override=None):
     _df.dropna(subset=['session'], inplace=True) # Remove rows with no session number (only leave the nwb file with the largest finished_trials for now)
     _df.drop(_df.query('session < 1').index, inplace=True)
     
+    # Remove invalid subject_id
+    _df = _df[(999999 > _df["subject_id"].astype(int)) 
+              & (_df["subject_id"].astype(int) > 300000)]
+    
     # Remove abnormal values
     _df.loc[_df['weight_after'] > 100, 
             ['weight_after', 'weight_after_ratio', 'water_in_session_total', 'water_after_session', 'water_day_total']
