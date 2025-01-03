@@ -246,7 +246,7 @@ def venn(df, columns_to_venn):
 def add_sidebar(dfs, df_merged, docDB_retrieve_time, df_Han_pipeline):
     # Sidebar
     with st.sidebar:
-        st.markdown('# Data sources:')
+        st.markdown('# Metadata sources:')
 
         st.markdown('## 1. From docDB queries')
         st.markdown('#### See [how to use these queries](https://aind-data-access-api.readthedocs.io/en/latest/UserGuide.html#document-database-docdb) in your own code.')
