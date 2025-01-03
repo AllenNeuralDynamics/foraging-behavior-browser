@@ -294,11 +294,22 @@ def app():
     docDB_retrieve_time = time.time() - start_time
 
     # --- Merge in the master df in the Home page (Han's temporary pipeline) ---
+    # Data from Home.init (all sessions from Janelia bpod + AIND bpod + AIND bonsai)
+    df_from_Home = st.session_state.df["sessions_bonsai"]
+    # Only keep AIND sessions
+    df_from_Home = df_from_Home.query("institute == 'AIND'")
+    df_from_Home.loc[df_from_Home.hardware == "bpod", "Han_temp_pipeline (bpod)"] = True
+    df_from_Home.loc[df_from_Home.hardware == "bonsai", "Han_temp_pipeline (bonsai)"] = True
+
     # Only keep subject_id and session_date as index
-    Han_mouse_dates = st.session_state.df["sessions_bonsai"].set_index(["subject_id", "session_date"]).index
-    df_Han_pipeline = pd.DataFrame(index=Han_mouse_dates)
-    df_Han_pipeline["Han_temp_pipeline"] = True
-    df_Han_pipeline["multiple_sessions_per_day_in_docDB"] = np.nan
+    df_Han_pipeline = df_from_Home[
+        [
+            "subject_id",
+            "session_date",
+            "Han_temp_pipeline (bpod)",
+            "Han_temp_pipeline (bonsai)",
+        ]
+    ].set_index(["subject_id", "session_date"])
 
     # Merged with df_merged
     df_merged = df_merged.combine_first(df_Han_pipeline) 
@@ -343,6 +354,6 @@ if __name__ == "__main__":
     
     # Share the same master df as the Home page
     if "df" not in st.session_state or "sessions_bonsai" not in st.session_state.df.keys():
-        init(if_load_docDB_override=False)
+        init(if_load_docDB_override=False, if_load_bpod_data_override=True)
 
     app()

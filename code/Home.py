@@ -280,7 +280,7 @@ def show_curriculums():
     pass
 
 # ------- Layout starts here -------- #
-def init(if_load_docDB_override=None):
+def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     
     # Clear specific session state and all filters
     for key in st.session_state:
@@ -296,11 +296,14 @@ def init(if_load_docDB_override=None):
     # Because sync_URL_to_session_state() needs df to be loaded (for dynamic column filtering),
     # 'if_load_bpod_sessions' has not been synced from URL to session state yet.
     # So here we need to manually get it from URL or session state.
-    if (st.query_params['if_load_bpod_sessions'].lower() == 'true'
+    _if_load_bpod = if_load_bpod_data_override if if_load_bpod_data_override is not None else (
+        st.query_params['if_load_bpod_sessions'].lower() == 'true'
         if 'if_load_bpod_sessions' in st.query_params
         else st.session_state.if_load_bpod_sessions 
         if 'if_load_bpod_sessions' in st.session_state
-        else False):
+        else False)
+    
+    if _if_load_bpod:
         df_bpod = load_data(['sessions'], data_source='bpod')
         
         # For historial reason, the suffix of df['sessions_bonsai'] just mean the data of the Home.py page
