@@ -108,7 +108,8 @@ def aggrid_interactive_table_session(df: pd.DataFrame, table_height: int = 400):
 
 def aggrid_interactive_table_basic(df: pd.DataFrame,
                                    height: int = 200,
-                                   pre_selected_rows: list = None):
+                                   pre_selected_rows: list = None,
+                                   configure_columns: list = None,):
     """Creates an st-aggrid interactive table based on a dataframe.
 
     Args:
@@ -124,6 +125,10 @@ def aggrid_interactive_table_basic(df: pd.DataFrame,
     options.configure_side_bar()
     options.configure_selection(selection_mode=None,
                                 pre_selected_rows=pre_selected_rows)
+
+    if configure_columns:
+        for col in configure_columns:
+            options.configure_column(**col)
 
     selection = AgGrid(
         df,

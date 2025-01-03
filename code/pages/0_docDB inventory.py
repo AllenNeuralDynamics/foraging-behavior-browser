@@ -15,6 +15,8 @@ import streamlit_nested_layout
 from util.streamlit import aggrid_interactive_table_basic
 from util.fetch_data_docDB import load_data_from_docDB, load_client
 from util.reformat import split_nwb_name
+from Home import init
+
 
 try:
     st.set_page_config(layout="wide", 
@@ -140,11 +142,13 @@ def fetch_single_query(query):
     df[["subject_id", "session_date", "nwb_suffix"]] = df[f"name"].apply(
         lambda x: pd.Series(split_nwb_name(x))
     )
+    df["session_date"] = pd.to_datetime(df["session_date"])
     df = df.set_index(["subject_id", "session_date", "nwb_suffix"]).sort_index()
     df[query["alias"]] = True  # Add a column to mark the query
 
     # Remove invalid subject_id
-    df = df[df.index.get_level_values("subject_id").astype(int) > 300000]
+    df = df[(df.index.get_level_values("subject_id").astype(int) > 300000) 
+            & (df.index.get_level_values("subject_id").astype(int) < 999999)]
 
     # --- Handle multiple sessions per day ---
     # Build a dataframe with unique mouse-dates.
@@ -236,7 +240,7 @@ def venn(df, columns_to_venn):
         )
     return fig
 
-def add_sidebar(dfs, df_merged, data_retrieve_time):
+def add_sidebar(dfs, df_merged, docDB_retrieve_time):
     # Sidebar
     with st.sidebar:
         st.markdown('# Data sources:')
@@ -278,18 +282,25 @@ def add_sidebar(dfs, df_merged, data_retrieve_time):
             if len(df_unique_mouse_date) != df_merged[query["alias"]].sum():
                 st.warning('''len(df_unique_mouse_date) != df_merged[query["alias"]].sum()!''')
                 
-        st.markdown(f"Retrieving data from docDB (or st.cache) took {data_retrieve_time:.3f} secs.")
+        st.markdown(f"Retrieving data from docDB (or st.cache) took {docDB_retrieve_time:.3f} secs.")
 
-                    
+
 def app():
 
     # --- Generate combined dataframe from docDB ---
     start_time = time.time()
     df_merged, dfs = fetch_all_queries_from_docDB(queries_to_merge=QUERY_PRESET)
-    data_retrieve_time = time.time() - start_time
-    
+    docDB_retrieve_time = time.time() - start_time
+
+    # --- Merge in the master df in the Home page (Han's temporary pipeline) ---
+    # Only keep subject_id and session_date as index
+    Han_mouse_dates = st.session_state.df["sessions_bonsai"].set_index(["subject_id", "session_date"]).index
+    df_Han_pipeline = pd.DataFrame(index=Han_mouse_dates, columns=["Han_temp_pipeline"], data=True)
+    # Merged with df_merged
+    df_merged = df_merged.combine_first(df_Han_pipeline) 
+
     # --- Add sidebar ---
-    add_sidebar(dfs, df_merged, data_retrieve_time)
+    add_sidebar(dfs, df_merged, docDB_retrieve_time)
 
     # --- Main contents ---
     st.markdown(f"# Data inventory for dynamic foraging")
@@ -298,7 +309,17 @@ def app():
     with cols[1]:
         download_df(df_merged, label="Download merged df as CSV", file_name="df_docDB_queries.csv")
 
-    aggrid_interactive_table_basic(df_merged.reset_index(), height=400)
+    aggrid_interactive_table_basic(
+        df_merged.reset_index(),
+        height=400,
+        configure_columns=[
+            dict(
+                field="session_date",
+                type=["customDateTimeFormat"],
+                custom_format_string="yyyy-MM-dd",
+            )
+        ],
+    )
 
     # Multiselect for selecting queries up to three
     query_keys = [query["alias"] for query in QUERY_PRESET]
@@ -315,4 +336,9 @@ def app():
 
 
 if __name__ == "__main__":
+    
+    # Share the same master df as the Home page
+    if "df" not in st.session_state or "sessions_bonsai" not in st.session_state.df.keys():
+        init(if_load_docDB_override=False)
+
     app()
