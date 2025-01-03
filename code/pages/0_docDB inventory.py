@@ -243,15 +243,16 @@ def venn(df, columns_to_venn):
         )
     return fig
 
-def add_sidebar(dfs, df_merged, docDB_retrieve_time):
+def add_sidebar(dfs, df_merged, docDB_retrieve_time, df_Han_pipeline):
     # Sidebar
     with st.sidebar:
         st.markdown('# Data sources:')
+
         st.markdown('## 1. From docDB queries')
         st.markdown('#### See [how to use these queries](https://aind-data-access-api.readthedocs.io/en/latest/UserGuide.html#document-database-docdb) in your own code.')
         for query in QUERY_PRESET:
             with st.expander(f"### {query['alias']}"):
-            
+
                 # Turn query to json with indent=4
                 # with st.expander("Show docDB query"):
                 query_json = json.dumps(query["filter"], indent=4)
@@ -273,7 +274,7 @@ def add_sidebar(dfs, df_merged, docDB_retrieve_time):
                         file_name=f"{query['alias']}_multi_sessions_per_day.csv",
                     )
                     st.write(df_multi_sessions_per_day)
-                
+
                 with st.expander(f"{len(df_unique_mouse_date)} unique mouse-date pairs"):
                     download_df(
                         df_unique_mouse_date,
@@ -284,8 +285,21 @@ def add_sidebar(dfs, df_merged, docDB_retrieve_time):
 
             if len(df_unique_mouse_date) != df_merged[query["alias"]].sum():
                 st.warning('''len(df_unique_mouse_date) != df_merged[query["alias"]].sum()!''')
-                
         st.markdown(f"Retrieving data from docDB (or st.cache) took {docDB_retrieve_time:.3f} secs.")
+
+        st.markdown('''## 2. From Han's temporary pipeline (the "Home" page)''')
+        hardwares = ["bonsai", "bpod"]
+        for hardware in hardwares:
+            df_this_hardware = df_Han_pipeline[
+                df_Han_pipeline[f"Han_temp_pipeline ({hardware})"].notnull()
+            ]
+            with st.expander(f"### {len(df_this_hardware)} {hardware} sessions"):
+                download_df(
+                    df_this_hardware,
+                    label="Download as CSV",
+                    file_name=f"Han_temp_pipeline_{hardware}.csv",
+                )
+                st.write(df_this_hardware)
 
 
 def app():
@@ -317,7 +331,7 @@ def app():
     df_merged = df_merged.combine_first(df_Han_pipeline) 
 
     # --- Add sidebar ---
-    add_sidebar(dfs, df_merged, docDB_retrieve_time)
+    add_sidebar(dfs, df_merged, docDB_retrieve_time, df_Han_pipeline)
 
     # --- Main contents ---
     st.markdown(f"# Data inventory for dynamic foraging")
