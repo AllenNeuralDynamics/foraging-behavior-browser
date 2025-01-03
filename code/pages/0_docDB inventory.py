@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import streamlit as st
 from streamlit_dynamic_filters import DynamicFilters
 import pandas as pd
+import numpy as np
 import time
 import streamlit_nested_layout
 
@@ -159,17 +160,17 @@ def fetch_single_query(query):
         .agg({"name": list, **{col: "first" for col in df.columns if col != "name"}})
     )
     # Add a new column to indicate multiple sessions per day
-    df_unique_mouse_date["multiple_sessions_per_day"] = df_unique_mouse_date["name"].apply(
+    df_unique_mouse_date["multiple_sessions_per_day_in_docDB"] = df_unique_mouse_date["name"].apply(
         lambda x: len(x) > 1
     )
 
     # Also return the dataframe with multiple sessions per day
-    df_multi_sessions_per_day = df_unique_mouse_date[df_unique_mouse_date["multiple_sessions_per_day"]]
+    df_multi_sessions_per_day = df_unique_mouse_date[df_unique_mouse_date["multiple_sessions_per_day_in_docDB"]]
 
     # Create a new column to mark duplicates in the original df
     df.loc[
         df.index.droplevel("nwb_suffix").isin(df_multi_sessions_per_day.index), 
-        "multiple_sessions_per_day"
+        "multiple_sessions_per_day_in_docDB"
     ] = True
 
     print(f"Done querying {query['alias']}!")
@@ -295,7 +296,10 @@ def app():
     # --- Merge in the master df in the Home page (Han's temporary pipeline) ---
     # Only keep subject_id and session_date as index
     Han_mouse_dates = st.session_state.df["sessions_bonsai"].set_index(["subject_id", "session_date"]).index
-    df_Han_pipeline = pd.DataFrame(index=Han_mouse_dates, columns=["Han_temp_pipeline"], data=True)
+    df_Han_pipeline = pd.DataFrame(index=Han_mouse_dates)
+    df_Han_pipeline["Han_temp_pipeline"] = True
+    df_Han_pipeline["multiple_sessions_per_day_in_docDB"] = np.nan
+
     # Merged with df_merged
     df_merged = df_merged.combine_first(df_Han_pipeline) 
 
