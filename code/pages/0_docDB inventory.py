@@ -236,13 +236,7 @@ def venn(df, columns_to_venn):
         )
     return fig
 
-
-def app():
-
-    # Generate combined dataframe
-    start_time = time.time()
-    df_merged, dfs = fetch_all_queries_from_docDB(queries_to_merge=QUERY_PRESET)
-
+def add_sidebar(dfs, df_merged, data_retrieve_time):
     # Sidebar
     with st.sidebar:
         st.markdown('# Data sources:')
@@ -283,8 +277,19 @@ def app():
 
             if len(df_unique_mouse_date) != df_merged[query["alias"]].sum():
                 st.warning('''len(df_unique_mouse_date) != df_merged[query["alias"]].sum()!''')
+                
+        st.markdown(f"Retrieving data from docDB (or st.cache) took {data_retrieve_time:.3f} secs.")
+
                     
-        st.markdown(f"Retrieving data from docDB (or st.cache) took {time.time() - start_time:.3f} secs.")
+def app():
+
+    # --- Generate combined dataframe from docDB ---
+    start_time = time.time()
+    df_merged, dfs = fetch_all_queries_from_docDB(queries_to_merge=QUERY_PRESET)
+    data_retrieve_time = time.time() - start_time
+    
+    # --- Add sidebar ---
+    add_sidebar(dfs, df_merged, data_retrieve_time)
 
     # --- Main contents ---
     st.markdown(f"# Data inventory for dynamic foraging")
