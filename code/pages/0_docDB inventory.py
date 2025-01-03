@@ -284,7 +284,7 @@ def app():
             if len(df_unique_mouse_date) != df_merged[query["alias"]].sum():
                 st.warning('''len(df_unique_mouse_date) != df_merged[query["alias"]].sum()!''')
                     
-        st.markdown(f"Retrieving data took {time.time() - start_time} secs")
+        st.markdown(f"Retrieving data from docDB (or st.cache) took {time.time() - start_time:.3f} secs.")
 
     # --- Main contents ---
     st.markdown(f"# Data inventory for dynamic foraging")
