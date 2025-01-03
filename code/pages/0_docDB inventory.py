@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import streamlit as st
 from streamlit_dynamic_filters import DynamicFilters
 import pandas as pd
+import time
 
 from util.fetch_data_docDB import load_data_from_docDB, load_client
 from util.reformat import split_nwb_name
@@ -97,18 +98,6 @@ QUERY_PRESET = [
      }},
 ]
 
-def query_sessions_from_docDB(query):
-    return client.retrieve_docdb_records(
-        filter_query=query["filter"],
-        projection={
-            "_id": 0,
-            "name": 1,
-            "rig.rig_id": 1,
-            "session.experimenter_full_name": 1,
-        },
-        paginate=False,
-    )
-
 def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
     """ Download df as csv """
     csv = df.to_csv(index=True)
@@ -121,64 +110,94 @@ def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
         mime='text/csv'
     )
 
-def fetch_single_query(key):
-    """ Query a single query from QUERY_PRESET and process the result 
+def fetch_single_query(query):
+    """ Fetch a query from docDB and process the result into dataframe
     
     Return: 
-    - df: the full dataframe
+    - df: dataframe of the original returned records
     - df_multi_sessions_per_day: the dataframe with multiple sessions per day
     - df_unique_mouse_date: the dataframe with multiple sessions per day combined
     """
-    query_result = query_sessions_from_docDB(key)
-    df = pd.json_normalize(query_result)
 
-    # Create index that can be joined with other dfs and main df
+    # --- Fetch data from docDB ---
+    results = client.retrieve_docdb_records(
+        filter_query=query["filter"],
+        projection={
+            "_id": 0,
+            "name": 1,
+            "rig.rig_id": 1,
+            "session.experimenter_full_name": 1,
+        },
+        paginate=False,
+    )
+
+    # --- Process data into dataframe ---
+    df = pd.json_normalize(results)
+
+    # Create index of subject_id, session_date, nwb_suffix by parsing nwb_name
     df[["subject_id", "session_date", "nwb_suffix"]] = df[f"name"].apply(
         lambda x: pd.Series(split_nwb_name(x))
     )
-    df[key["alias"]] = True
     df = df.set_index(["subject_id", "session_date", "nwb_suffix"]).sort_index()
+    df[query["alias"]] = True  # Add a column to mark the query
 
     # Remove invalid subject_id
     df = df[df.index.get_level_values("subject_id").astype(int) > 300000]
 
-    # Get cases where one mouse has multiple records per day
-    subject_date = df.index.to_frame(index=False)[["subject_id", "session_date"]]
-    df_multi_sessions_per_day = df[subject_date.duplicated(keep=False).values]
-
-    # Create a new column to mark duplicates
-    df.loc[df_multi_sessions_per_day.index, "multiple_sessions_per_day"] = True
-
-    # Also return a dataframe with unique mouse-dates,
-    # i.e.,  multiple sessions per day are combined in a list of 'name'
+    # --- Handle multiple sessions per day ---
+    # Build a dataframe with unique mouse-dates.
+    # If multiple sessions per day, combine them into a list of 'name'
     df_unique_mouse_date = (
         df.reset_index()
         .groupby(["subject_id", "session_date"])
         .agg({"name": list, **{col: "first" for col in df.columns if col != "name"}})
     )
+    # Add a new column to indicate multiple sessions per day
+    df_unique_mouse_date["multiple_sessions_per_day"] = df_unique_mouse_date["name"].apply(
+        lambda x: len(x) > 1
+    )
 
-    return df, df_multi_sessions_per_day, df_unique_mouse_date
+    # Also return the dataframe with multiple sessions per day
+    df_multi_sessions_per_day = df_unique_mouse_date[df_unique_mouse_date["multiple_sessions_per_day"]]
+
+    # Create a new column to mark duplicates in the original df
+    df.loc[
+        df.index.droplevel("nwb_suffix").isin(df_multi_sessions_per_day.index), 
+        "multiple_sessions_per_day"
+    ] = True
+
+    print(f"Done querying {query['alias']}!")
+    return df, df_unique_mouse_date, df_multi_sessions_per_day
 
 @st.cache_data(ttl=3600 * 24)
 def fetch_all_queries_from_docDB(queries_to_merge):
     """ Get merged queries from selected queries """
 
-    dfs = {}
-
+    dfs = {} 
+    
     # Fetch data in parallel
     with ThreadPoolExecutor(max_workers=len(queries_to_merge)) as executor:
         future_to_query = {executor.submit(fetch_single_query, key): key for key in queries_to_merge}
         for i, future in enumerate(as_completed(future_to_query), 1):
             key = future_to_query[future]
             try:
-                df, df_multi_sessions_per_day, df_unique_mouse_date = future.result()
-                dfs[key["alias"]] = {
+                df, df_unique_mouse_date, df_multi_sessions_per_day = future.result()
+                dfs[key["alias"]] = { 
                     "df": df,
-                    "df_multi_sessions_per_day": df_multi_sessions_per_day,
                     "df_unique_mouse_date": df_unique_mouse_date,
+                    "df_multi_sessions_per_day": df_multi_sessions_per_day,
                 }
             except Exception as e:
                 print(f"Error querying {key}: {e}")
+
+    # Fetch data in serial 
+    # for query in queries_to_merge:
+    #     df, df_unique_mouse_date, df_multi_sessions_per_day = fetch_single_query(query)
+    #     dfs[query["alias"]] = {
+    #         "df": df,
+    #         "df_unique_mouse_date": df_unique_mouse_date,
+    #         "df_multi_sessions_per_day": df_multi_sessions_per_day,
+    #     }
 
     # Combine queried dfs using df_unique_mouse_date (on index "subject_id", "session_date" only)
     df_merged = dfs[queries_to_merge[0]["alias"]]["df_unique_mouse_date"]
@@ -219,6 +238,7 @@ def venn(df, columns_to_venn):
 def app():
 
     # Generate combined dataframe
+    start_time = time.time()
     df_merged, dfs = fetch_all_queries_from_docDB(queries_to_merge=QUERY_PRESET)
 
     # Sidebar
@@ -264,6 +284,9 @@ def app():
 
                 if len(df_unique_mouse_date) != df_merged[query["alias"]].sum():
                     st.warning('''len(df_unique_mouse_date) != df_merged[query["alias"]].sum()!''')
+                    
+        st.markdown(f"Retrieving data took {time.time() - start_time} secs")
+
 
     st.markdown(f"#### Merged dataframe (n = {len(df_merged)})")
     st.write(df_merged)
