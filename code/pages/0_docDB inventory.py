@@ -158,14 +158,16 @@ def fetch_single_query(query):
         df.reset_index()
         .groupby(["subject_id", "session_date"])
         .agg({"name": list, **{col: "first" for col in df.columns if col != "name"}})
-    )
+    ).rename(columns={"name": "name_in_docDB"})
     # Add a new column to indicate multiple sessions per day
-    df_unique_mouse_date["multiple_sessions_per_day_in_docDB"] = df_unique_mouse_date["name"].apply(
-        lambda x: len(x) > 1
-    )
+    df_unique_mouse_date["multiple_sessions_per_day_in_docDB"] = df_unique_mouse_date[
+        "name_in_docDB"
+    ].apply(lambda x: True if len(x) > 1 else np.nan)
 
     # Also return the dataframe with multiple sessions per day
-    df_multi_sessions_per_day = df_unique_mouse_date[df_unique_mouse_date["multiple_sessions_per_day_in_docDB"]]
+    df_multi_sessions_per_day = df_unique_mouse_date[
+        df_unique_mouse_date["multiple_sessions_per_day_in_docDB"].notnull()
+    ]
 
     # Create a new column to mark duplicates in the original df
     df.loc[
@@ -180,7 +182,7 @@ def fetch_single_query(query):
 def fetch_all_queries_from_docDB(queries_to_merge):
     """ Get merged queries from selected queries """
 
-    dfs = {} 
+    dfs = {}
     
     # Fetch data in parallel
     with ThreadPoolExecutor(max_workers=len(queries_to_merge)) as executor:
@@ -218,7 +220,7 @@ def fetch_all_queries_from_docDB(queries_to_merge):
             other_col for other_col in df_merged.columns if other_col not in query_cols
         ]
         + query_cols
-    ) 
+    )
     return df_merged, dfs
 
 def venn(df, columns_to_venn):
@@ -337,7 +339,10 @@ def app():
     )
 
     # Multiselect for selecting queries up to three
-    query_keys = [query["alias"] for query in QUERY_PRESET]
+    query_keys = [
+        "Han_temp_pipeline (bpod)",
+        "Han_temp_pipeline (bonsai)",
+    ] + [query["alias"] for query in QUERY_PRESET]
     selected_queries = st.multiselect(
         "Select queries to filter sessions",
         query_keys,
