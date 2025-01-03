@@ -293,7 +293,10 @@ def add_sidebar(dfs, df_merged, docDB_retrieve_time, df_Han_pipeline):
             df_this_hardware = df_Han_pipeline[
                 df_Han_pipeline[f"Han_temp_pipeline ({hardware})"].notnull()
             ]
-            with st.expander(f"### {len(df_this_hardware)} {hardware} sessions"):
+            with st.expander(
+                f"### {len(df_this_hardware)} {hardware} sessions"
+                + (" (old data, not growing)" if hardware == "bpod" else "")
+            ):
                 download_df(
                     df_this_hardware,
                     label="Download as CSV",
