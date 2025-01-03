@@ -10,6 +10,7 @@ import streamlit as st
 from streamlit_dynamic_filters import DynamicFilters
 import pandas as pd
 import time
+import streamlit_nested_layout
 
 from util.fetch_data_docDB import load_data_from_docDB, load_client
 from util.reformat import split_nwb_name
@@ -246,37 +247,37 @@ def app():
         st.markdown('## docDB query presets ')
         st.markdown('#### See how to use these queries [in this doc.](https://aind-data-access-api.readthedocs.io/en/latest/UserGuide.html#document-database-docdb)')
         for query in QUERY_PRESET:
-            st.markdown(f"### {query['alias']}")
+            with st.expander(f"### {query['alias']}"):
             
-            # Turn query to json with indent=4
-            # with st.expander("Show docDB query"):
-            query_json = json.dumps(query["filter"], indent=4)
-            st.code(query_json)
+                # Turn query to json with indent=4
+                # with st.expander("Show docDB query"):
+                query_json = json.dumps(query["filter"], indent=4)
+                st.code(query_json)
 
-            # Show records
-            df = dfs[query["alias"]]["df"]
-            df_multi_sessions_per_day = dfs[query["alias"]]["df_multi_sessions_per_day"]
-            df_unique_mouse_date = dfs[query["alias"]]["df_unique_mouse_date"]
+                # Show records
+                df = dfs[query["alias"]]["df"]
+                df_multi_sessions_per_day = dfs[query["alias"]]["df_multi_sessions_per_day"]
+                df_unique_mouse_date = dfs[query["alias"]]["df_unique_mouse_date"]
 
-            with st.expander(f"{len(df)} records returned from docDB"):
-                st.write(df)
-                download_df(df, label="Download as CSV", file_name=f"{query['alias']}.csv")
+                with st.expander(f"{len(df)} records returned from docDB"):
+                    download_df(df, label="Download as CSV", file_name=f"{query['alias']}.csv")
+                    st.write(df)
 
-            with st.expander(f"{len(df_multi_sessions_per_day)} have multiple sessions per day"):
-                st.write(df_multi_sessions_per_day)
-                download_df(
-                    df_multi_sessions_per_day,
-                    label="Download as CSV",
-                    file_name=f"{query['alias']}_multi_sessions_per_day.csv",
-                )
-            
-            with st.expander(f"{len(df_unique_mouse_date)} unique mouse-date pairs"):
-                st.write(df_unique_mouse_date)
-                download_df(
-                    df_unique_mouse_date,
-                    label="Download as CSV",
-                    file_name=f"{query['alias']}_unique_mouse_date.csv",
-                )
+                with st.expander(f"{len(df_multi_sessions_per_day)} have multiple sessions per day"):
+                    download_df(
+                        df_multi_sessions_per_day,
+                        label="Download as CSV",
+                        file_name=f"{query['alias']}_multi_sessions_per_day.csv",
+                    )
+                    st.write(df_multi_sessions_per_day)
+                
+                with st.expander(f"{len(df_unique_mouse_date)} unique mouse-date pairs"):
+                    download_df(
+                        df_unique_mouse_date,
+                        label="Download as CSV",
+                        file_name=f"{query['alias']}_unique_mouse_date.csv",
+                    )
+                    st.write(df_unique_mouse_date)
 
             if len(df_unique_mouse_date) != df_merged[query["alias"]].sum():
                 st.warning('''len(df_unique_mouse_date) != df_merged[query["alias"]].sum()!''')
