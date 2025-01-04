@@ -37,6 +37,12 @@ def load_data(tables=['sessions'], data_source = 'bonsai'):
                      width=500)
     return df
 
+@st.cache_data(ttl=12*3600)
+def load_raw_sessions_on_VAST():
+    file_name = s3_nwb_folder['bonsai'] + 'raw_sessions_on_VAST.json'
+    with fs.open(file_name) as f:
+        raw_sessions_on_VAST = json.load(f)
+    return raw_sessions_on_VAST
 
 def draw_session_plots_quick_preview(df_to_draw_session):
 

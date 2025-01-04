@@ -15,6 +15,7 @@ import streamlit_nested_layout
 
 from util.streamlit import aggrid_interactive_table_basic
 from util.fetch_data_docDB import load_data_from_docDB, load_client
+from util.aws_s3 import load_raw_sessions_on_VAST
 from util.reformat import split_nwb_name
 from Home import init
 
@@ -115,6 +116,54 @@ def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
         mime='text/csv'
     )
 
+def _formatting_metadata_df(df, source_prefix="in_docDB"):
+    """Formatting metadata dataframe
+    Given a dataframe with a column of "name" that contains nwb names
+    1. parse the nwb names into subject_id, session_date, nwb_suffix.
+    2. remove invalid subject_id
+    3. handle multiple sessions per day
+    """
+    
+    new_name_field = f"name_{source_prefix}"
+    df.rename(columns={"name": new_name_field}, inplace=True)
+    
+    # Create index of subject_id, session_date, nwb_suffix by parsing nwb_name
+    df[["subject_id", "session_date", "nwb_suffix"]] = df[new_name_field].apply(
+        lambda x: pd.Series(split_nwb_name(x))
+    )
+    df["session_date"] = pd.to_datetime(df["session_date"])
+    df = df.set_index(["subject_id", "session_date", "nwb_suffix"]).sort_index()
+
+    # Remove invalid subject_id
+    df = df[(df.index.get_level_values("subject_id").astype(int) > 300000) 
+            & (df.index.get_level_values("subject_id").astype(int) < 999999)]
+
+    # --- Handle multiple sessions per day ---
+    # Build a dataframe with unique mouse-dates.
+    # If multiple sessions per day, combine them into a list of 'name'
+    df_unique_mouse_date = (
+        df.reset_index()
+        .groupby(["subject_id", "session_date"])
+        .agg({new_name_field: list, **{col: "first" for col in df.columns if col != new_name_field}})
+    )
+    # Add a new column to indicate multiple sessions per day
+    df_unique_mouse_date[f"multiple_sessions_per_day_{source_prefix}"] = df_unique_mouse_date[
+        new_name_field
+    ].apply(lambda x: len(x) > 1)
+
+    # Also return the dataframe with multiple sessions per day
+    df_multi_sessions_per_day = df_unique_mouse_date[
+        df_unique_mouse_date[f"multiple_sessions_per_day_{source_prefix}"]
+    ]
+
+    # Create a new column to mark duplicates in the original df
+    df.loc[
+        df.index.droplevel("nwb_suffix").isin(df_multi_sessions_per_day.index), 
+        f"multiple_sessions_per_day_{source_prefix}"
+    ] = True
+
+    return df, df_unique_mouse_date, df_multi_sessions_per_day
+
 def fetch_single_query(query):
     """ Fetch a query from docDB and process the result into dataframe
     
@@ -135,54 +184,22 @@ def fetch_single_query(query):
         },
         paginate=False,
     )
+    print(f"Done querying {query['alias']}!")
 
     # --- Process data into dataframe ---
     df = pd.json_normalize(results)
-
-    # Create index of subject_id, session_date, nwb_suffix by parsing nwb_name
-    df[["subject_id", "session_date", "nwb_suffix"]] = df[f"name"].apply(
-        lambda x: pd.Series(split_nwb_name(x))
-    )
-    df["session_date"] = pd.to_datetime(df["session_date"])
-    df = df.set_index(["subject_id", "session_date", "nwb_suffix"]).sort_index()
     df[query["alias"]] = True  # Add a column to mark the query
+    
+    # Formatting dataframe
+    df, df_unique_mouse_date, df_multi_sessions_per_day = _formatting_metadata_df(df)
 
-    # Remove invalid subject_id
-    df = df[(df.index.get_level_values("subject_id").astype(int) > 300000) 
-            & (df.index.get_level_values("subject_id").astype(int) < 999999)]
-
-    # --- Handle multiple sessions per day ---
-    # Build a dataframe with unique mouse-dates.
-    # If multiple sessions per day, combine them into a list of 'name'
-    df_unique_mouse_date = (
-        df.reset_index()
-        .groupby(["subject_id", "session_date"])
-        .agg({"name": list, **{col: "first" for col in df.columns if col != "name"}})
-    ).rename(columns={"name": "name_in_docDB"})
-    # Add a new column to indicate multiple sessions per day
-    df_unique_mouse_date["multiple_sessions_per_day_in_docDB"] = df_unique_mouse_date[
-        "name_in_docDB"
-    ].apply(lambda x: True if len(x) > 1 else np.nan)
-
-    # Also return the dataframe with multiple sessions per day
-    df_multi_sessions_per_day = df_unique_mouse_date[
-        df_unique_mouse_date["multiple_sessions_per_day_in_docDB"].notnull()
-    ]
-
-    # Create a new column to mark duplicates in the original df
-    df.loc[
-        df.index.droplevel("nwb_suffix").isin(df_multi_sessions_per_day.index), 
-        "multiple_sessions_per_day_in_docDB"
-    ] = True
-
-    print(f"Done querying {query['alias']}!")
     return df, df_unique_mouse_date, df_multi_sessions_per_day
 
 @st.cache_data(ttl=3600 * 24)
 def fetch_all_queries_from_docDB(queries_to_merge):
     """ Get merged queries from selected queries """
 
-    dfs = {}
+    dfs = {} 
     
     # Fetch data in parallel
     with ThreadPoolExecutor(max_workers=len(queries_to_merge)) as executor:
@@ -206,7 +223,7 @@ def fetch_all_queries_from_docDB(queries_to_merge):
     #         "df": df,
     #         "df_unique_mouse_date": df_unique_mouse_date,
     #         "df_multi_sessions_per_day": df_multi_sessions_per_day,
-    #     }
+    #     } 
 
     # Combine queried dfs using df_unique_mouse_date (on index "subject_id", "session_date" only)
     df_merged = dfs[queries_to_merge[0]["alias"]]["df_unique_mouse_date"]
@@ -243,7 +260,7 @@ def venn(df, columns_to_venn):
         )
     return fig
 
-def add_sidebar(dfs, df_merged, docDB_retrieve_time, df_Han_pipeline):
+def add_sidebar(df_merged, dfs_docDB, df_Han_pipeline, dfs_raw_on_VAST, docDB_retrieve_time):
     # Sidebar
     with st.sidebar:
         st.markdown('# Metadata sources:')
@@ -259,9 +276,9 @@ def add_sidebar(dfs, df_merged, docDB_retrieve_time, df_Han_pipeline):
                 st.code(query_json)
 
                 # Show records
-                df = dfs[query["alias"]]["df"]
-                df_multi_sessions_per_day = dfs[query["alias"]]["df_multi_sessions_per_day"]
-                df_unique_mouse_date = dfs[query["alias"]]["df_unique_mouse_date"]
+                df = dfs_docDB[query["alias"]]["df"]
+                df_multi_sessions_per_day = dfs_docDB[query["alias"]]["df_multi_sessions_per_day"]
+                df_unique_mouse_date = dfs_docDB[query["alias"]]["df_unique_mouse_date"]
 
                 with st.expander(f"{len(df)} records returned from docDB"):
                     download_df(df, label="Download as CSV", file_name=f"{query['alias']}.csv")
@@ -307,12 +324,12 @@ def add_sidebar(dfs, df_merged, docDB_retrieve_time, df_Han_pipeline):
 
 def app():
 
-    # --- Generate combined dataframe from docDB ---
+    # --- 1. Generate combined dataframe from docDB queries ---
     start_time = time.time()
-    df_merged, dfs = fetch_all_queries_from_docDB(queries_to_merge=QUERY_PRESET)
+    df_merged, dfs_docDB = fetch_all_queries_from_docDB(queries_to_merge=QUERY_PRESET)
     docDB_retrieve_time = time.time() - start_time
 
-    # --- Merge in the master df in the Home page (Han's temporary pipeline) ---
+    # --- 2. Merge in the master df in the Home page (Han's temporary pipeline) ---
     # Data from Home.init (all sessions from Janelia bpod + AIND bpod + AIND bonsai)
     df_from_Home = st.session_state.df["sessions_bonsai"]
     # Only keep AIND sessions
@@ -331,14 +348,43 @@ def app():
     ].set_index(["subject_id", "session_date"])
 
     # Merged with df_merged
-    df_merged = df_merged.combine_first(df_Han_pipeline) 
+    df_merged = df_merged.combine_first(df_Han_pipeline)
+
+    # --- 3. Get raw data on VAST ---
+    raw_sessions_on_VAST = load_raw_sessions_on_VAST()
+
+    # Example entry of raw_sessions_on_VAST:
+    #     Z:\svc_aind_behavior_transfer\447-3-D\751153\behavior_751153_2024-10-20_17-13-34\behavior
+    #     Z:\svc_aind_behavior_transfer\2023late_DataNoMeta_Reorganized\687553_2023-11-20_09-48-24\behavior
+    #     Z:\svc_aind_behavior_transfer\2023late_DataNoMeta_Reorganized\687553_2023-11-13_11-09-55\687553_2023-12-01_09-41-43\TrainingFolder
+    #     Let's find the strings between two \\s that precede "behavior" or "TrainingFolder"
+
+    import re
+    re_pattern = R"\\([^\\]*)\\(?:behavior|TrainingFolder)$"
+    session_names = [re.findall(re_pattern, path)[0] for path in raw_sessions_on_VAST]
+
+    df_raw_sessions_on_VAST = pd.DataFrame(raw_sessions_on_VAST, columns=["raw_full_path_on_VAST"])
+    df_raw_sessions_on_VAST["name"] = session_names
+    df_raw_sessions_on_VAST["raw_data_on_VAST"] = True 
+
+    (
+        df_raw_sessions_on_VAST, 
+        df_raw_sessions_on_VAST_unique_mouse_date,
+        df_raw_sessions_on_VAST_multi_sessions_per_day
+    ) = _formatting_metadata_df(df_raw_sessions_on_VAST, source_prefix="on_VAST")
+    
+    dfs_raw_on_VAST = {
+        "df": df_raw_sessions_on_VAST,
+        "df_unique_mouse_date": df_raw_sessions_on_VAST_unique_mouse_date,
+        "df_multi_sessions_per_day": df_raw_sessions_on_VAST_multi_sessions_per_day,
+    }
 
     # --- Add sidebar ---
-    add_sidebar(dfs, df_merged, docDB_retrieve_time, df_Han_pipeline)
+    add_sidebar(df_merged, dfs_docDB, df_Han_pipeline, dfs_raw_on_VAST, docDB_retrieve_time)
 
     # --- Main contents ---
     st.markdown(f"# Data inventory for dynamic foraging")
-    cols = st.columns([1, 5])
+    cols = st.columns([1, 2])
     cols[0].markdown(f"### Merged dataframe (n = {len(df_merged)})")
     with cols[1]:
         download_df(df_merged, label="Download merged df as CSV", file_name="df_docDB_queries.csv")
