@@ -45,7 +45,7 @@ unsafe_allow_html=True,
 client = load_client()
 
 QUERY_PRESET = [
-    {"alias": "{raw, 'dynamic_foraging' in ANY software name}",
+    {"alias": "docDB_{raw, 'dynamic_foraging' in ANY software name}",
      "filter": {
          "$or":[
              {"session.data_streams.software.name": "dynamic-foraging-task"},
@@ -53,32 +53,32 @@ QUERY_PRESET = [
          ],
          "name": {"$not": {"$regex": ".*processed.*"}},
      }},
-    {"alias": "{raw, 'dynamic_foraging' in data_streams software name}",
+    {"alias": "docDB_{raw, 'dynamic_foraging' in data_streams software name}",
      "filter": {
          "session.data_streams.software.name": "dynamic-foraging-task",
          "name": {"$not": {"$regex": ".*processed.*"}},
      }},
-    {"alias": "{raw, 'dynamic_foraging' in stimulus_epochs software name}",
+    {"alias": "docDB_{raw, 'dynamic_foraging' in stimulus_epochs software name}",
      "filter": {
          "session.stimulus_epochs.software.name": "dynamic-foraging-task",            
          "name": {"$not": {"$regex": ".*processed.*"}},
      }},
-    {"alias": "{raw, 'fib' in 'data_description.modality'}",
+    {"alias": "docDB_{raw, 'fib' in 'data_description.modality'}",
      "filter": {
          "data_description.modality.abbreviation": "fib",
          "name": {"$not": {"$regex": ".*processed.*"}},
      }},
-    {"alias": "{raw, 'fib' in 'rig.modalities'}",
+    {"alias": "docDB_{raw, 'fib' in 'rig.modalities'}",
      "filter": {
          "rig.modalities.abbreviation": "fib",
          "name": {"$not": {"$regex": ".*processed.*"}},        
      }},
-    {"alias": "{raw, 'fib' in 'session.data_streams'}",
+    {"alias": "docDB_{raw, 'fib' in 'session.data_streams'}",
      "filter": {
          "session.data_streams.stream_modalities.abbreviation": "fib",
          "name": {"$not": {"$regex": ".*processed.*"}},
      }},
-    {"alias": "{raw, ('dynamic_foraging' in ANY software name) AND ('ecephys' in data_description.modality)}",
+    {"alias": "docDB_{raw, ('dynamic_foraging' in ANY software name) AND ('ecephys' in data_description.modality)}",
      "filter": {
          "$or":[
              {"session.data_streams.software.name": "dynamic-foraging-task"},
@@ -87,14 +87,14 @@ QUERY_PRESET = [
          "data_description.modality.abbreviation": "ecephys",
          "name": {"$not": {"$regex": ".*processed.*"}},        
      }},
-    {"alias": "{raw, 'FIP' in name}",
+    {"alias": "docDB_{raw, 'FIP' in name}",
      "filter": {
         "name": {
             "$regex": "^FIP.*",
             "$not": {"$regex": ".*processed.*"}
         }
     }},
-    {"alias": "{processed, 'dynamic_foraging' in ANY software name}",
+    {"alias": "docDB_{processed, 'dynamic_foraging' in ANY software name}",
      "filter": {
          "$or":[
              {"session.data_streams.software.name": "dynamic-foraging-task"},
@@ -116,7 +116,7 @@ def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
         mime='text/csv'
     )
 
-def _formatting_metadata_df(df, source_prefix="in_docDB"):
+def _formatting_metadata_df(df, source_prefix="docDB_"):
     """Formatting metadata dataframe
     Given a dataframe with a column of "name" that contains nwb names
     1. parse the nwb names into subject_id, session_date, nwb_suffix.
@@ -124,8 +124,8 @@ def _formatting_metadata_df(df, source_prefix="in_docDB"):
     3. handle multiple sessions per day
     """
     
-    new_name_field = f"name_{source_prefix}"
-    df.rename(columns={"name": new_name_field}, inplace=True)
+    df.rename(columns={col: f"{source_prefix}_{col}" for col in df.columns}, inplace=True)
+    new_name_field = f"{source_prefix}_name"
     
     # Create index of subject_id, session_date, nwb_suffix by parsing nwb_name
     df[["subject_id", "session_date", "nwb_suffix"]] = df[new_name_field].apply(
@@ -147,19 +147,19 @@ def _formatting_metadata_df(df, source_prefix="in_docDB"):
         .agg({new_name_field: list, **{col: "first" for col in df.columns if col != new_name_field}})
     )
     # Add a new column to indicate multiple sessions per day
-    df_unique_mouse_date[f"multiple_sessions_per_day_{source_prefix}"] = df_unique_mouse_date[
+    df_unique_mouse_date[f"{source_prefix}_multiple_sessions_per_day"] = df_unique_mouse_date[
         new_name_field
     ].apply(lambda x: len(x) > 1)
 
     # Also return the dataframe with multiple sessions per day
     df_multi_sessions_per_day = df_unique_mouse_date[
-        df_unique_mouse_date[f"multiple_sessions_per_day_{source_prefix}"]
+        df_unique_mouse_date[f"{source_prefix}_multiple_sessions_per_day"]
     ]
 
     # Create a new column to mark duplicates in the original df
     df.loc[
         df.index.droplevel("nwb_suffix").isin(df_multi_sessions_per_day.index), 
-        f"multiple_sessions_per_day_{source_prefix}"
+        f"{source_prefix}_multiple_sessions_per_day"
     ] = True
 
     return df, df_unique_mouse_date, df_multi_sessions_per_day
@@ -363,7 +363,7 @@ def app():
     re_pattern = R"\\([^\\]*)\\(?:behavior|TrainingFolder)$"
     session_names = [re.findall(re_pattern, path)[0] for path in raw_sessions_on_VAST]
 
-    df_raw_sessions_on_VAST = pd.DataFrame(raw_sessions_on_VAST, columns=["raw_full_path_on_VAST"])
+    df_raw_sessions_on_VAST = pd.DataFrame(raw_sessions_on_VAST, columns=["VAST_full_path"])
     df_raw_sessions_on_VAST["name"] = session_names
     df_raw_sessions_on_VAST["raw_data_on_VAST"] = True 
 
@@ -371,7 +371,7 @@ def app():
         df_raw_sessions_on_VAST, 
         df_raw_sessions_on_VAST_unique_mouse_date,
         df_raw_sessions_on_VAST_multi_sessions_per_day
-    ) = _formatting_metadata_df(df_raw_sessions_on_VAST, source_prefix="on_VAST")
+    ) = _formatting_metadata_df(df_raw_sessions_on_VAST, source_prefix="VAST")
     
     dfs_raw_on_VAST = {
         "df": df_raw_sessions_on_VAST,
