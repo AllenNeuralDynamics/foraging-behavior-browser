@@ -116,7 +116,7 @@ def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
         mime='text/csv'
     )
 
-def _formatting_metadata_df(df, source_prefix="docDB_"):
+def _formatting_metadata_df(df, source_prefix="docDB"):
     """Formatting metadata dataframe
     Given a dataframe with a column of "name" that contains nwb names
     1. parse the nwb names into subject_id, session_date, nwb_suffix.
@@ -188,10 +188,10 @@ def fetch_single_query(query):
 
     # --- Process data into dataframe ---
     df = pd.json_normalize(results)
-    df[query["alias"]] = True  # Add a column to mark the query
     
     # Formatting dataframe
     df, df_unique_mouse_date, df_multi_sessions_per_day = _formatting_metadata_df(df)
+    df_unique_mouse_date[query["alias"]] = True  # Add a column to prepare for merging
 
     return df, df_unique_mouse_date, df_multi_sessions_per_day
 
@@ -199,7 +199,7 @@ def fetch_single_query(query):
 def fetch_all_queries_from_docDB(queries_to_merge):
     """ Get merged queries from selected queries """
 
-    dfs = {} 
+    dfs = {}
     
     # Fetch data in parallel
     with ThreadPoolExecutor(max_workers=len(queries_to_merge)) as executor:
@@ -359,19 +359,22 @@ def app():
     #     Z:\svc_aind_behavior_transfer\2023late_DataNoMeta_Reorganized\687553_2023-11-13_11-09-55\687553_2023-12-01_09-41-43\TrainingFolder
     #     Let's find the strings between two \\s that precede "behavior" or "TrainingFolder"
 
-    import re
+    # Parse "name" from full path on VAST
     re_pattern = R"\\([^\\]*)\\(?:behavior|TrainingFolder)$"
     session_names = [re.findall(re_pattern, path)[0] for path in raw_sessions_on_VAST]
-
-    df_raw_sessions_on_VAST = pd.DataFrame(raw_sessions_on_VAST, columns=["VAST_full_path"])
+    df_raw_sessions_on_VAST = pd.DataFrame(raw_sessions_on_VAST, columns=["full_path"])
     df_raw_sessions_on_VAST["name"] = session_names
     df_raw_sessions_on_VAST["raw_data_on_VAST"] = True 
 
+    # Formatting metadata dataframe
     (
         df_raw_sessions_on_VAST, 
         df_raw_sessions_on_VAST_unique_mouse_date,
         df_raw_sessions_on_VAST_multi_sessions_per_day
     ) = _formatting_metadata_df(df_raw_sessions_on_VAST, source_prefix="VAST")
+    
+    # Merging with df_merged (using the unique mouse-date dataframe)
+    df_merged = df_merged.combine_first(df_raw_sessions_on_VAST_unique_mouse_date)
     
     dfs_raw_on_VAST = {
         "df": df_raw_sessions_on_VAST,
