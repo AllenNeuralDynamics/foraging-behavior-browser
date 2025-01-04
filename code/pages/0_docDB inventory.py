@@ -123,16 +123,19 @@ def _formatting_metadata_df(df, source_prefix="docDB"):
     2. remove invalid subject_id
     3. handle multiple sessions per day
     """
-    
+
     df.rename(columns={col: f"{source_prefix}_{col}" for col in df.columns}, inplace=True)
     new_name_field = f"{source_prefix}_name"
-    
+
     # Create index of subject_id, session_date, nwb_suffix by parsing nwb_name
     df[["subject_id", "session_date", "nwb_suffix"]] = df[new_name_field].apply(
         lambda x: pd.Series(split_nwb_name(x))
     )
     df["session_date"] = pd.to_datetime(df["session_date"])
-    df = df.set_index(["subject_id", "session_date", "nwb_suffix"]).sort_index()
+    df = df.set_index(["subject_id", "session_date", "nwb_suffix"]).sort_index(
+        level=["session_date", "subject_id", "nwb_suffix"],
+        ascending=[False, False, False],
+    )
 
     # Remove invalid subject_id
     df = df[(df.index.get_level_values("subject_id").astype(int) > 300000) 
@@ -145,6 +148,9 @@ def _formatting_metadata_df(df, source_prefix="docDB"):
         df.reset_index()
         .groupby(["subject_id", "session_date"])
         .agg({new_name_field: list, **{col: "first" for col in df.columns if col != new_name_field}})
+    ).sort_index(
+        level=["session_date", "subject_id"], # Restore order 
+        ascending=[False, False],
     )
     # Add a new column to indicate multiple sessions per day
     df_unique_mouse_date[f"{source_prefix}_multiple_sessions_per_day"] = df_unique_mouse_date[
@@ -338,14 +344,21 @@ def app():
     df_from_Home.loc[df_from_Home.hardware == "bonsai", "Han_temp_pipeline (bonsai)"] = True
 
     # Only keep subject_id and session_date as index
-    df_Han_pipeline = df_from_Home[
-        [
-            "subject_id",
-            "session_date",
-            "Han_temp_pipeline (bpod)",
-            "Han_temp_pipeline (bonsai)",
+    df_Han_pipeline = (
+        df_from_Home[
+            [
+                "subject_id",
+                "session_date",
+                "Han_temp_pipeline (bpod)",
+                "Han_temp_pipeline (bonsai)",
+            ]
         ]
-    ].set_index(["subject_id", "session_date"])
+        .set_index(["subject_id", "session_date"])
+        .sort_index(
+            level=["session_date", "subject_id"],
+            ascending=[False, False],
+        )
+    )
 
     # Merged with df_merged
     df_merged = df_merged.combine_first(df_Han_pipeline)
@@ -372,15 +385,16 @@ def app():
         df_raw_sessions_on_VAST_unique_mouse_date,
         df_raw_sessions_on_VAST_multi_sessions_per_day
     ) = _formatting_metadata_df(df_raw_sessions_on_VAST, source_prefix="VAST")
-    
-    # Merging with df_merged (using the unique mouse-date dataframe)
-    df_merged = df_merged.combine_first(df_raw_sessions_on_VAST_unique_mouse_date)
-    
+
     dfs_raw_on_VAST = {
         "df": df_raw_sessions_on_VAST,
         "df_unique_mouse_date": df_raw_sessions_on_VAST_unique_mouse_date,
         "df_multi_sessions_per_day": df_raw_sessions_on_VAST_multi_sessions_per_day,
     }
+
+    # Merging with df_merged (using the unique mouse-date dataframe)
+    df_merged = df_merged.combine_first(df_raw_sessions_on_VAST_unique_mouse_date)
+    df_merged.sort_index(level=["session_date", "subject_id"], ascending=[False, False], inplace=True)
 
     # --- Add sidebar ---
     add_sidebar(df_merged, dfs_docDB, df_Han_pipeline, dfs_raw_on_VAST, docDB_retrieve_time)
