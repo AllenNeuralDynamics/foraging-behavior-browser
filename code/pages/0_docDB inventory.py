@@ -369,8 +369,24 @@ def app():
             )
         ],
     )
+    
+    # --- Venn diagram from presets ---
+    with open("data_inventory_VENN_PRESET.json", "r") as f:
+        VENN_PRESET = json.load(f)
 
+    n_col = 2
+    if VENN_PRESET:
+        st.markdown("## Venn diagram from presets")
+        cols = st.columns([1] * n_col)
+        for i, venn_preset in enumerate(VENN_PRESET):
+            cols[i % n_col].markdown(f"#### {venn_preset['name']}")
+            fig = venn(df_merged, venn_preset['pairs'])
+            cols[i % n_col].pyplot(fig, use_container_width=True)
+    
+    # --- User-defined Venn diagram ---
     # Multiselect for selecting queries up to three
+    st.markdown('---')
+    st.markdown("## Venn diagram from user-selected queries")
     query_keys = [
         "Han_temp_pipeline (bpod)",
         "Han_temp_pipeline (bonsai)",

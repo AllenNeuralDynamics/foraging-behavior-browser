@@ -1,0 +1,12 @@
+[
+    {"name": "Overview (Han temp pipeline and docDB dynamic foraging sessions)",
+    "pairs":[
+        "Han_temp_pipeline (bpod)",
+        "Han_temp_pipeline (bonsai)",
+        "docDB_{raw, 'dynamic_foraging' in ANY software name}"
+    ]
+}
+
+
+    
+]
