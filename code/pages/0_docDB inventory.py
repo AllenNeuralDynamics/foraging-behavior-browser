@@ -379,9 +379,9 @@ def app():
         st.markdown("## Venn diagram from presets")
         cols = st.columns([1] * n_col)
         for i, venn_preset in enumerate(VENN_PRESET):
-            cols[i % n_col].markdown(f"#### {venn_preset['name']}")
+            cols[i % n_col].markdown(f"##### ({i+1}). {venn_preset['name']}")
             fig = venn(df_merged, venn_preset['pairs'])
-            cols[i % n_col].pyplot(fig, use_container_width=True)
+            cols[i % n_col].pyplot(fig, use_container_width=True) 
     
     # --- User-defined Venn diagram ---
     # Multiselect for selecting queries up to three
