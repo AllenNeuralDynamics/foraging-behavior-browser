@@ -303,8 +303,10 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
         if 'if_load_bpod_sessions' in st.session_state
         else False)
     
+    st.session_state.bpod_loaded = False
     if _if_load_bpod:
         df_bpod = load_data(['sessions'], data_source='bpod')
+        st.session_state.bpod_loaded = True
         
         # For historial reason, the suffix of df['sessions_bonsai'] just mean the data of the Home.py page
         df['sessions_bonsai'] = pd.concat([df['sessions_bonsai'], df_bpod['sessions_bonsai']], axis=0)
