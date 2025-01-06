@@ -146,7 +146,7 @@ def fetch_single_query(query):
     return df, df_unique_mouse_date, df_multi_sessions_per_day
 
 @st.cache_data(ttl=3600 * 24)
-def fetch_all_queries_from_docDB(queries_to_merge):
+def fetch_all_queries_from_docDB_in_parallel(queries_to_merge):
     """ Get merged queries from selected queries """
 
     dfs = {}
@@ -256,7 +256,7 @@ def add_sidebar(df_merged, dfs_docDB, df_Han_pipeline, dfs_raw_on_VAST, docDB_re
                 # Show records                
                 _show_records_on_sidebar(dfs_docDB[query["alias"]], file_name_prefix=query["alias"], source_str="docDB")
 
-        st.markdown(f"Retrieving data from docDB (or st.cache) took {docDB_retrieve_time:.3f} secs.")
+        st.markdown(f"Retrieving data from docDB in parallel (or st.cache) took {docDB_retrieve_time:.3f} secs.")
 
         st.markdown('''## 2. From Han's temporary pipeline (the "Home" page)''')
         hardwares = ["bonsai", "bpod"]
@@ -284,7 +284,7 @@ def app():
 
     # --- 1. Generate combined dataframe from docDB queries ---
     start_time = time.time()
-    df_merged, dfs_docDB = fetch_all_queries_from_docDB(queries_to_merge=QUERY_PRESET)
+    df_merged, dfs_docDB = fetch_all_queries_from_docDB_in_parallel(queries_to_merge=QUERY_PRESET)
     docDB_retrieve_time = time.time() - start_time
 
     # --- 2. Merge in the master df in the Home page (Han's temporary pipeline) ---
