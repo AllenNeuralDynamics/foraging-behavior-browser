@@ -266,6 +266,34 @@ def venn(df, columns_to_venn):
         )
     return fig
 
+def _show_records_on_sidebar(dfs, file_name_prefix, source_str="docDB"):
+    df = dfs["df"]
+    df_multi_sessions_per_day = dfs["df_multi_sessions_per_day"]
+    df_unique_mouse_date = dfs["df_unique_mouse_date"]
+
+    with st.expander(f"{len(df)} records from {source_str}"):
+        download_df(df, label="Download as CSV", file_name=f"{file_name_prefix}.csv")
+        st.write(df)
+
+    with st.expander(f"{len(df_multi_sessions_per_day)} have multiple sessions per day"):
+        download_df(
+            df_multi_sessions_per_day,
+            label="Download as CSV",
+            file_name=f"{file_name_prefix}_multi_sessions_per_day.csv",
+        )
+        st.write(df_multi_sessions_per_day)
+
+    with st.expander(f"{len(df_unique_mouse_date)} unique mouse-date pairs"):
+        download_df(
+            df_unique_mouse_date,
+            label="Download as CSV",
+            file_name=f"{file_name_prefix}_unique_mouse_date.csv",
+        )
+        st.write(df_unique_mouse_date)
+        
+    # if len(df_unique_mouse_date) != df_merged[query["alias"]].sum(): 
+    #     st.warning('''len(df_unique_mouse_date) != df_merged[query["alias"]].sum()!''')
+
 def add_sidebar(df_merged, dfs_docDB, df_Han_pipeline, dfs_raw_on_VAST, docDB_retrieve_time):
     # Sidebar
     with st.sidebar:
@@ -281,33 +309,9 @@ def add_sidebar(df_merged, dfs_docDB, df_Han_pipeline, dfs_raw_on_VAST, docDB_re
                 query_json = json.dumps(query["filter"], indent=4)
                 st.code(query_json)
 
-                # Show records
-                df = dfs_docDB[query["alias"]]["df"]
-                df_multi_sessions_per_day = dfs_docDB[query["alias"]]["df_multi_sessions_per_day"]
-                df_unique_mouse_date = dfs_docDB[query["alias"]]["df_unique_mouse_date"]
+                # Show records                
+                _show_records_on_sidebar(dfs_docDB[query["alias"]], file_name_prefix=query["alias"], source_str="docDB")
 
-                with st.expander(f"{len(df)} records returned from docDB"):
-                    download_df(df, label="Download as CSV", file_name=f"{query['alias']}.csv")
-                    st.write(df)
-
-                with st.expander(f"{len(df_multi_sessions_per_day)} have multiple sessions per day"):
-                    download_df(
-                        df_multi_sessions_per_day,
-                        label="Download as CSV",
-                        file_name=f"{query['alias']}_multi_sessions_per_day.csv",
-                    )
-                    st.write(df_multi_sessions_per_day)
-
-                with st.expander(f"{len(df_unique_mouse_date)} unique mouse-date pairs"):
-                    download_df(
-                        df_unique_mouse_date,
-                        label="Download as CSV",
-                        file_name=f"{query['alias']}_unique_mouse_date.csv",
-                    )
-                    st.write(df_unique_mouse_date)
-
-            if len(df_unique_mouse_date) != df_merged[query["alias"]].sum():
-                st.warning('''len(df_unique_mouse_date) != df_merged[query["alias"]].sum()!''')
         st.markdown(f"Retrieving data from docDB (or st.cache) took {docDB_retrieve_time:.3f} secs.")
 
         st.markdown('''## 2. From Han's temporary pipeline (the "Home" page)''')
@@ -326,6 +330,10 @@ def add_sidebar(df_merged, dfs_docDB, df_Han_pipeline, dfs_raw_on_VAST, docDB_re
                     file_name=f"Han_temp_pipeline_{hardware}.csv",
                 )
                 st.write(df_this_hardware)
+                
+        st.markdown('''## 3. From VAST: existing raw data''')
+        _show_records_on_sidebar(dfs_raw_on_VAST, file_name_prefix="raw_on_VAST", source_str="VAST /scratch")
+        
 
 
 def app():
@@ -402,7 +410,7 @@ def app():
     # --- Main contents ---
     st.markdown(f"# Data inventory for dynamic foraging")
     cols = st.columns([1, 2])
-    cols[0].markdown(f"### Merged dataframe (n = {len(df_merged)})")
+    cols[0].markdown(f"### Merged metadata (n = {len(df_merged)}, see the sidebar for details)")
     with cols[1]:
         download_df(df_merged, label="Download merged df as CSV", file_name="df_docDB_queries.csv")
 
@@ -422,6 +430,7 @@ def app():
     query_keys = [
         "Han_temp_pipeline (bpod)",
         "Han_temp_pipeline (bonsai)",
+        "VAST_raw_data_on_VAST",
     ] + [query["alias"] for query in QUERY_PRESET]
     selected_queries = st.multiselect(
         "Select queries to filter sessions",
@@ -438,7 +447,7 @@ def app():
 if __name__ == "__main__":
     
     # Share the same master df as the Home page
-    if "df" not in st.session_state or "sessions_bonsai" not in st.session_state.df.keys():
+    if "df" not in st.session_state or "sessions_bonsai" not in st.session_state.df.keys() or not st.session_state.bpod_loaded:
         init(if_load_docDB_override=False, if_load_bpod_data_override=True)
 
     app()
