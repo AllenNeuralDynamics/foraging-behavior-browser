@@ -44,65 +44,9 @@ unsafe_allow_html=True,
 
 client = load_client()
 
-QUERY_PRESET = [
-    {"alias": "docDB_{raw, 'dynamic_foraging' in ANY software name}",
-     "filter": {
-         "$or":[
-             {"session.data_streams.software.name": "dynamic-foraging-task"},
-             {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
-         ],
-         "name": {"$not": {"$regex": ".*processed.*"}},
-     }},
-    {"alias": "docDB_{raw, 'dynamic_foraging' in data_streams software name}",
-     "filter": {
-         "session.data_streams.software.name": "dynamic-foraging-task",
-         "name": {"$not": {"$regex": ".*processed.*"}},
-     }},
-    {"alias": "docDB_{raw, 'dynamic_foraging' in stimulus_epochs software name}",
-     "filter": {
-         "session.stimulus_epochs.software.name": "dynamic-foraging-task",            
-         "name": {"$not": {"$regex": ".*processed.*"}},
-     }},
-    {"alias": "docDB_{raw, 'fib' in 'data_description.modality'}",
-     "filter": {
-         "data_description.modality.abbreviation": "fib",
-         "name": {"$not": {"$regex": ".*processed.*"}},
-     }},
-    {"alias": "docDB_{raw, 'fib' in 'rig.modalities'}",
-     "filter": {
-         "rig.modalities.abbreviation": "fib",
-         "name": {"$not": {"$regex": ".*processed.*"}},        
-     }},
-    {"alias": "docDB_{raw, 'fib' in 'session.data_streams'}",
-     "filter": {
-         "session.data_streams.stream_modalities.abbreviation": "fib",
-         "name": {"$not": {"$regex": ".*processed.*"}},
-     }},
-    {"alias": "docDB_{raw, ('dynamic_foraging' in ANY software name) AND ('ecephys' in data_description.modality)}",
-     "filter": {
-         "$or":[
-             {"session.data_streams.software.name": "dynamic-foraging-task"},
-             {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
-         ],
-         "data_description.modality.abbreviation": "ecephys",
-         "name": {"$not": {"$regex": ".*processed.*"}},        
-     }},
-    {"alias": "docDB_{raw, 'FIP' in name}",
-     "filter": {
-        "name": {
-            "$regex": "^FIP.*",
-            "$not": {"$regex": ".*processed.*"}
-        }
-    }},
-    {"alias": "docDB_{processed, 'dynamic_foraging' in ANY software name}",
-     "filter": {
-         "$or":[
-             {"session.data_streams.software.name": "dynamic-foraging-task"},
-             {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},            
-         ],
-         "name": {"$regex": ".*processed.*"},
-     }},
-]
+# Load QUERY_PRESET from json
+with open("data_inventory_QUERY_PRESET.json", "r") as f:
+    QUERY_PRESET = json.load(f)
 
 def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
     """ Add a button to download df as csv """
@@ -331,7 +275,7 @@ def add_sidebar(df_merged, dfs_docDB, df_Han_pipeline, dfs_raw_on_VAST, docDB_re
                 )
                 st.write(df_this_hardware)
                 
-        st.markdown('''## 3. From VAST: existing raw data''')
+        st.markdown('''## 3. From VAST /scratch: existing raw data''')
         _show_records_on_sidebar(dfs_raw_on_VAST, file_name_prefix="raw_on_VAST", source_str="VAST /scratch")
         
 
