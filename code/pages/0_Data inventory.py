@@ -10,6 +10,10 @@ import streamlit as st
 from streamlit_dynamic_filters import DynamicFilters
 import pandas as pd
 import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from streamlit_plotly_events import plotly_events
+
 import time
 import streamlit_nested_layout
 
@@ -224,6 +228,7 @@ def _filter_df_by_patch_ids(df, patch_ids):
     final_condition = pd.concat(conditions, axis=1).any(axis=1)
     return df[final_condition].index
 
+@st.cache_data(ttl=3600*24)
 def generate_venn(df, columns_to_venn, edge_colors=None, edge_styles=None, patch_settings=None):
     """ Show venn diagram """
     if len(columns_to_venn) > 3:
@@ -265,15 +270,16 @@ def generate_venn(df, columns_to_venn, edge_colors=None, edge_styles=None, patch
         if patch:  # Some patches might be None
             patch.set_facecolor('none')
     if patch_settings:
+        notes = []
         for patch_setting in patch_settings:
             # Set color
             for patch_id in patch_setting["patch_ids"]:
                 if v.get_patch_by_id(patch_id):
                     v.get_patch_by_id(patch_id).set_color(patch_setting["color"])
             # Add notes
-            st.markdown(f"#### :{patch_setting['emoji']}: :{patch_setting['color']}[{patch_setting['notes']}]")
+            notes.append(f"#### :{patch_setting['emoji']}: :{patch_setting['color']}[{patch_setting['notes']}]")
 
-    return fig
+    return fig, notes
 
 def _show_records_on_sidebar(dfs, file_name_prefix, source_str="docDB"):
     df = dfs["df"]
@@ -339,9 +345,56 @@ def add_sidebar(df_merged, dfs_docDB, df_Han_pipeline, dfs_raw_on_VAST, docDB_re
         st.markdown('''## 3. From VAST /scratch: existing raw data''')
         _show_records_on_sidebar(dfs_raw_on_VAST, file_name_prefix="raw_on_VAST", source_str="VAST /scratch")
 
+@st.cache_data(ttl=3600*24)
+def plot_histogram_over_time(df, venn_preset, time_period="Daily", if_overlay=False):
+    """Generate histogram over time for the columns and patches in preset
+    """
+    df["Daily"] = df["session_date"]
+    df["Weekly"] = df["session_date"].dt.to_period("W").dt.start_time
+    df["Monthly"] = df["session_date"].dt.to_period("M").dt.start_time
+    df["Quarterly"] = df["session_date"].dt.to_period("Q").dt.start_time
+
+    # Function to count "True" values for a given column over a specific time period
+    def count_true_values(df, time_period, column):
+        return df.groupby(time_period)[column].apply(lambda x: (x == True).sum())
+
+    # Preparing subplots for each circle/patch in venn
+    if not if_overlay:
+        columns = venn_preset["columns"] + [str(p_s["patch_ids"]) for p_s in venn_preset.get("patch_settings", [])]
+        fig = make_subplots(
+            rows=len(columns),
+            cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.05,
+            subplot_titles=columns,
+        )
+
+        # Adding traces for each column
+        colors = venn_preset.get("edge_colors", ["blue", "green", "red"]) + [
+            p_s["color"] for p_s in venn_preset.get("patch_settings", [])
+        ]
+        for i, column in enumerate(columns):
+            counts = count_true_values(df, time_period, column)
+            fig.add_trace(
+                go.Bar(
+                    x=counts.index,
+                    y=counts.values,
+                    name=column,
+                    marker=dict(color=colors[i]),
+                ),
+                row=i + 1,
+                col=1,
+            )
+
+    # Updating layout
+    fig.update_layout(
+        height=200 * len(columns) if not if_overlay else 200,
+        yaxis_title=f"{time_period} count of True",
+        showlegend=False,
+    )
+    return fig
 
 def app():
-
     # --- 1. Generate combined dataframe from docDB queries ---
     with st.sidebar:
         st.markdown('# Metadata sources:')
@@ -450,11 +503,11 @@ def app():
 
     if VENN_PRESET:
         st.markdown("## Venn diagrams from presets")
-        for i, venn_preset in enumerate(VENN_PRESET):
+        for i_venn, venn_preset in enumerate(VENN_PRESET):
             # -- Venn diagrams --
-            st.markdown(f"### ({i+1}). {venn_preset['name']}")
+            st.markdown(f"### ({i_venn+1}). {venn_preset['name']}")
             cols = st.columns([1.5, 1])
-            fig = generate_venn(
+            fig, notes = generate_venn(
                     df_merged,
                     venn_preset["columns"],
                     edge_colors=venn_preset.get("edge_colors", None),
@@ -462,6 +515,8 @@ def app():
                     patch_settings=venn_preset.get("patch_settings", None),
                 )
             with cols[0]:
+                for note in notes:
+                    st.markdown(note)
                 st.pyplot(fig, use_container_width=True)
 
             # -- Show and download df for this Venn --
@@ -477,7 +532,7 @@ def app():
                     patch_setting["patch_ids"]
                 )
                 df_this_preset.loc[idx, str(patch_setting["patch_ids"])] = True 
-                
+
             # Join in other extra columns
             df_this_preset = df_this_preset.join(
                 df_merged[[col for col in df_merged.columns if col not in meta_columns]], how="left"
@@ -489,44 +544,30 @@ def app():
                     download_df(df_this_preset, label="Download as CSV", file_name=f"df_{venn_preset['name']}.csv")
                     st.write(df_this_preset)
 
-            # -- Show histogram over time --
-            import numpy as np
-            import plotly.graph_objects as go
-            from plotly.subplots import make_subplots
+                # -- Show histogram over time --
+                if i_venn == 0:
+                    cols_1 = st.columns([1, 1])
+                    time_periods = ["Daily", "Weekly", "Monthly", "Quarterly"]
+                    time_period = cols_1[0].selectbox(
+                        "Select time period", time_periods, key=f"time_period_{i_venn}", index=1
+                    )
 
-            # Simulating the dataframe from the screenshot
-            # Grouping by different time periods (e.g., daily, weekly, quarterly)
-            def plot_histogram_over_time(df, venn_preset, time_period="Daily"):
-                df["Daily"] = df["session_date"]
-                df["Weekly"] = df["session_date"].dt.to_period("W").dt.start_time
-                df["Quarterly"] = df["session_date"].dt.to_period("Q").dt.start_time
+                    if_overlay = cols_1[1].checkbox("Overlay all histograms", value=False)
 
-                # Function to count "True" values for a given column over a specific time period
-                def count_true_values(df, time_period, column):
-                    return df.groupby(time_period)[column].apply(lambda x: (x == True).sum())
-
-                # Preparing subplots for each circle/patch in venn
-                columns = venn_preset["columns"] + [str(p_s["patch_ids"]) for p_s in venn_preset.get("patch_settings", [])]
-                fig = make_subplots(rows=len(columns), cols=1, shared_xaxes=True, vertical_spacing=0.05, subplot_titles=columns)
-
-                # Adding traces for each column 
-                for i, column in enumerate(columns):
-                    counts = count_true_values(df, time_period, column)
-                    fig.add_trace(go.Bar(x=counts.index, y=counts.values, name=column), row=i + 1, col=1)
-
-                # Updating layout
-                fig.update_layout(
-                    height=800,
-                    yaxis_title=f"{time_period} count of True",
-                    showlegend=False
+                fig = plot_histogram_over_time(
+                    df=df_this_preset.reset_index(),
+                    venn_preset=venn_preset,
+                    time_period=time_period,
+                    if_overlay=if_overlay,
                 )
-                return fig
-
-            fig = plot_histogram_over_time(
-                df=df_this_preset.reset_index(),
-                venn_preset=venn_preset,
+                plotly_events(
+                    fig,
+                    click_event=False,
+                    hover_event=False,
+                    select_event=False,
+                    override_height=fig.layout.height * 1.1,
+                    override_width=fig.layout.width,
                 )
-            cols[1].plotly_chart(fig)
 
             st.markdown("---")
 
