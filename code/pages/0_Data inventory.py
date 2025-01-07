@@ -198,7 +198,7 @@ def fetch_all_queries_from_docDB(queries_to_merge, parallel=False):
     )
     return df_merged, dfs
 
-def generate_venn(df, columns_to_venn, edge_colors=None):
+def generate_venn(df, columns_to_venn, edge_colors=None, edge_styles=None, patch_settings=None):
     """ Show venn diagram """
     if len(columns_to_venn) > 3:
         st.write("Venn diagram only supports up to 3 columns.")
@@ -223,14 +223,29 @@ def generate_venn(df, columns_to_venn, edge_colors=None):
         [set(df.index[df[col]==True]) for col in columns_to_venn],
     )
         
-    # Set edge colur
+    # Set edge color
     if edge_colors: 
         for i, circle in enumerate(c):
             c[i].set_edgecolor(edge_colors[i])
+            v.get_label_by_id(["A", "B", "C"][i]).set_color(edge_colors[i])
+            
+    # Set edge style
+    if edge_styles:
+        for i, circle in enumerate(c):
+            c[i].set_linestyle(edge_styles[i])
     
+    # Set patch color
     for patch in v.patches:
         if patch:  # Some patches might be None
             patch.set_facecolor('none')
+    if patch_settings:
+        for patch_setting in patch_settings:
+            # Set color
+            for patch_id in patch_setting["patch_ids"]:
+                if v.get_patch_by_id(patch_id):
+                    v.get_patch_by_id(patch_id).set_color(patch_setting["color"])
+            # Add notes
+            st.markdown(f"#### :{patch_setting['emoji']}: :{patch_setting['color']}[{patch_setting['notes']}]")
 
     return fig
 
@@ -243,6 +258,7 @@ def _show_records_on_sidebar(dfs, file_name_prefix, source_str="docDB"):
         download_df(df, label="Download as CSV", file_name=f"{file_name_prefix}.csv")
         st.write(df)
 
+    st.markdown(":heavy_exclamation_mark: :red[Multiple sessions per day should be resolved!]")
     with st.expander(f"{len(df_multi_sessions_per_day)} have multiple sessions per day"):
         download_df(
             df_multi_sessions_per_day,
@@ -296,7 +312,6 @@ def add_sidebar(df_merged, dfs_docDB, df_Han_pipeline, dfs_raw_on_VAST, docDB_re
                 
         st.markdown('''## 3. From VAST /scratch: existing raw data''')
         _show_records_on_sidebar(dfs_raw_on_VAST, file_name_prefix="raw_on_VAST", source_str="VAST /scratch")
-        
 
 
 def app():
@@ -312,7 +327,7 @@ def app():
             df_merged, dfs_docDB = fetch_all_queries_from_docDB(queries_to_merge=QUERY_PRESET)
             docDB_retrieve_time = time.time() - start_time
             st.markdown(f"Finished in {docDB_retrieve_time:.3f} secs.")
-            
+
         with cols[1]:
             if st.button('Re-fetch docDB queries'):
                 st.cache_data.clear()
@@ -388,10 +403,8 @@ def app():
 
     # --- Main contents ---
     st.markdown(f"# Data inventory for dynamic foraging")
-    cols = st.columns([1, 2])
-    cols[0].markdown(f"### Merged metadata (n = {len(df_merged)}, see the sidebar for details)")
-    with cols[1]:
-        download_df(df_merged, label="Download merged df as CSV", file_name="df_docDB_queries.csv")
+    st.markdown(f"### Merged metadata (n = {len(df_merged)}, see the sidebar for details)")
+    download_df(df_merged, label="Download merged df as CSV", file_name="df_docDB_queries.csv")
 
     aggrid_interactive_table_basic(
         df_merged.reset_index(),
@@ -404,20 +417,28 @@ def app():
             )
         ],
     )
-    
+
     # --- Venn diagram from presets ---
     with open("data_inventory_VENN_PRESET.json", "r") as f:
         VENN_PRESET = json.load(f)
 
-    n_col = 2
     if VENN_PRESET:
         st.markdown("## Venn diagram from presets")
-        cols = st.columns([1] * n_col)
         for i, venn_preset in enumerate(VENN_PRESET):
-            cols[i % n_col].markdown(f"##### ({i+1}). {venn_preset['name']}")
-            fig = generate_venn(df_merged, venn_preset['columns'], edge_colors=venn_preset.get("edge_colors", None))
-            cols[i % n_col].pyplot(fig, use_container_width=True) 
-    
+            st.markdown(f"### ({i+1}). {venn_preset['name']}")
+            cols = st.columns([1.5, 1])
+            fig = generate_venn(
+                    df_merged,
+                    venn_preset["columns"],
+                    edge_colors=venn_preset.get("edge_colors", None),
+                    edge_styles=venn_preset.get("edge_styles", None),
+                    patch_settings=venn_preset.get("patch_settings", None),
+                )
+            with cols[0]:
+                st.pyplot(fig, use_container_width=True)
+            
+            st.markdown("---")
+
     # --- User-defined Venn diagram ---
     # Multiselect for selecting queries up to three
     st.markdown('---')

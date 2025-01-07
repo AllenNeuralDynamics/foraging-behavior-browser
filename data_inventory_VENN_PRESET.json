@@ -1,41 +1,180 @@
 [
     {
-        "name": "Han temp pipeline and docDB dynamic foraging session)",
+        "name": "Bonsai-based dynamic foraging sessions that are missing in docDB/CO",
         "columns": [
             "Han_temp_pipeline (bpod)",
             "Han_temp_pipeline (bonsai)",
             "docDB_{raw, 'dynamic_foraging' in ANY software name}"
         ],
         "edge_colors": [
-            "lightblue",
-            "blue",
+            "grey",
+            "black",
             "green"
+        ],
+        "edge_styles": [
+            "dashed",
+            "solid",
+            "solid"
+        ],
+        "patch_settings":[
+            {
+                "patch_ids": ["010"],
+                "color": "red",
+                "emoji": "heavy_exclamation_mark",
+                "notes": "Missing sessions on docDB (bonsai)"
+            },
+            {
+                "patch_ids": ["001"],
+                "color": "orange",
+                "emoji": "large_yellow_square",
+                "notes": "Dynamic foraging sessions uploaded by some ephys rigs that Han's pipeline didn't ingest (which is fine)"
+            }
         ]
     },
     {
-        "name": "Han temp pipeline and Kenta's uploaded FIP* sessions",
+        "name": "Bpod-based (old) dynamic foraging sessions that are missing in docDB/CO",
         "columns": [
             "Han_temp_pipeline (bpod)",
             "Han_temp_pipeline (bonsai)",
             "docDB_{raw, 'FIP' in name}"
         ],
         "edge_colors": [
-            "lightblue",
-            "blue",
-            "lightgreen"
+            "grey",
+            "black",
+            "limegreen"
+        ],
+        "edge_styles": [
+            "solid",
+            "dashed",
+            "solid"
+        ],    
+        "patch_settings":[
+            {
+                "patch_ids": ["100"],
+                "color": "red",
+                "emoji": "heavy_exclamation_mark",
+                "notes": "Missing sessions on docDB (bpod)"
+            }
         ]
     },
     {
-        "name": "Raw data lost (Han temp pipeline, docDB dynamic foraging, and raw data on VAST)",
+        "name": "We may have lost some raw data...",
         "columns": [
             "Han_temp_pipeline (bonsai)",
             "docDB_{raw, 'dynamic_foraging' in ANY software name}",
             "VAST_raw_data_on_VAST"
         ],
         "edge_colors": [
+            "black",
+            "green",
+            "blue"
+        ],
+        "patch_settings":[
+            {
+                "patch_ids": ["100"],
+                "color": "red",
+                "emoji": "x",
+                "notes": "Raw data may lost! (Note that Han's temp pipeline archives the behavior data only)"
+            }
+        ]
+    },
+    {
+        "name": "Inconsistent metadata when looking for \"FIB\" sessions",
+        "columns": [
+            "docDB_{raw, 'fib' in 'rig.modalities'}",
+            "docDB_{raw, 'fib' in 'data_description.modality'}",
+            "docDB_{raw, 'fib' in 'session.data_streams'}"
+        ],
+        "edge_colors": [
             "blue",
             "green",
             "red"
+        ],
+        "patch_settings":[
+            {
+                "patch_ids": ["010", "011"],
+                "color": "red",
+                "emoji": "x",
+                "notes": "Green and black circles should be a subset of the blue one; green and black circles should be the same."
+            }
+        ]
+    },
+    {
+        "name": "Inconsistent metadata when looking for \"dynamic_foraging\" sessions",
+        "columns": [
+            "docDB_{raw, 'dynamic_foraging' in data_streams software name}",
+            "docDB_{raw, 'dynamic_foraging' in stimulus_epochs software name}",
+            "Han_temp_pipeline (bonsai)"
+        ],
+        "edge_colors": [
+            "red",
+            "blue",
+            "black"
+        ],
+        "edge_styles": [
+            "solid",
+            "solid",
+            "dashed"
+        ],
+        "patch_settings":[
+            {
+                "patch_ids": ["100", "101", "110", "111"],
+                "color": "red",
+                "emoji": "x",
+                "notes": "Behavior acquisition software name should always be in stimulus_epoches, not data_streams."
+            }
+        ]
+    },   
+    {
+        "name": "Failed pipeline processing",
+        "columns": [
+            "docDB_{processed, 'dynamic_foraging' in ANY software name}",
+            "docDB_{raw, 'dynamic_foraging' in ANY software name}",
+            "Han_temp_pipeline (bonsai)"
+        ],
+        "edge_colors": [
+            "red",
+            "blue",
+            "black"
+        ],
+        "edge_styles": [
+            "solid",
+            "solid",
+            "dashed"
+        ],
+        "patch_settings":[
+            {
+                "patch_ids": ["010", "011"],
+                "color": "red",
+                "emoji": "x",
+                "notes": "Raw data uploaded but failed to process in CO."
+            }
+        ]
+    },
+    {
+        "name": "Check ephys-behavior sessions",
+        "columns": [
+            "docDB_{raw, ('dynamic_foraging' in ANY software name) AND ('ecephys' in data_description.modality)}",
+            "docDB_{raw, 'dynamic_foraging' in ANY software name}",
+            "Han_temp_pipeline (bonsai)"
+        ],
+        "edge_colors": [
+            "orange",
+            "blue",
+            "black"
+        ],
+        "edge_styles": [
+            "solid",
+            "solid",
+            "dashed"
+        ],
+        "patch_settings":[
+            {
+                "patch_ids": ["111", "100", "101"],
+                "color": "orange",
+                "emoji": "large_yellow_square",
+                "notes": "We should check the data integrity of sessions uploaded by the ephys pipeline."
+            }
         ]
     }
 ]
