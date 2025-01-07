@@ -205,6 +205,25 @@ def fetch_all_queries_from_docDB(queries_to_merge, parallel=False):
     )
     return df_merged, dfs
 
+def _filter_df_by_patch_ids(df, patch_ids):
+    """ Filter df by patch_ids [110, 001] etc"""
+    # Turn NAN to False
+    df = df.fillna(False)
+    conditions = []
+    for patch_id in patch_ids:
+        # Convert patch_id string to boolean conditions
+        condition = True
+        for i, col in enumerate(df.columns):
+            if patch_id[i] == "1":  # Include rows where the column is True
+                condition &= df[col]
+            elif patch_id[i] == "0":  # Include rows where the column is not True
+                condition &= ~df[col] 
+        conditions.append(condition)
+    
+    # Combine all conditions with OR
+    final_condition = pd.concat(conditions, axis=1).any(axis=1)
+    return df[final_condition].index
+
 def generate_venn(df, columns_to_venn, edge_colors=None, edge_styles=None, patch_settings=None):
     """ Show venn diagram """
     if len(columns_to_venn) > 3:
@@ -445,23 +464,69 @@ def app():
             with cols[0]:
                 st.pyplot(fig, use_container_width=True)
 
-            # -- Time view --
+            # -- Show and download df for this Venn --
             # Show histogram over time for the columns and patches in preset
-            this_columns = venn_preset["columns"] + [
-                col
-                for col in df_merged.columns
-                if col not in meta_columns  # Other extra info
-            ]
-            # Trim columns
-            df_this_presest = df_merged[this_columns]
+            df_this_preset = df_merged[venn_preset["columns"]]
             # Filter out rows that have at least one True in this Venn
-            df_this_presest = df_this_presest[df_this_presest[venn_preset["columns"]].any(axis=1)]
-            
+            df_this_preset = df_this_preset[df_this_preset.any(axis=1)]
+
+            # Create a new column to indicate sessions in patches specified by patch_ids like ["100", "101", "110", "111"]
+            for patch_setting in venn_preset.get("patch_settings", []):
+                idx = _filter_df_by_patch_ids(
+                    df_this_preset[venn_preset["columns"]],
+                    patch_setting["patch_ids"]
+                )
+                df_this_preset.loc[idx, str(patch_setting["patch_ids"])] = True 
+                
+            # Join in other extra columns
+            df_this_preset = df_this_preset.join(
+                df_merged[[col for col in df_merged.columns if col not in meta_columns]], how="left"
+            )
+
             with cols[1]:
-                with st.expander(f'Show dataframe for this Venn diagram, n = {len(df_this_presest)} '
+                with st.expander(f'Show dataframe for this Venn diagram, n = {len(df_this_preset)} '
                                  f'(the master df_merged filtered by "at least one True in this Venn")'):
-                    download_df(df_this_presest, label="Download as CSV", file_name=f"df_{venn_preset['name']}.csv")
-                    st.write(df_this_presest)
+                    download_df(df_this_preset, label="Download as CSV", file_name=f"df_{venn_preset['name']}.csv")
+                    st.write(df_this_preset)
+
+            # -- Show histogram over time --
+            import numpy as np
+            import plotly.graph_objects as go
+            from plotly.subplots import make_subplots
+
+            # Simulating the dataframe from the screenshot
+            # Grouping by different time periods (e.g., daily, weekly, quarterly)
+            def plot_histogram_over_time(df, venn_preset, time_period="Daily"):
+                df["Daily"] = df["session_date"]
+                df["Weekly"] = df["session_date"].dt.to_period("W").dt.start_time
+                df["Quarterly"] = df["session_date"].dt.to_period("Q").dt.start_time
+
+                # Function to count "True" values for a given column over a specific time period
+                def count_true_values(df, time_period, column):
+                    return df.groupby(time_period)[column].apply(lambda x: (x == True).sum())
+
+                # Preparing subplots for each circle/patch in venn
+                columns = venn_preset["columns"] + [str(p_s["patch_ids"]) for p_s in venn_preset.get("patch_settings", [])]
+                fig = make_subplots(rows=len(columns), cols=1, shared_xaxes=True, vertical_spacing=0.05, subplot_titles=columns)
+
+                # Adding traces for each column 
+                for i, column in enumerate(columns):
+                    counts = count_true_values(df, time_period, column)
+                    fig.add_trace(go.Bar(x=counts.index, y=counts.values, name=column), row=i + 1, col=1)
+
+                # Updating layout
+                fig.update_layout(
+                    height=800,
+                    yaxis_title=f"{time_period} count of True",
+                    showlegend=False
+                )
+                return fig
+
+            fig = plot_histogram_over_time(
+                df=df_this_preset.reset_index(),
+                venn_preset=venn_preset,
+                )
+            cols[1].plotly_chart(fig)
 
             st.markdown("---")
 
