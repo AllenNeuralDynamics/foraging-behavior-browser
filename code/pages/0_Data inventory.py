@@ -125,7 +125,7 @@ def _formatting_metadata_df(df, source_prefix="docDB"):
     return df, df_unique_mouse_date, df_multi_sessions_per_day
 
 @st.cache_data(ttl=3600*24)
-def fetch_single_query(query):
+def fetch_single_query(query, pagination, paginate_batch_size):
     """ Fetch a query from docDB and process the result into dataframe
     
     Return: 
@@ -143,8 +143,8 @@ def fetch_single_query(query):
             "rig.rig_id": 1,
             "session.experimenter_full_name": 1,
         },
-        paginate=True,
-        paginate_batch_size=5000,
+        paginate=pagination,
+        paginate_batch_size=paginate_batch_size,
     )
     print(f"Done querying {query['alias']}!")
 
@@ -158,15 +158,23 @@ def fetch_single_query(query):
     return df, df_unique_mouse_date, df_multi_sessions_per_day
 
 
-def fetch_all_queries_from_docDB(queries_to_merge, parallel=False):
+def fetch_all_queries_from_docDB(queries_to_merge, parallel=False, pagination=False, paginate_batch_size=5000):
     """ Get merged queries from selected queries """
 
     dfs = {}
-    
+
     # Fetch data in parallel
     if parallel:
         with ThreadPoolExecutor(max_workers=len(queries_to_merge)) as executor:
-            future_to_query = {executor.submit(fetch_single_query, key): key for key in queries_to_merge}
+            future_to_query = {
+                executor.submit(
+                    fetch_single_query,
+                    key,
+                    pagination=pagination,
+                    paginate_batch_size=paginate_batch_size,
+                ): key
+                for key in queries_to_merge
+            }
             for i, future in enumerate(as_completed(future_to_query), 1):
                 key = future_to_query[future]
                 try:
@@ -182,7 +190,9 @@ def fetch_all_queries_from_docDB(queries_to_merge, parallel=False):
         # Fetch data in serial
         p_bar = st.progress(0, text="Querying docDB...")
         for i, query in enumerate(queries_to_merge):
-            df, df_unique_mouse_date, df_multi_sessions_per_day = fetch_single_query(query)
+            df, df_unique_mouse_date, df_multi_sessions_per_day = fetch_single_query(
+                query, pagination=pagination, paginate_batch_size=paginate_batch_size
+            )
             dfs[query["alias"]] = {
                 "df": df,
                 "df_unique_mouse_date": df_unique_mouse_date,
@@ -193,7 +203,7 @@ def fetch_all_queries_from_docDB(queries_to_merge, parallel=False):
     if not dfs:
         st.warning("Querying docDB error! Refresh the page to try again or ask Han.")
         return None, None
-    
+
     # Combine queried dfs using df_unique_mouse_date (on index "subject_id", "session_date" only)
     df_merged = dfs[queries_to_merge[0]["alias"]]["df_unique_mouse_date"]
     for df in [dfs[query["alias"]]["df_unique_mouse_date"] for query in queries_to_merge[1:]]:
@@ -433,10 +443,20 @@ def app():
         st.markdown('# Metadata sources:')
         st.markdown('## 1. From docDB queries')
 
+        with st.expander("MetadataDbClient settings"):
+            parallel = st.checkbox("Parallel fetching", value=False)
+            pagination = st.checkbox("Pagination", value=True)
+            paginate_batch_size = st.number_input("Pagination batch size", value=5000, disabled=not pagination)
+
         cols = st.columns([1.5, 1])
         with cols[0]:
             start_time = time.time()
-            df_merged, dfs_docDB = fetch_all_queries_from_docDB(queries_to_merge=QUERY_PRESET)
+            df_merged, dfs_docDB = fetch_all_queries_from_docDB(
+                queries_to_merge=QUERY_PRESET,
+                parallel=parallel,
+                pagination=pagination,
+                paginate_batch_size=paginate_batch_size,
+            )
             docDB_retrieve_time = time.time() - start_time
             st.markdown(f"Finished in {docDB_retrieve_time:.3f} secs.")
 
