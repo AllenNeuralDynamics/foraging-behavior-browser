@@ -1,7 +1,5 @@
 import logging
 import re
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import threading
 import json
 
 from matplotlib_venn import venn2, venn3, venn2_circles, venn3_circles
