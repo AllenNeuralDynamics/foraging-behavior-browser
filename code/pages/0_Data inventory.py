@@ -133,7 +133,8 @@ def fetch_single_query(query):
             "rig.rig_id": 1,
             "session.experimenter_full_name": 1,
         },
-        paginate=False,
+        paginate=True,
+        paginate_batch_size=5000,
     )
     print(f"Done querying {query['alias']}!")
 
