@@ -214,7 +214,8 @@
                 ],
                 "color": "orange",
                 "emoji": "large_yellow_square",
-                "notes": "We should check the data integrity of sessions uploaded by the ephys pipeline."
+                "notes": "We should check the data integrity of sessions uploaded by the ephys pipeline.",
+                "skip_timeline": true
             }
         ]
     }

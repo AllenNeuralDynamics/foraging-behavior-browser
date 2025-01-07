@@ -357,6 +357,7 @@ def plot_histogram_over_time(df, venn_preset, time_period="Daily", if_sync_y_lim
     # Preparing subplots for each circle/patch in venn
     columns = [c_s["column"] for c_s in venn_preset["circle_settings"]] + [
         str(p_s["patch_ids"]) for p_s in venn_preset.get("patch_settings", [])
+        if not p_s.get("skip_timeline", False)
     ]
     colors = [c_s["edge_color"] for c_s in venn_preset["circle_settings"]] + [
         p_s["color"] for p_s in venn_preset["patch_settings"]
