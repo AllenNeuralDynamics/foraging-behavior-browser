@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 import json
 
-from matplotlib_venn import venn2, venn3
+from matplotlib_venn import venn2, venn3, venn2_circles, venn3_circles
 import matplotlib.pyplot as plt
 import streamlit as st
 from streamlit_dynamic_filters import DynamicFilters
@@ -114,6 +114,7 @@ def _formatting_metadata_df(df, source_prefix="docDB"):
 
     return df, df_unique_mouse_date, df_multi_sessions_per_day
 
+@st.cache_data(ttl=3600*24)
 def fetch_single_query(query):
     """ Fetch a query from docDB and process the result into dataframe
     
@@ -145,36 +146,43 @@ def fetch_single_query(query):
 
     return df, df_unique_mouse_date, df_multi_sessions_per_day
 
-@st.cache_data(ttl=3600 * 24)
-def fetch_all_queries_from_docDB_in_parallel(queries_to_merge):
+
+def fetch_all_queries_from_docDB(queries_to_merge, parallel=False):
     """ Get merged queries from selected queries """
 
     dfs = {}
     
     # Fetch data in parallel
-    with ThreadPoolExecutor(max_workers=len(queries_to_merge)) as executor:
-        future_to_query = {executor.submit(fetch_single_query, key): key for key in queries_to_merge}
-        for i, future in enumerate(as_completed(future_to_query), 1):
-            key = future_to_query[future]
-            try:
-                df, df_unique_mouse_date, df_multi_sessions_per_day = future.result()
-                dfs[key["alias"]] = { 
-                    "df": df,
-                    "df_unique_mouse_date": df_unique_mouse_date,
-                    "df_multi_sessions_per_day": df_multi_sessions_per_day,
-                }
-            except Exception as e:
-                print(f"Error querying {key}: {e}")
+    if parallel:
+        with ThreadPoolExecutor(max_workers=len(queries_to_merge)) as executor:
+            future_to_query = {executor.submit(fetch_single_query, key): key for key in queries_to_merge}
+            for i, future in enumerate(as_completed(future_to_query), 1):
+                key = future_to_query[future]
+                try:
+                    df, df_unique_mouse_date, df_multi_sessions_per_day = future.result()
+                    dfs[key["alias"]] = { 
+                        "df": df,
+                        "df_unique_mouse_date": df_unique_mouse_date,
+                        "df_multi_sessions_per_day": df_multi_sessions_per_day,
+                    }
+                except Exception as e:
+                    print(f"Error querying {key}: {e}")
+    else:
+        # Fetch data in serial
+        p_bar = st.progress(0, text="Querying docDB...")
+        for i, query in enumerate(queries_to_merge):
+            df, df_unique_mouse_date, df_multi_sessions_per_day = fetch_single_query(query)
+            dfs[query["alias"]] = {
+                "df": df,
+                "df_unique_mouse_date": df_unique_mouse_date,
+                "df_multi_sessions_per_day": df_multi_sessions_per_day,
+            }
+            p_bar.progress((i+1) / len(queries_to_merge), text=f"Querying docDB... ({i+1}/{len(queries_to_merge)})")
 
-    # Fetch data in serial 
-    # for query in queries_to_merge:
-    #     df, df_unique_mouse_date, df_multi_sessions_per_day = fetch_single_query(query)
-    #     dfs[query["alias"]] = {
-    #         "df": df,
-    #         "df_unique_mouse_date": df_unique_mouse_date,
-    #         "df_multi_sessions_per_day": df_multi_sessions_per_day,
-    #     } 
-
+    if not dfs:
+        st.warning("Querying docDB error! Refresh the page to try again or ask Han.")
+        return None, None
+    
     # Combine queried dfs using df_unique_mouse_date (on index "subject_id", "session_date" only)
     df_merged = dfs[queries_to_merge[0]["alias"]]["df_unique_mouse_date"]
     for df in [dfs[query["alias"]]["df_unique_mouse_date"] for query in queries_to_merge[1:]]:
@@ -190,24 +198,40 @@ def fetch_all_queries_from_docDB_in_parallel(queries_to_merge):
     )
     return df_merged, dfs
 
-def venn(df, columns_to_venn):
+def generate_venn(df, columns_to_venn, edge_colors=None):
     """ Show venn diagram """
     if len(columns_to_venn) > 3:
         st.write("Venn diagram only supports up to 3 columns.")
         return
     
     fig, ax = plt.subplots()
-    
     if len(columns_to_venn) == 2:
-        venn2(
-            [set(df.index[df[col]==True]) for col in columns_to_venn],
-            set_labels=columns_to_venn,
-        )
+        v_func = venn2
+        c_func = venn2_circles
+    elif len(columns_to_venn) == 3:
+        v_func = venn3
+        c_func = venn3_circles
     else:
-        venn3(
-            [set(df.index[df[col]==True]) for col in columns_to_venn],
-            set_labels=columns_to_venn,
-        )
+        st.warning("Number of columns to venn should be 2 or 3.")
+        return None
+        
+    v = v_func(
+        [set(df.index[df[col]==True]) for col in columns_to_venn],
+        set_labels=columns_to_venn,
+    )
+    c = c_func(
+        [set(df.index[df[col]==True]) for col in columns_to_venn],
+    )
+        
+    # Set edge colur
+    if edge_colors: 
+        for i, circle in enumerate(c):
+            c[i].set_edgecolor(edge_colors[i])
+    
+    for patch in v.patches:
+        if patch:  # Some patches might be None
+            patch.set_facecolor('none')
+
     return fig
 
 def _show_records_on_sidebar(dfs, file_name_prefix, source_str="docDB"):
@@ -241,10 +265,6 @@ def _show_records_on_sidebar(dfs, file_name_prefix, source_str="docDB"):
 def add_sidebar(df_merged, dfs_docDB, df_Han_pipeline, dfs_raw_on_VAST, docDB_retrieve_time):
     # Sidebar
     with st.sidebar:
-        st.markdown('# Metadata sources:')
-
-        st.markdown('## 1. From docDB queries')
-        st.markdown('#### See [how to use these queries](https://aind-data-access-api.readthedocs.io/en/latest/UserGuide.html#document-database-docdb) in your own code.')
         for query in QUERY_PRESET:
             with st.expander(f"### {query['alias']}"):
 
@@ -255,8 +275,7 @@ def add_sidebar(df_merged, dfs_docDB, df_Han_pipeline, dfs_raw_on_VAST, docDB_re
 
                 # Show records                
                 _show_records_on_sidebar(dfs_docDB[query["alias"]], file_name_prefix=query["alias"], source_str="docDB")
-
-        st.markdown(f"Retrieving data from docDB in parallel (or st.cache) took {docDB_retrieve_time:.3f} secs.")
+        st.markdown('#### See [how to use above queries](https://aind-data-access-api.readthedocs.io/en/latest/UserGuide.html#document-database-docdb) in your own code.')
 
         st.markdown('''## 2. From Han's temporary pipeline (the "Home" page)''')
         hardwares = ["bonsai", "bpod"]
@@ -283,9 +302,25 @@ def add_sidebar(df_merged, dfs_docDB, df_Han_pipeline, dfs_raw_on_VAST, docDB_re
 def app():
 
     # --- 1. Generate combined dataframe from docDB queries ---
-    start_time = time.time()
-    df_merged, dfs_docDB = fetch_all_queries_from_docDB_in_parallel(queries_to_merge=QUERY_PRESET)
-    docDB_retrieve_time = time.time() - start_time
+    with st.sidebar:
+        st.markdown('# Metadata sources:')
+        st.markdown('## 1. From docDB queries')
+
+        cols = st.columns([1.5, 1])
+        with cols[0]:
+            start_time = time.time()
+            df_merged, dfs_docDB = fetch_all_queries_from_docDB(queries_to_merge=QUERY_PRESET)
+            docDB_retrieve_time = time.time() - start_time
+            st.markdown(f"Finished in {docDB_retrieve_time:.3f} secs.")
+            
+        with cols[1]:
+            if st.button('Re-fetch docDB queries'):
+                st.cache_data.clear()
+                st.rerun()
+
+    if df_merged is None:
+        st.cache_data.clear()
+        return
 
     # --- 2. Merge in the master df in the Home page (Han's temporary pipeline) ---
     # Data from Home.init (all sessions from Janelia bpod + AIND bpod + AIND bonsai)
@@ -380,7 +415,7 @@ def app():
         cols = st.columns([1] * n_col)
         for i, venn_preset in enumerate(VENN_PRESET):
             cols[i % n_col].markdown(f"##### ({i+1}). {venn_preset['name']}")
-            fig = venn(df_merged, venn_preset['pairs'])
+            fig = generate_venn(df_merged, venn_preset['columns'], edge_colors=venn_preset.get("edge_colors", None))
             cols[i % n_col].pyplot(fig, use_container_width=True) 
     
     # --- User-defined Venn diagram ---
@@ -400,7 +435,7 @@ def app():
     )
 
     columns_to_venn = selected_queries
-    fig = venn(df_merged, columns_to_venn)
+    fig = generate_venn(df_merged, columns_to_venn)
     st.columns([1, 1])[0].pyplot(fig, use_container_width=True)
 
 
@@ -408,6 +443,7 @@ if __name__ == "__main__":
     
     # Share the same master df as the Home page
     if "df" not in st.session_state or "sessions_bonsai" not in st.session_state.df.keys() or not st.session_state.bpod_loaded:
+        st.spinner("Loading data from Han temp pipeline...")
         init(if_load_docDB_override=False, if_load_bpod_data_override=True)
 
     app()

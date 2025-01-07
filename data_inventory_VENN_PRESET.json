@@ -1,26 +1,41 @@
 [
     {
         "name": "Han temp pipeline and docDB dynamic foraging session)",
-        "pairs": [
+        "columns": [
             "Han_temp_pipeline (bpod)",
             "Han_temp_pipeline (bonsai)",
             "docDB_{raw, 'dynamic_foraging' in ANY software name}"
+        ],
+        "edge_colors": [
+            "lightblue",
+            "blue",
+            "green"
         ]
     },
     {
         "name": "Han temp pipeline and Kenta's uploaded FIP* sessions",
-        "pairs": [
+        "columns": [
             "Han_temp_pipeline (bpod)",
             "Han_temp_pipeline (bonsai)",
             "docDB_{raw, 'FIP' in name}"
+        ],
+        "edge_colors": [
+            "lightblue",
+            "blue",
+            "lightgreen"
         ]
     },
     {
         "name": "Raw data lost (Han temp pipeline, docDB dynamic foraging, and raw data on VAST)",
-        "pairs": [
+        "columns": [
             "Han_temp_pipeline (bonsai)",
             "docDB_{raw, 'dynamic_foraging' in ANY software name}",
             "VAST_raw_data_on_VAST"
+        ],
+        "edge_colors": [
+            "blue",
+            "green",
+            "red"
         ]
     }
 ]
