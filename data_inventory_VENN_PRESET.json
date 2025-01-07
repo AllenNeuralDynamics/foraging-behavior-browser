@@ -95,7 +95,7 @@
                 "patch_ids": ["010", "011"],
                 "color": "red",
                 "emoji": "x",
-                "notes": "Green and black circles should be a subset of the blue one; green and black circles should be the same."
+                "notes": "\"FIB\" session must have \"FIB\" in rig; red and green circles should be the same."
             }
         ]
     },
