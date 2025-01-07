@@ -229,55 +229,51 @@ def _filter_df_by_patch_ids(df, patch_ids):
     return df[final_condition].index
 
 @st.cache_data(ttl=3600*24)
-def generate_venn(df, columns_to_venn, edge_colors=None, edge_styles=None, patch_settings=None):
+def generate_venn(df, venn_preset):
     """ Show venn diagram """
-    if len(columns_to_venn) > 3:
-        st.write("Venn diagram only supports up to 3 columns.")
-        return
+    circle_settings = venn_preset["circle_settings"]
     
     fig, ax = plt.subplots()
-    if len(columns_to_venn) == 2:
+    if len(circle_settings) == 2:
         v_func = venn2
         c_func = venn2_circles
-    elif len(columns_to_venn) == 3:
+    elif len(circle_settings) == 3:
         v_func = venn3
         c_func = venn3_circles
     else:
         st.warning("Number of columns to venn should be 2 or 3.")
-        return None
+        return None, None
         
     v = v_func(
-        [set(df.index[df[col]==True]) for col in columns_to_venn],
-        set_labels=columns_to_venn,
+        [set(df.index[df[c_s["column"]]==True]) for c_s in circle_settings],
+        set_labels=[c_s["column"] for c_s in circle_settings],
     )
     c = c_func(
-        [set(df.index[df[col]==True]) for col in columns_to_venn],
+        [set(df.index[df[c_s["column"]]==True]) for c_s in circle_settings],
     )
         
-    # Set edge color
-    if edge_colors: 
-        for i, circle in enumerate(c):
-            c[i].set_edgecolor(edge_colors[i])
-            v.get_label_by_id(["A", "B", "C"][i]).set_color(edge_colors[i])
-            
-    # Set edge style
-    if edge_styles:
-        for i, circle in enumerate(c):
-            c[i].set_linestyle(edge_styles[i])
+    # Set edge color and style
+    for i, c_s in enumerate(circle_settings):
+        edge_color = c_s.get("edge_color", "black")
+        edge_style = c_s.get("edge_style", "solid")
+        
+        c[i].set_edgecolor(edge_color)
+        c[i].set_linestyle(edge_style)
+        v.get_label_by_id(["A", "B", "C"][i]).set_color(edge_color)
     
-    # Set patch color
+    # Clear all patch color
     for patch in v.patches:
         if patch:  # Some patches might be None
             patch.set_facecolor('none')
-    if patch_settings:
-        notes = []
-        for patch_setting in patch_settings:
-            # Set color
-            for patch_id in patch_setting["patch_ids"]:
-                if v.get_patch_by_id(patch_id):
-                    v.get_patch_by_id(patch_id).set_color(patch_setting["color"])
-            # Add notes
-            notes.append(f"#### :{patch_setting['emoji']}: :{patch_setting['color']}[{patch_setting['notes']}]")
+
+    notes = []
+    for patch_setting in venn_preset["patch_settings"]:
+        # Set color
+        for patch_id in patch_setting["patch_ids"]:
+            if v.get_patch_by_id(patch_id):
+                v.get_patch_by_id(patch_id).set_color(patch_setting["color"])
+        # Add notes
+        notes.append(f"#### :{patch_setting['emoji']}: :{patch_setting['color']}[{patch_setting['notes']}]")
 
     return fig, notes
 
@@ -360,7 +356,9 @@ def plot_histogram_over_time(df, venn_preset, time_period="Daily", if_overlay=Fa
 
     # Preparing subplots for each circle/patch in venn
     if not if_overlay:
-        columns = venn_preset["columns"] + [str(p_s["patch_ids"]) for p_s in venn_preset.get("patch_settings", [])]
+        columns = [c_s["column"] for c_s in venn_preset["circle_settings"]] + [
+            str(p_s["patch_ids"]) for p_s in venn_preset.get("patch_settings", [])
+        ]
         fig = make_subplots(
             rows=len(columns),
             cols=1,
@@ -370,8 +368,8 @@ def plot_histogram_over_time(df, venn_preset, time_period="Daily", if_overlay=Fa
         )
 
         # Adding traces for each column
-        colors = venn_preset.get("edge_colors", ["blue", "green", "red"]) + [
-            p_s["color"] for p_s in venn_preset.get("patch_settings", [])
+        colors = [c_s["edge_color"] for c_s in venn_preset["circle_settings"]] + [
+            p_s["color"] for p_s in venn_preset["patch_settings"]
         ]
         for i, column in enumerate(columns):
             counts = count_true_values(df, time_period, column)
@@ -509,10 +507,7 @@ def app():
             cols = st.columns([1.5, 1])
             fig, notes = generate_venn(
                     df_merged,
-                    venn_preset["columns"],
-                    edge_colors=venn_preset.get("edge_colors", None),
-                    edge_styles=venn_preset.get("edge_styles", None),
-                    patch_settings=venn_preset.get("patch_settings", None),
+                    venn_preset
                 )
             with cols[0]:
                 for note in notes:
@@ -520,15 +515,16 @@ def app():
                 st.pyplot(fig, use_container_width=True)
 
             # -- Show and download df for this Venn --
+            circle_columns = [c_s["column"] for c_s in venn_preset["circle_settings"]]
             # Show histogram over time for the columns and patches in preset
-            df_this_preset = df_merged[venn_preset["columns"]]
+            df_this_preset = df_merged[circle_columns]
             # Filter out rows that have at least one True in this Venn
             df_this_preset = df_this_preset[df_this_preset.any(axis=1)]
 
             # Create a new column to indicate sessions in patches specified by patch_ids like ["100", "101", "110", "111"]
             for patch_setting in venn_preset.get("patch_settings", []):
                 idx = _filter_df_by_patch_ids(
-                    df_this_preset[venn_preset["columns"]],
+                    df_this_preset[circle_columns],
                     patch_setting["patch_ids"]
                 )
                 df_this_preset.loc[idx, str(patch_setting["patch_ids"])] = True 
@@ -552,7 +548,7 @@ def app():
                         "Select time period", time_periods, key=f"time_period_{i_venn}", index=1
                     )
 
-                    if_overlay = cols_1[1].checkbox("Overlay all histograms", value=False)
+                    if_overlay = cols_1[1].checkbox("Overlay all histograms", value=False, disabled=True)
 
                 fig = plot_histogram_over_time(
                     df=df_this_preset.reset_index(),

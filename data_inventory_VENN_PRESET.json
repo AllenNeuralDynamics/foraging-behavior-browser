@@ -1,30 +1,36 @@
 [
     {
         "name": "Bonsai-based dynamic foraging sessions that are missing in docDB/CO",
-        "columns": [
-            "Han_temp_pipeline (bpod)",
-            "Han_temp_pipeline (bonsai)",
-            "docDB_{raw, 'dynamic_foraging' in ANY software name}"
-        ],
-        "edge_colors": [
-            "grey",
-            "black",
-            "green"
-        ],
-        "edge_styles": [
-            "dashed",
-            "solid",
-            "solid"
-        ],
-        "patch_settings":[
+        "circle_settings": [
             {
-                "patch_ids": ["010"],
+                "column": "Han_temp_pipeline (bonsai)",
+                "edge_color": "black",
+                "edge_style": "solid"
+            },
+            {
+                "column": "docDB_{raw, 'dynamic_foraging' in ANY software name}",
+                "edge_color": "green",
+                "edge_style": "solid"
+            },
+            {
+                "column": "Han_temp_pipeline (bpod)",
+                "edge_color": "grey",
+                "edge_style": "dashed"
+            }
+        ],
+        "patch_settings": [
+            {
+                "patch_ids": [
+                    "100"
+                ],
                 "color": "red",
                 "emoji": "heavy_exclamation_mark",
                 "notes": "Missing sessions on docDB (bonsai)"
             },
             {
-                "patch_ids": ["001"],
+                "patch_ids": [
+                    "010"
+                ],
                 "color": "orange",
                 "emoji": "large_yellow_square",
                 "notes": "Dynamic foraging sessions uploaded by some ephys rigs that Han's pipeline didn't ingest (which is fine)"
@@ -33,24 +39,28 @@
     },
     {
         "name": "Bpod-based (old) dynamic foraging sessions that are missing in docDB/CO",
-        "columns": [
-            "Han_temp_pipeline (bpod)",
-            "Han_temp_pipeline (bonsai)",
-            "docDB_{raw, 'FIP' in name}"
-        ],
-        "edge_colors": [
-            "grey",
-            "black",
-            "limegreen"
-        ],
-        "edge_styles": [
-            "solid",
-            "dashed",
-            "solid"
-        ],    
-        "patch_settings":[
+        "circle_settings": [
             {
-                "patch_ids": ["100"],
+                "column": "Han_temp_pipeline (bpod)",
+                "edge_color": "grey",
+                "edge_style": "solid"
+            },
+            {
+                "column": "docDB_{raw, 'FIP' in name}",
+                "edge_color": "limegreen",
+                "edge_style": "solid"
+            },
+            {
+                "column": "Han_temp_pipeline (bonsai)",
+                "edge_color": "black",
+                "edge_style": "dashed"
+            }
+        ],
+        "patch_settings": [
+            {
+                "patch_ids": [
+                    "100"
+                ],
                 "color": "red",
                 "emoji": "heavy_exclamation_mark",
                 "notes": "Missing sessions on docDB (bpod)"
@@ -59,19 +69,25 @@
     },
     {
         "name": "We may have lost some raw data...",
-        "columns": [
-            "Han_temp_pipeline (bonsai)",
-            "docDB_{raw, 'dynamic_foraging' in ANY software name}",
-            "VAST_raw_data_on_VAST"
-        ],
-        "edge_colors": [
-            "black",
-            "green",
-            "blue"
-        ],
-        "patch_settings":[
+        "circle_settings": [
             {
-                "patch_ids": ["100"],
+                "column": "Han_temp_pipeline (bonsai)",
+                "edge_color": "black"
+            },
+            {
+                "column": "docDB_{raw, 'dynamic_foraging' in ANY software name}",
+                "edge_color": "green"
+            },
+            {
+                "column": "VAST_raw_data_on_VAST",
+                "edge_color": "blue"
+            }
+        ],
+        "patch_settings": [
+            {
+                "patch_ids": [
+                    "100"
+                ],
                 "color": "red",
                 "emoji": "x",
                 "notes": "Raw data may lost! (Note that Han's temp pipeline archives the behavior data only)"
@@ -80,71 +96,90 @@
     },
     {
         "name": "Inconsistent metadata when looking for \"FIB\" sessions",
-        "columns": [
-            "docDB_{raw, 'fib' in 'rig.modalities'}",
-            "docDB_{raw, 'fib' in 'data_description.modality'}",
-            "docDB_{raw, 'fib' in 'session.data_streams'}"
-        ],
-        "edge_colors": [
-            "blue",
-            "green",
-            "red"
-        ],
-        "patch_settings":[
+        "circle_settings": [
             {
-                "patch_ids": ["010", "011"],
+                "column": "docDB_{raw, 'fib' in 'rig.modalities'}",
+                "edge_color": "blue"
+            },
+            {
+                "column": "docDB_{raw, 'fib' in 'data_description.modality'}",
+                "edge_color": "green"
+            },
+            {
+                "column": "docDB_{raw, 'fib' in 'session.data_streams'}",
+                "edge_color": "limegreen"
+            }
+        ],
+        "patch_settings": [
+            {
+                "patch_ids": [
+                    "010",
+                    "011"
+                ],
                 "color": "red",
                 "emoji": "x",
-                "notes": "\"FIB\" session must have \"FIB\" in rig; red and green circles should be the same."
+                "notes": "\"FIB\" session must have \"FIB\" in rig (two greens should be the same and inside the blue)"
             }
         ]
     },
     {
         "name": "Inconsistent metadata when looking for \"dynamic_foraging\" sessions",
-        "columns": [
-            "docDB_{raw, 'dynamic_foraging' in data_streams software name}",
-            "docDB_{raw, 'dynamic_foraging' in stimulus_epochs software name}",
-            "Han_temp_pipeline (bonsai)"
-        ],
-        "edge_colors": [
-            "red",
-            "blue",
-            "black"
-        ],
-        "edge_styles": [
-            "solid",
-            "solid",
-            "dashed"
-        ],
-        "patch_settings":[
+        "circle_settings": [
             {
-                "patch_ids": ["100", "101", "110", "111"],
+                "column": "docDB_{raw, 'dynamic_foraging' in data_streams software name}",
+                "edge_color": "blue",
+                "edge_style": "solid"
+            },
+            {
+                "column": "docDB_{raw, 'dynamic_foraging' in stimulus_epochs software name}",
+                "edge_color": "green",
+                "edge_style": "solid"
+            },
+            {
+                "column": "Han_temp_pipeline (bonsai)",
+                "edge_color": "black",
+                "edge_style": "dashed"
+            }
+        ],
+        "patch_settings": [
+            {
+                "patch_ids": [
+                    "100",
+                    "101",
+                    "110",
+                    "111"
+                ],
                 "color": "red",
                 "emoji": "x",
                 "notes": "Behavior acquisition software name should always be in stimulus_epoches, not data_streams."
             }
         ]
-    },   
+    },
     {
         "name": "Failed pipeline processing",
-        "columns": [
-            "docDB_{processed, 'dynamic_foraging' in ANY software name}",
-            "docDB_{raw, 'dynamic_foraging' in ANY software name}",
-            "Han_temp_pipeline (bonsai)"
-        ],
-        "edge_colors": [
-            "red",
-            "blue",
-            "black"
-        ],
-        "edge_styles": [
-            "solid",
-            "solid",
-            "dashed"
-        ],
-        "patch_settings":[
+        "circle_settings": [
             {
-                "patch_ids": ["010", "011"],
+                "column": "docDB_{processed, 'dynamic_foraging' in ANY software name}",
+                "edge_color": "green",
+                "edge_style": "solid"
+            },
+            {
+                "column": "docDB_{raw, 'dynamic_foraging' in ANY software name}",
+                "edge_color": "blue",
+                "edge_style": "solid"
+            },
+            {
+                "column": "Han_temp_pipeline (bonsai)",
+                "edge_color": "black",
+                "edge_style": "dashed"
+            }
+        ],
+        "patch_settings": [
+            {
+                "patch_ids": [
+                    "010",
+                    "011"
+                ],
                 "color": "red",
                 "emoji": "x",
                 "notes": "Raw data uploaded but failed to process in CO."
@@ -153,24 +188,30 @@
     },
     {
         "name": "Check ephys-behavior sessions",
-        "columns": [
-            "docDB_{raw, ('dynamic_foraging' in ANY software name) AND ('ecephys' in data_description.modality)}",
-            "docDB_{raw, 'dynamic_foraging' in ANY software name}",
-            "Han_temp_pipeline (bonsai)"
-        ],
-        "edge_colors": [
-            "orange",
-            "blue",
-            "black"
-        ],
-        "edge_styles": [
-            "solid",
-            "solid",
-            "dashed"
-        ],
-        "patch_settings":[
+        "circle_settings": [
             {
-                "patch_ids": ["111", "100", "101"],
+                "column": "Han_temp_pipeline (bonsai)",
+                "edge_color": "black",
+                "edge_style": "dashed"
+            },
+            {
+                "column": "docDB_{raw, 'dynamic_foraging' in ANY software name}",
+                "edge_color": "blue",
+                "edge_style": "solid"
+            },
+            {
+                "column": "docDB_{raw, ('dynamic_foraging' in ANY software name) AND ('ecephys' in data_description.modality)}",
+                "edge_color": "orange",
+                "edge_style": "solid"
+            }
+        ],
+        "patch_settings": [
+            {
+                "patch_ids": [
+                    "111",
+                    "101",
+                    "011"
+                ],
                 "color": "orange",
                 "emoji": "large_yellow_square",
                 "notes": "We should check the data integrity of sessions uploaded by the ephys pipeline."
