@@ -48,6 +48,12 @@ client = load_client()
 with open("data_inventory_QUERY_PRESET.json", "r") as f:
     QUERY_PRESET = json.load(f)
 
+meta_columns = [
+    "Han_temp_pipeline (bpod)",
+    "Han_temp_pipeline (bonsai)",
+    "VAST_raw_data_on_VAST",
+] + [query["alias"] for query in QUERY_PRESET]
+
 def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
     """ Add a button to download df as csv """
     csv = df.to_csv(index=True)
@@ -424,8 +430,9 @@ def app():
         VENN_PRESET = json.load(f)
 
     if VENN_PRESET:
-        st.markdown("## Venn diagram from presets")
+        st.markdown("## Venn diagrams from presets")
         for i, venn_preset in enumerate(VENN_PRESET):
+            # -- Venn diagrams --
             st.markdown(f"### ({i+1}). {venn_preset['name']}")
             cols = st.columns([1.5, 1])
             fig = generate_venn(
@@ -437,22 +444,35 @@ def app():
                 )
             with cols[0]:
                 st.pyplot(fig, use_container_width=True)
+
+            # -- Time view --
+            # Show histogram over time for the columns and patches in preset
+            this_columns = venn_preset["columns"] + [
+                col
+                for col in df_merged.columns
+                if col not in meta_columns  # Other extra info
+            ]
+            # Trim columns
+            df_this_presest = df_merged[this_columns]
+            # Filter out rows that have at least one True in this Venn
+            df_this_presest = df_this_presest[df_this_presest[venn_preset["columns"]].any(axis=1)]
             
+            with cols[1]:
+                with st.expander(f'Show dataframe for this Venn diagram, n = {len(df_this_presest)} '
+                                 f'(the master df_merged filtered by "at least one True in this Venn")'):
+                    download_df(df_this_presest, label="Download as CSV", file_name=f"df_{venn_preset['name']}.csv")
+                    st.write(df_this_presest)
+
             st.markdown("---")
 
     # --- User-defined Venn diagram ---
     # Multiselect for selecting queries up to three
     st.markdown('---')
     st.markdown("## Venn diagram from user-selected queries")
-    query_keys = [
-        "Han_temp_pipeline (bpod)",
-        "Han_temp_pipeline (bonsai)",
-        "VAST_raw_data_on_VAST",
-    ] + [query["alias"] for query in QUERY_PRESET]
     selected_queries = st.multiselect(
         "Select queries to filter sessions",
-        query_keys,
-        default=query_keys[:3],
+        meta_columns,
+        default=meta_columns[:3],
         key="selected_queries",
     )
 
