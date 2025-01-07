@@ -1155,7 +1155,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
 
 def add_footnote():
     st.markdown('---')
-    st.markdown(f'#### AIND @ 2025 {__ver__}')
+    st.markdown(f'#### AIND Behavior Team @ 2025 {__ver__}')
     st.markdown('[bug report / feature request](https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues)')
 
 
