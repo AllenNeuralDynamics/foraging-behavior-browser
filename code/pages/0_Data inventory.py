@@ -15,7 +15,7 @@ from streamlit_plotly_events import plotly_events
 import time
 import streamlit_nested_layout
 
-from util.streamlit import (aggrid_interactive_table_basic, download_df)
+from util.streamlit import aggrid_interactive_table_basic, download_df, add_footnote
 from util.fetch_data_docDB import (
     fetch_queries_from_docDB,
     fetch_queries_from_docDB_parallel,
@@ -206,6 +206,8 @@ def add_sidebar(df_merged, dfs_docDB, df_Han_pipeline, dfs_raw_on_VAST, docDB_re
                 
         st.markdown('''## 3. From VAST /scratch: existing raw data''')
         _show_records_on_sidebar(dfs_raw_on_VAST, file_name_prefix="raw_on_VAST", source_str="VAST /scratch")
+        
+        add_footnote()
 
 @st.cache_data(ttl=3600*24)
 def plot_histogram_over_time(df, venn_preset, time_period="Daily", if_sync_y_limits=True, if_separate_plots=False):
