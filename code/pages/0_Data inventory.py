@@ -304,7 +304,7 @@ def app():
         with st.expander("MetadataDbClient settings"):
             with st.form("MetadataDbClient settings"):
                 parallel = st.checkbox("Parallel fetching", value=False)
-                pagination = st.checkbox("Pagination", value=True)
+                pagination = st.checkbox("Pagination", value=False)
                 paginate_batch_size = st.number_input("Pagination batch size", value=5000, disabled=not pagination)
                 st.form_submit_button("OK")
 
