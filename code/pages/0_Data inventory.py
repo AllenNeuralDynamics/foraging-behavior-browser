@@ -165,30 +165,31 @@ def fetch_all_queries_from_docDB(queries_to_merge, parallel=False, pagination=Fa
 
     # Fetch data in parallel
     if parallel:
-        with ThreadPoolExecutor(max_workers=len(queries_to_merge)) as executor:
-            future_to_query = {
-                executor.submit(
-                    fetch_single_query,
-                    key,
-                    pagination=pagination,
-                    paginate_batch_size=paginate_batch_size,
-                ): key
-                for key in queries_to_merge
-            }
-            for i, future in enumerate(as_completed(future_to_query), 1):
-                key = future_to_query[future]
-                try:
-                    df, df_unique_mouse_date, df_multi_sessions_per_day = future.result()
-                    dfs[key["alias"]] = { 
-                        "df": df,
-                        "df_unique_mouse_date": df_unique_mouse_date,
-                        "df_multi_sessions_per_day": df_multi_sessions_per_day,
-                    }
-                except Exception as e:
-                    print(f"Error querying {key}: {e}")
+        with st.spinner("Querying docDB in parallel..."):
+            with ThreadPoolExecutor(max_workers=len(queries_to_merge)) as executor:
+                future_to_query = {
+                    executor.submit(
+                        fetch_single_query,
+                        key,
+                        pagination=pagination,
+                        paginate_batch_size=paginate_batch_size,
+                    ): key
+                    for key in queries_to_merge
+                }
+                for i, future in enumerate(as_completed(future_to_query), 1):
+                    key = future_to_query[future]
+                    try:
+                        df, df_unique_mouse_date, df_multi_sessions_per_day = future.result()
+                        dfs[key["alias"]] = { 
+                            "df": df,
+                            "df_unique_mouse_date": df_unique_mouse_date,
+                            "df_multi_sessions_per_day": df_multi_sessions_per_day,
+                        }
+                    except Exception as e:
+                        print(f"Error querying {key}: {e}")
     else:
         # Fetch data in serial
-        p_bar = st.progress(0, text="Querying docDB...")
+        p_bar = st.progress(0, text="Querying docDB in serial...")
         for i, query in enumerate(queries_to_merge):
             df, df_unique_mouse_date, df_multi_sessions_per_day = fetch_single_query(
                 query, pagination=pagination, paginate_batch_size=paginate_batch_size
