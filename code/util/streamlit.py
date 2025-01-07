@@ -1157,3 +1157,16 @@ def add_footnote():
     st.markdown('---')
     st.markdown(f'#### Han Hou @ 2024 {__ver__}')
     st.markdown('[bug report / feature request](https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues)')
+
+
+def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
+    """ Add a button to download df as csv """
+    csv = df.to_csv(index=True)
+    
+    # Create download buttons
+    st.download_button(
+        label=label,
+        data=csv,
+        file_name=file_name,
+        mime='text/csv'
+    )

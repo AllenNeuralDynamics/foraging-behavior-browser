@@ -17,10 +17,13 @@ from streamlit_plotly_events import plotly_events
 import time
 import streamlit_nested_layout
 
-from util.streamlit import aggrid_interactive_table_basic
-from util.fetch_data_docDB import load_data_from_docDB, load_client
+from util.streamlit import (aggrid_interactive_table_basic, download_df)
+from util.fetch_data_docDB import (
+    fetch_queries_from_docDB,
+    fetch_queries_from_docDB_parallel,
+)
+from util.reformat import formatting_metadata_df
 from util.aws_s3 import load_raw_sessions_on_VAST
-from util.reformat import split_nwb_name
 from Home import init
 
 
@@ -46,172 +49,15 @@ st.markdown(
 unsafe_allow_html=True,
 )
 
-client = load_client()
-
 # Load QUERY_PRESET from json
 with open("data_inventory_QUERY_PRESET.json", "r") as f:
     QUERY_PRESET = json.load(f)
 
-meta_columns = [
+META_COLUMNS = [
     "Han_temp_pipeline (bpod)",
     "Han_temp_pipeline (bonsai)",
     "VAST_raw_data_on_VAST",
 ] + [query["alias"] for query in QUERY_PRESET]
-
-def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
-    """ Add a button to download df as csv """
-    csv = df.to_csv(index=True)
-    
-    # Create download buttons
-    st.download_button(
-        label=label,
-        data=csv,
-        file_name=file_name,
-        mime='text/csv'
-    )
-
-def _formatting_metadata_df(df, source_prefix="docDB"):
-    """Formatting metadata dataframe
-    Given a dataframe with a column of "name" that contains nwb names
-    1. parse the nwb names into subject_id, session_date, nwb_suffix.
-    2. remove invalid subject_id
-    3. handle multiple sessions per day
-    """
-
-    df.rename(columns={col: f"{source_prefix}_{col}" for col in df.columns}, inplace=True)
-    new_name_field = f"{source_prefix}_name"
-
-    # Create index of subject_id, session_date, nwb_suffix by parsing nwb_name
-    df[["subject_id", "session_date", "nwb_suffix"]] = df[new_name_field].apply(
-        lambda x: pd.Series(split_nwb_name(x))
-    )
-    df["session_date"] = pd.to_datetime(df["session_date"])
-    df = df.set_index(["subject_id", "session_date", "nwb_suffix"]).sort_index(
-        level=["session_date", "subject_id", "nwb_suffix"],
-        ascending=[False, False, False],
-    )
-
-    # Remove invalid subject_id
-    df = df[(df.index.get_level_values("subject_id").astype(int) > 300000) 
-            & (df.index.get_level_values("subject_id").astype(int) < 999999)]
-
-    # --- Handle multiple sessions per day ---
-    # Build a dataframe with unique mouse-dates.
-    # If multiple sessions per day, combine them into a list of 'name'
-    df_unique_mouse_date = (
-        df.reset_index()
-        .groupby(["subject_id", "session_date"])
-        .agg({new_name_field: list, **{col: "first" for col in df.columns if col != new_name_field}})
-    ).sort_index(
-        level=["session_date", "subject_id"], # Restore order 
-        ascending=[False, False],
-    )
-    # Add a new column to indicate multiple sessions per day
-    df_unique_mouse_date[f"{source_prefix}_multiple_sessions_per_day"] = df_unique_mouse_date[
-        new_name_field
-    ].apply(lambda x: len(x) > 1)
-
-    # Also return the dataframe with multiple sessions per day
-    df_multi_sessions_per_day = df_unique_mouse_date[
-        df_unique_mouse_date[f"{source_prefix}_multiple_sessions_per_day"]
-    ]
-
-    # Create a new column to mark duplicates in the original df
-    df.loc[
-        df.index.droplevel("nwb_suffix").isin(df_multi_sessions_per_day.index), 
-        f"{source_prefix}_multiple_sessions_per_day"
-    ] = True
-
-    return df, df_unique_mouse_date, df_multi_sessions_per_day
-
-@st.cache_data(ttl=3600*24)
-def fetch_single_query(query, pagination, paginate_batch_size):
-    """ Fetch a query from docDB and process the result into dataframe
-    
-    Return: 
-    - df: dataframe of the original returned records
-    - df_multi_sessions_per_day: the dataframe with multiple sessions per day
-    - df_unique_mouse_date: the dataframe with multiple sessions per day combined
-    """
-
-    # --- Fetch data from docDB ---
-    results = client.retrieve_docdb_records(
-        filter_query=query["filter"],
-        projection={
-            "_id": 0,
-            "name": 1,
-            "rig.rig_id": 1,
-            "session.experimenter_full_name": 1,
-        },
-        paginate=pagination,
-        paginate_batch_size=paginate_batch_size,
-    )
-    print(f"Done querying {query['alias']}!")
-
-    # --- Process data into dataframe ---
-    df = pd.json_normalize(results)
-    
-    # Formatting dataframe
-    df, df_unique_mouse_date, df_multi_sessions_per_day = _formatting_metadata_df(df)
-    df_unique_mouse_date[query["alias"]] = True  # Add a column to prepare for merging
-
-    return df, df_unique_mouse_date, df_multi_sessions_per_day
-
-
-def fetch_queries_from_docDB(queries_to_merge, pagination=False, paginate_batch_size=5000):  
-    """ Get merged queries from selected queries """
-    
-    dfs = {}
-
-    # Fetch data in serial
-    p_bar = st.progress(0, text="Querying docDB in serial...")
-    for i, query in enumerate(queries_to_merge):
-        df, df_unique_mouse_date, df_multi_sessions_per_day = fetch_single_query(
-            query, pagination=pagination, paginate_batch_size=paginate_batch_size
-        )
-        dfs[query["alias"]] = {
-            "df": df,
-            "df_unique_mouse_date": df_unique_mouse_date,
-            "df_multi_sessions_per_day": df_multi_sessions_per_day,
-        }
-        p_bar.progress((i+1) / len(queries_to_merge), text=f"Querying docDB... ({i+1}/{len(queries_to_merge)})")
-
-    if not dfs:
-        st.warning("Querying docDB error! Refresh the page to try again or ask Han.")
-        return None
-    
-    return dfs
-
-@st.cache_data(ttl=3600*12)
-def fetch_queries_from_docDB_parallel(queries_to_merge, pagination=False, paginate_batch_size=5000):
-    """ Get merged queries from selected queries """
-
-    dfs = {}
-
-    # Fetch data in parallel
-    with ThreadPoolExecutor(max_workers=len(queries_to_merge)) as executor:
-        future_to_query = {
-            executor.submit(
-                fetch_single_query,
-                key,
-                pagination=pagination,
-                paginate_batch_size=paginate_batch_size,
-            ): key
-            for key in queries_to_merge
-        }
-        for i, future in enumerate(as_completed(future_to_query), 1):
-            key = future_to_query[future]
-            try:
-                df, df_unique_mouse_date, df_multi_sessions_per_day = future.result()
-                dfs[key["alias"]] = { 
-                    "df": df,
-                    "df_unique_mouse_date": df_unique_mouse_date,
-                    "df_multi_sessions_per_day": df_multi_sessions_per_day,
-                }
-            except Exception as e:
-                print(f"Error querying {key}: {e}")
-                    
-    return dfs
 
 @st.cache_data(ttl=3600*12)
 def merge_queried_dfs(dfs, queries_to_merge):
@@ -534,7 +380,7 @@ def app():
         df_raw_sessions_on_VAST, 
         df_raw_sessions_on_VAST_unique_mouse_date,
         df_raw_sessions_on_VAST_multi_sessions_per_day
-    ) = _formatting_metadata_df(df_raw_sessions_on_VAST, source_prefix="VAST")
+    ) = formatting_metadata_df(df_raw_sessions_on_VAST, source_prefix="VAST")
 
     dfs_raw_on_VAST = {
         "df": df_raw_sessions_on_VAST,
@@ -618,7 +464,7 @@ def app():
 
             # Join in other extra columns
             df_this_preset = df_this_preset.join(
-                df_merged[[col for col in df_merged.columns if col not in meta_columns]], how="left"
+                df_merged[[col for col in df_merged.columns if col not in META_COLUMNS]], how="left"
             )
 
             with cols[0]:

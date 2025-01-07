@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 from aind_data_access_api.document_db import MetadataDbClient
 
+from util.reformat import formatting_metadata_df
 
 @st.cache_data(ttl=3600*12) # Cache the df_docDB up to 12 hours
 def load_data_from_docDB():
@@ -221,3 +222,95 @@ def find_result(x, lookup):
         if result_name.startswith(x):
             return result
     return {}
+
+
+# --------- Helper functions for Data Inventory (Han) ----------
+@st.cache_data(ttl=3600*24)
+def fetch_single_query(query, pagination, paginate_batch_size):
+    """ Fetch a query from docDB and process the result into dataframe
+    
+    Return: 
+    - df: dataframe of the original returned records
+    - df_multi_sessions_per_day: the dataframe with multiple sessions per day
+    - df_unique_mouse_date: the dataframe with multiple sessions per day combined
+    """
+
+    # --- Fetch data from docDB ---
+    client = load_client()
+    results = client.retrieve_docdb_records(
+        filter_query=query["filter"],
+        projection={
+            "_id": 0,
+            "name": 1,
+            "rig.rig_id": 1,
+            "session.experimenter_full_name": 1,
+        },
+        paginate=pagination,
+        paginate_batch_size=paginate_batch_size,
+    )
+    print(f"Done querying {query['alias']}!")
+
+    # --- Process data into dataframe ---
+    df = pd.json_normalize(results)
+    
+    # Formatting dataframe
+    df, df_unique_mouse_date, df_multi_sessions_per_day = formatting_metadata_df(df)
+    df_unique_mouse_date[query["alias"]] = True  # Add a column to prepare for merging
+
+    return df, df_unique_mouse_date, df_multi_sessions_per_day
+
+# Don't cache this function otherwise the progress bar won't work
+def fetch_queries_from_docDB(queries_to_merge, pagination=False, paginate_batch_size=5000):  
+    """ Get merged queries from selected queries """
+    
+    dfs = {}
+
+    # Fetch data in serial
+    p_bar = st.progress(0, text="Querying docDB in serial...")
+    for i, query in enumerate(queries_to_merge):
+        df, df_unique_mouse_date, df_multi_sessions_per_day = fetch_single_query(
+            query, pagination=pagination, paginate_batch_size=paginate_batch_size
+        )
+        dfs[query["alias"]] = {
+            "df": df,
+            "df_unique_mouse_date": df_unique_mouse_date,
+            "df_multi_sessions_per_day": df_multi_sessions_per_day,
+        }
+        p_bar.progress((i+1) / len(queries_to_merge), text=f"Querying docDB... ({i+1}/{len(queries_to_merge)})")
+
+    if not dfs:
+        st.warning("Querying docDB error! Refresh the page to try again or ask Han.")
+        return None
+    
+    return dfs
+
+@st.cache_data(ttl=3600*12)
+def fetch_queries_from_docDB_parallel(queries_to_merge, pagination=False, paginate_batch_size=5000):
+    """ Get merged queries from selected queries """
+
+    dfs = {}
+
+    # Fetch data in parallel
+    with ThreadPoolExecutor(max_workers=len(queries_to_merge)) as executor:
+        future_to_query = {
+            executor.submit(
+                fetch_single_query,
+                key,
+                pagination=pagination,
+                paginate_batch_size=paginate_batch_size,
+            ): key
+            for key in queries_to_merge
+        }
+        for i, future in enumerate(as_completed(future_to_query), 1):
+            key = future_to_query[future]
+            try:
+                df, df_unique_mouse_date, df_multi_sessions_per_day = future.result()
+                dfs[key["alias"]] = { 
+                    "df": df,
+                    "df_unique_mouse_date": df_unique_mouse_date,
+                    "df_multi_sessions_per_day": df_multi_sessions_per_day,
+                }
+            except Exception as e:
+                print(f"Error querying {key}: {e}")
+                    
+    return dfs
