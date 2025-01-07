@@ -328,7 +328,7 @@ def app():
                 st.rerun()
 
     if df_merged is None:
-        st.cache_data.clear()
+        st.cache_data.clear() # Fetch failed, re-fetch
         return
 
     # --- 2. Merge in the master df in the Home page (Han's temporary pipeline) ---

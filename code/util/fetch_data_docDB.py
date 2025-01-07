@@ -279,7 +279,7 @@ def fetch_queries_from_docDB(queries_to_merge, pagination=False, paginate_batch_
         p_bar.progress((i+1) / len(queries_to_merge), text=f"Querying docDB... ({i+1}/{len(queries_to_merge)})")
 
     if not dfs:
-        st.warning("Querying docDB error! Refresh the page to try again or ask Han.")
+        st.warning("Querying docDB error! Try \"Pagination\" in MetadataDbClient settings or ask Han.")
         return None
     
     return dfs
