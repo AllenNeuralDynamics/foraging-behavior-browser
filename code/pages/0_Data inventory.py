@@ -342,7 +342,7 @@ def add_sidebar(df_merged, dfs_docDB, df_Han_pipeline, dfs_raw_on_VAST, docDB_re
         _show_records_on_sidebar(dfs_raw_on_VAST, file_name_prefix="raw_on_VAST", source_str="VAST /scratch")
 
 @st.cache_data(ttl=3600*24)
-def plot_histogram_over_time(df, venn_preset, time_period="Daily", if_overlay=False):
+def plot_histogram_over_time(df, venn_preset, time_period="Daily", if_sync_y_limits=True, if_separate_plots=False):
     """Generate histogram over time for the columns and patches in preset
     """
     df["Daily"] = df["session_date"]
@@ -355,10 +355,13 @@ def plot_histogram_over_time(df, venn_preset, time_period="Daily", if_overlay=Fa
         return df.groupby(time_period)[column].apply(lambda x: (x == True).sum())
 
     # Preparing subplots for each circle/patch in venn
-    if not if_overlay:
-        columns = [c_s["column"] for c_s in venn_preset["circle_settings"]] + [
-            str(p_s["patch_ids"]) for p_s in venn_preset.get("patch_settings", [])
-        ]
+    columns = [c_s["column"] for c_s in venn_preset["circle_settings"]] + [
+        str(p_s["patch_ids"]) for p_s in venn_preset.get("patch_settings", [])
+    ]
+    colors = [c_s["edge_color"] for c_s in venn_preset["circle_settings"]] + [
+        p_s["color"] for p_s in venn_preset["patch_settings"]
+    ]
+    if if_separate_plots:
         fig = make_subplots(
             rows=len(columns),
             cols=1,
@@ -368,11 +371,10 @@ def plot_histogram_over_time(df, venn_preset, time_period="Daily", if_overlay=Fa
         )
 
         # Adding traces for each column
-        colors = [c_s["edge_color"] for c_s in venn_preset["circle_settings"]] + [
-            p_s["color"] for p_s in venn_preset["patch_settings"]
-        ]
+        max_counts = 0
         for i, column in enumerate(columns):
             counts = count_true_values(df, time_period, column)
+            max_counts = max(max_counts, counts.max())
             fig.add_trace(
                 go.Bar(
                     x=counts.index,
@@ -384,12 +386,44 @@ def plot_histogram_over_time(df, venn_preset, time_period="Daily", if_overlay=Fa
                 col=1,
             )
 
-    # Updating layout
-    fig.update_layout(
-        height=200 * len(columns) if not if_overlay else 200,
-        yaxis_title=f"{time_period} count of True",
-        showlegend=False,
-    )
+        # Sync y limits
+        if if_sync_y_limits:
+            fig.update_yaxes(range=[0, max_counts * 1.1])
+
+        # Updating layout
+        fig.update_layout(
+            height=200 * len(columns),
+            showlegend=False,
+            title=f"{time_period} counts",
+        )
+    else:  # side-by-side histograms in the same plot
+        fig = go.Figure()
+        for i, column in enumerate(columns):
+            fig.add_trace(go.Histogram( 
+                x=df[df[column]==True]["session_date"],
+                xbins=dict(size="M1"), # Only monthly bins look good
+                name=column,
+                marker_color=colors[i],
+                opacity=0.75
+            ))
+
+        # Update layout for grouped histogram
+        fig.update_layout(
+            height=500,
+            bargap=0.05,  # Gap between bars of adjacent locations
+            bargroupgap=0.1,  # Gap between bars of the same location
+            barmode='group',  # Grouped style
+            showlegend=True,
+            legend=dict(
+                orientation="h",  # Horizontal legend
+                y=-0.2,  # Position below the plot
+                x=0.5,  # Center the legend
+                xanchor="center",  # Anchor the legend's x position
+                yanchor="top"  # Anchor the legend's y position
+            ),
+            title="Monthly counts"
+        )
+        
     return fig
 
 def app():
@@ -500,18 +534,34 @@ def app():
         VENN_PRESET = json.load(f)
 
     if VENN_PRESET:
-        st.markdown("## Venn diagrams from presets")
+
+        cols = st.columns([2, 1])
+        cols[0].markdown("## Venn diagrams from presets")
+        with cols[1].expander("Time view settings", expanded=True):
+            cols_1 = st.columns([1, 1])                    
+            if_separate_plots = cols_1[0].checkbox("Separate in subplots", value=True)
+            if_sync_y_limits = cols_1[0].checkbox(
+                "Sync Y limits", value=True, disabled=not if_separate_plots
+            )
+            time_period = cols_1[1].selectbox(
+                "Bin size",
+                ["Daily", "Weekly", "Monthly", "Quarterly"],
+                index=1,
+                disabled=not if_separate_plots,
+            )
+
         for i_venn, venn_preset in enumerate(VENN_PRESET):
             # -- Venn diagrams --
             st.markdown(f"### ({i_venn+1}). {venn_preset['name']}")
-            cols = st.columns([1.5, 1])
             fig, notes = generate_venn(
                     df_merged,
                     venn_preset
                 )
+            for note in notes:
+                st.markdown(note)
+
+            cols = st.columns([1, 1])
             with cols[0]:
-                for note in notes:
-                    st.markdown(note)
                 st.pyplot(fig, use_container_width=True)
 
             # -- Show and download df for this Venn --
@@ -534,27 +584,23 @@ def app():
                 df_merged[[col for col in df_merged.columns if col not in meta_columns]], how="left"
             )
 
-            with cols[1]:
-                with st.expander(f'Show dataframe for this Venn diagram, n = {len(df_this_preset)} '
-                                 f'(the master df_merged filtered by "at least one True in this Venn")'):
-                    download_df(df_this_preset, label="Download as CSV", file_name=f"df_{venn_preset['name']}.csv")
+            with cols[0]:
+                download_df(
+                    df_this_preset,
+                    label="Download as CSV for this Venn diagram",
+                    file_name=f"df_{venn_preset['name']}.csv",
+                )
+                with st.expander(f"Show dataframe, n = {len(df_this_preset)}"):
                     st.write(df_this_preset)
 
+            with cols[1]:
                 # -- Show histogram over time --
-                if i_venn == 0:
-                    cols_1 = st.columns([1, 1])
-                    time_periods = ["Daily", "Weekly", "Monthly", "Quarterly"]
-                    time_period = cols_1[0].selectbox(
-                        "Select time period", time_periods, key=f"time_period_{i_venn}", index=1
-                    )
-
-                    if_overlay = cols_1[1].checkbox("Overlay all histograms", value=False, disabled=True)
-
                 fig = plot_histogram_over_time(
                     df=df_this_preset.reset_index(),
                     venn_preset=venn_preset,
                     time_period=time_period,
-                    if_overlay=if_overlay,
+                    if_sync_y_limits=if_sync_y_limits,
+                    if_separate_plots=if_separate_plots,
                 )
                 plotly_events(
                     fig,
@@ -569,18 +615,18 @@ def app():
 
     # --- User-defined Venn diagram ---
     # Multiselect for selecting queries up to three
-    st.markdown('---')
-    st.markdown("## Venn diagram from user-selected queries")
-    selected_queries = st.multiselect(
-        "Select queries to filter sessions",
-        meta_columns,
-        default=meta_columns[:3],
-        key="selected_queries",
-    )
+    # st.markdown('---')
+    # st.markdown("## Venn diagram from user-selected queries")
+    # selected_queries = st.multiselect(
+    #     "Select queries to filter sessions",
+    #     meta_columns,
+    #     default=meta_columns[:3],
+    #     key="selected_queries",
+    # )
 
-    columns_to_venn = selected_queries
-    fig = generate_venn(df_merged, columns_to_venn)
-    st.columns([1, 1])[0].pyplot(fig, use_container_width=True)
+    # columns_to_venn = selected_queries
+    # fig = generate_venn(df_merged, columns_to_venn)
+    # st.columns([1, 1])[0].pyplot(fig, use_container_width=True)
 
 
 if __name__ == "__main__":
