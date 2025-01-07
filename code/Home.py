@@ -33,7 +33,7 @@ from util.settings import (draw_type_layout_definition,
 from util.streamlit import (_plot_population_x_y, add_auto_train_manager,
                             add_dot_property_mapper, add_session_filter,
                             add_xy_selector, add_xy_setting,
-                            aggrid_interactive_table_curriculum,
+                            aggrid_interactive_table_basic,
                             aggrid_interactive_table_session, data_selector,
                             add_footnote)
 from util.url_query_helper import (checkbox_wrapper_for_url_query,
@@ -280,7 +280,7 @@ def show_curriculums():
     pass
 
 # ------- Layout starts here -------- #
-def init(if_load_docDB_override=None):
+def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     
     # Clear specific session state and all filters
     for key in st.session_state:
@@ -296,12 +296,17 @@ def init(if_load_docDB_override=None):
     # Because sync_URL_to_session_state() needs df to be loaded (for dynamic column filtering),
     # 'if_load_bpod_sessions' has not been synced from URL to session state yet.
     # So here we need to manually get it from URL or session state.
-    if (st.query_params['if_load_bpod_sessions'].lower() == 'true'
+    _if_load_bpod = if_load_bpod_data_override if if_load_bpod_data_override is not None else (
+        st.query_params['if_load_bpod_sessions'].lower() == 'true'
         if 'if_load_bpod_sessions' in st.query_params
         else st.session_state.if_load_bpod_sessions 
         if 'if_load_bpod_sessions' in st.session_state
-        else False):
+        else False)
+    
+    st.session_state.bpod_loaded = False
+    if _if_load_bpod:
         df_bpod = load_data(['sessions'], data_source='bpod')
+        st.session_state.bpod_loaded = True
         
         # For historial reason, the suffix of df['sessions_bonsai'] just mean the data of the Home.py page
         df['sessions_bonsai'] = pd.concat([df['sessions_bonsai'], df_bpod['sessions_bonsai']], axis=0)
@@ -376,6 +381,10 @@ def init(if_load_docDB_override=None):
     # Handle session number
     _df.dropna(subset=['session'], inplace=True) # Remove rows with no session number (only leave the nwb file with the largest finished_trials for now)
     _df.drop(_df.query('session < 1').index, inplace=True)
+    
+    # Remove invalid subject_id
+    _df = _df[(999999 > _df["subject_id"].astype(int)) 
+              & (_df["subject_id"].astype(int) > 300000)]
     
     # Remove abnormal values
     _df.loc[_df['weight_after'] > 100, 
@@ -745,7 +754,7 @@ def app():
                     pre_selected_rows = None
             
             # Show df_curriculum       
-            aggrid_interactive_table_curriculum(df=df_curriculums,
+            aggrid_interactive_table_basic(df=df_curriculums,
                                                 pre_selected_rows=pre_selected_rows)        
 
             

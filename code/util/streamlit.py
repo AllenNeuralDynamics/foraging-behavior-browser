@@ -106,8 +106,10 @@ def aggrid_interactive_table_session(df: pd.DataFrame, table_height: int = 400):
     
     return selection
 
-def aggrid_interactive_table_curriculum(df: pd.DataFrame,
-                                        pre_selected_rows: list = None):
+def aggrid_interactive_table_basic(df: pd.DataFrame,
+                                   height: int = 200,
+                                   pre_selected_rows: list = None,
+                                   configure_columns: list = None,):
     """Creates an st-aggrid interactive table based on a dataframe.
 
     Args:
@@ -121,10 +123,13 @@ def aggrid_interactive_table_curriculum(df: pd.DataFrame,
     )
 
     options.configure_side_bar()
-    
     options.configure_selection(selection_mode=None,
                                 pre_selected_rows=pre_selected_rows)
-        
+
+    if configure_columns:
+        for col in configure_columns:
+            options.configure_column(**col)
+
     selection = AgGrid(
         df,
         enable_enterprise_modules=True,
@@ -132,11 +137,10 @@ def aggrid_interactive_table_curriculum(df: pd.DataFrame,
         theme="balham",
         update_mode=GridUpdateMode.NO_UPDATE,
         allow_unsafe_jscode=True,
-        height=200,
+        height=height,
         columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
         custom_css=custom_css,
     )
-    
     return selection
 
 def aggrid_interactive_table_units(df: pd.DataFrame):
@@ -1151,5 +1155,18 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
 
 def add_footnote():
     st.markdown('---')
-    st.markdown(f'#### Han Hou @ 2024 {__ver__}')
+    st.markdown(f'#### AIND Behavior Team @ 2025 {__ver__}')
     st.markdown('[bug report / feature request](https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues)')
+
+
+def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
+    """ Add a button to download df as csv """
+    csv = df.to_csv(index=True)
+    
+    # Create download buttons
+    st.download_button(
+        label=label,
+        data=csv,
+        file_name=file_name,
+        mime='text/csv'
+    )
