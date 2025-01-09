@@ -94,7 +94,7 @@ def show_session_level_img_by_key_and_prefix(key, prefix, column=None, other_pat
     _f.image(img if img is not None else "https://cdn-icons-png.flaticon.com/512/3585/3585596.png", 
                 output_format='PNG', 
                 caption=f_name.split('/')[-1] if caption and f_name else '',
-                use_column_width='always',
+                use_container_width='always',
                 **kwargs)
 
     return img
