@@ -57,6 +57,14 @@ META_COLUMNS = [
     "VAST_raw_data_on_VAST",
 ] + [query["alias"] for query in QUERY_PRESET]
 
+X_BIN_SIZE_MAPPER = {  # For plotly histogram xbins
+    "Daily": 1000*3600*24,  # Milliseconds
+    "Weekly": 1000*3600*24*7, # Milliseconds
+    "Monthly": "M1",
+    "Quarterly": "M4",
+}
+
+
 @st.cache_data(ttl=3600*12)
 def merge_queried_dfs(dfs, queries_to_merge):
     # Combine queried dfs using df_unique_mouse_date (on index "subject_id", "session_date" only)
@@ -270,7 +278,7 @@ def plot_histogram_over_time(df, venn_preset, time_period="Daily", if_sync_y_lim
         for i, column in enumerate(columns):
             fig.add_trace(go.Histogram( 
                 x=df[df[column]==True]["session_date"],
-                xbins=dict(size="M1"), # Only monthly bins look good
+                xbins=dict(size=X_BIN_SIZE_MAPPER[time_period]), # Only monthly bins look good
                 name=column,
                 marker_color=colors[i],
                 opacity=0.75
@@ -430,7 +438,6 @@ def app():
                 "Bin size",
                 ["Daily", "Weekly", "Monthly", "Quarterly"],
                 index=1,
-                disabled=not if_separate_plots,
             )
 
         for i_venn, venn_preset in enumerate(VENN_PRESET):
