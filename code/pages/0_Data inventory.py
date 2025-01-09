@@ -48,8 +48,16 @@ unsafe_allow_html=True,
 )
 
 # Load QUERY_PRESET from json
-with open("data_inventory_QUERY_PRESET.json", "r") as f:
-    QUERY_PRESET = json.load(f)
+@st.cache_data()
+def load_presets():
+    with open("data_inventory_QUERY_PRESET.json", "r") as f:
+        QUERY_PRESET = json.load(f)
+
+    with open("data_inventory_VENN_PRESET.json", "r") as f:
+        VENN_PRESET = json.load(f)
+    return QUERY_PRESET, VENN_PRESET
+
+QUERY_PRESET, VENN_PRESET = load_presets()
 
 META_COLUMNS = [
     "Han_temp_pipeline (bpod)",
@@ -421,9 +429,6 @@ def app():
     )
 
     # --- Venn diagram from presets ---
-    with open("data_inventory_VENN_PRESET.json", "r") as f:
-        VENN_PRESET = json.load(f)
-
     if VENN_PRESET:
 
         cols = st.columns([2, 1])
