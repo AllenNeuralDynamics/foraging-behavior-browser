@@ -48,14 +48,30 @@ unsafe_allow_html=True,
 )
 
 # Load QUERY_PRESET from json
-with open("data_inventory_QUERY_PRESET.json", "r") as f:
-    QUERY_PRESET = json.load(f)
+@st.cache_data()
+def load_presets():
+    with open("data_inventory_QUERY_PRESET.json", "r") as f:
+        QUERY_PRESET = json.load(f)
+
+    with open("data_inventory_VENN_PRESET.json", "r") as f:
+        VENN_PRESET = json.load(f)
+    return QUERY_PRESET, VENN_PRESET
+
+QUERY_PRESET, VENN_PRESET = load_presets()
 
 META_COLUMNS = [
     "Han_temp_pipeline (bpod)",
     "Han_temp_pipeline (bonsai)",
     "VAST_raw_data_on_VAST",
 ] + [query["alias"] for query in QUERY_PRESET]
+
+X_BIN_SIZE_MAPPER = {  # For plotly histogram xbins
+    "Daily": 1000*3600*24,  # Milliseconds
+    "Weekly": 1000*3600*24*7, # Milliseconds
+    "Monthly": "M1",
+    "Quarterly": "M4",
+}
+
 
 @st.cache_data(ttl=3600*12)
 def merge_queried_dfs(dfs, queries_to_merge):
@@ -270,7 +286,7 @@ def plot_histogram_over_time(df, venn_preset, time_period="Daily", if_sync_y_lim
         for i, column in enumerate(columns):
             fig.add_trace(go.Histogram( 
                 x=df[df[column]==True]["session_date"],
-                xbins=dict(size="M1"), # Only monthly bins look good
+                xbins=dict(size=X_BIN_SIZE_MAPPER[time_period]), # Only monthly bins look good
                 name=column,
                 marker_color=colors[i],
                 opacity=0.75
@@ -413,9 +429,6 @@ def app():
     )
 
     # --- Venn diagram from presets ---
-    with open("data_inventory_VENN_PRESET.json", "r") as f:
-        VENN_PRESET = json.load(f)
-
     if VENN_PRESET:
 
         cols = st.columns([2, 1])
@@ -430,7 +443,6 @@ def app():
                 "Bin size",
                 ["Daily", "Weekly", "Monthly", "Quarterly"],
                 index=1,
-                disabled=not if_separate_plots,
             )
 
         for i_venn, venn_preset in enumerate(VENN_PRESET):
