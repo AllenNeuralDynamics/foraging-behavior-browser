@@ -585,9 +585,12 @@ def app():
     if len(st.session_state.df_session_filtered) == 0:
         st.markdown('## No filtered results!')
         return
-    
-    aggrid_outputs = aggrid_interactive_table_session(df=st.session_state.df_session_filtered, table_height=table_height)
-    
+
+    aggrid_outputs = aggrid_interactive_table_session(
+        df=st.session_state.df_session_filtered,
+        table_height=table_height,
+    )
+
     if len(aggrid_outputs['selected_rows']) and not set(pd.DataFrame(aggrid_outputs['selected_rows']
                                                                  ).set_index(['h2o', 'session']).index
                                                         ) == set(st.session_state.df_selected_from_dataframe.set_index(['h2o', 'session']).index):
@@ -596,6 +599,10 @@ def app():
         # if st.session_state.tab_id == "tab_session_x_y":
         st.rerun()
 
+    add_tabs()
+
+@st.fragment
+def add_tabs():
     chosen_id = stx.tab_bar(data=[
         stx.TabBarItemData(id="tab_auto_train_history", title="🎓 Automatic Training History", description="Track progress"),
         stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
@@ -658,7 +665,7 @@ def app():
                     spec="./gw_config.json",
                     )
                             
-            pygwalker_renderer.render_explore(height=1010, scrolling=False)
+            pygwalker_renderer.render_explore()
         
     elif chosen_id == "tab_session_inspector":
         with placeholder:
