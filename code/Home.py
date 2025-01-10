@@ -38,6 +38,7 @@ from util.streamlit import (_plot_population_x_y, add_auto_train_manager,
                             add_footnote)
 from util.url_query_helper import (checkbox_wrapper_for_url_query,
                                    multiselect_wrapper_for_url_query,
+                                   selectbox_wrapper_for_url_query,
                                    number_input_wrapper_for_url_query,
                                    slider_wrapper_for_url_query,
                                    sync_session_state_to_URL,
@@ -689,8 +690,9 @@ def add_tabs():
     elif chosen_id == "tab_auto_train_curriculum":  # Automatic training curriculums
         df_curriculums = st.session_state.curriculum_manager.df_curriculums().sort_values(
             by=['curriculum_version', 'curriculum_schema_version', 'curriculum_name'],
-            ascending=[False, True, False],
-            ).reset_index().drop(columns='index')
+            ascending=[False, True, False], 
+            ).reset_index().drop(columns='index').query("curriculum_name != 'Dummy task'")
+        
         with placeholder:
             # Show curriculum manager dataframe
             st.markdown("#### Select auto training curriculums")
@@ -698,51 +700,43 @@ def add_tabs():
             # Curriculum drop down selector
             cols = st.columns([0.8, 0.5, 0.8, 4])
             cols[3].markdown(f"(aind_auto_train lib version = {auto_train_version})")
-            options = list(df_curriculums['curriculum_name'].unique())
-            selected_curriculum_name = cols[0].selectbox(
-                'Curriculum name', 
-                options=options,
-                index=options.index(st.session_state['auto_training_curriculum_name'])
-                    if ('auto_training_curriculum_name' in st.session_state) and (st.session_state['auto_training_curriculum_name'] != '') else 
-                    options.index(st.query_params['auto_training_curriculum_name'])
-                    if 'auto_training_curriculum_name' in st.query_params and st.query_params['auto_training_curriculum_name'] != ''
-                    else 0, 
-                key='auto_training_curriculum_name'
-                )
             
+            options = list(df_curriculums['curriculum_name'].unique())
+            selected_curriculum_name = selectbox_wrapper_for_url_query(
+                st_prefix=cols[0],
+                label='Curriculum name',
+                options=options,
+                default=options[0],
+                default_override=True,
+                key='auto_training_curriculum_name',
+            )
+                       
             options = list(df_curriculums[
                 df_curriculums['curriculum_name'] == selected_curriculum_name
                 ]['curriculum_version'].unique())
-            if ('auto_training_curriculum_version' in st.session_state) and (st.session_state['auto_training_curriculum_version'] in options):
-                default = options.index(st.session_state['auto_training_curriculum_version'])
-            elif 'auto_training_curriculum_version' in st.query_params and st.query_params['auto_training_curriculum_version'] in options:
-                default = options.index(st.query_params['auto_training_curriculum_version'])
-            else:
-                default = 0
-            selected_curriculum_version = cols[1].selectbox(
-                'Curriculum version', 
-                options=options, 
-                index=default, 
-                key='auto_training_curriculum_version'
+            selected_curriculum_version = selectbox_wrapper_for_url_query(
+                st_prefix=cols[1],
+                label='Curriculum version',
+                options=options,
+                default=options[0],
+                default_override=True,
+                key='auto_training_curriculum_version',
             )
             
             options = list(df_curriculums[
                 (df_curriculums['curriculum_name'] == selected_curriculum_name) 
                 & (df_curriculums['curriculum_version'] == selected_curriculum_version)
                 ]['curriculum_schema_version'].unique())
-            if ('auto_training_curriculum_schema_version' in st.session_state) and (st.session_state['auto_training_curriculum_schema_version'] in options):
-                default = options.index(st.session_state['auto_training_curriculum_schema_version'])
-            elif 'auto_training_curriculum_schema_version' in st.query_params and st.query_params['auto_training_curriculum_schema_version'] in options:
-                default = options.index(st.query_params['auto_training_curriculum_schema_version'])
-            else:
-                default = 0
-            selected_curriculum_schema_version = cols[2].selectbox(
-                'Curriculum schema version', 
+            
+            selected_curriculum_schema_version = selectbox_wrapper_for_url_query(
+                st_prefix=cols[2],
+                label='Curriculum schema version',
                 options=options,
-                index=default,
-                key='auto_training_curriculum_schema_version'
-                )
-                        
+                default=options[0],
+                default_override=True,
+                key='auto_training_curriculum_schema_version',
+            )
+                                   
             selected_curriculum = st.session_state.curriculum_manager.get_curriculum(
                 curriculum_name=selected_curriculum_name,
                 curriculum_schema_version=selected_curriculum_schema_version,
