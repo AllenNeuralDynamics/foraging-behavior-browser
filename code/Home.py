@@ -72,7 +72,7 @@ def _user_name_mapper(user_name):
                 return name
     else:
         return user_name
-    
+
 
 @st.cache_resource(ttl=24*3600)
 def get_pyg_renderer(df, spec="./gw_config.json", **kwargs) -> "StreamlitRenderer":
@@ -132,22 +132,20 @@ def session_plot_settings(need_click=True):
     with st.form(key='session_plot_settings'):
         st.markdown('##### Show plots for individual sessions ')
         cols = st.columns([2, 6, 1])
-        
+
         session_plot_modes = [f'sessions selected from table or plot', f'all sessions filtered from sidebar']
-        st.session_state.selected_draw_sessions = cols[0].selectbox(f'Which session(s) to draw?', 
-                                                                    session_plot_modes,
-                                                                    index=session_plot_modes.index(st.session_state['session_plot_mode'])
-                                                                        if 'session_plot_mode' in st.session_state else 
-                                                                        session_plot_modes.index(st.query_params['session_plot_mode'])
-                                                                        if 'session_plot_mode' in st.query_params 
-                                                                        else 0, 
-                                                                    key='session_plot_mode',
-                                                                )
-        
+        st.session_state.selected_draw_sessions = selectbox_wrapper_for_url_query(
+            cols[0],
+            label='Which session(s) to draw?',
+            options=session_plot_modes,
+            default=session_plot_modes[0],
+            key='session_plot_mode',
+        )
+
         n_session_to_draw = len(st.session_state.df_selected_from_plotly) \
             if 'selected from table or plot' in st.session_state.selected_draw_sessions \
             else len(st.session_state.df_session_filtered) 
-                
+
         _ = number_input_wrapper_for_url_query(
             st_prefix=cols[2],
             label='number of columns',
@@ -156,7 +154,7 @@ def session_plot_settings(need_click=True):
             default=3,
             key='session_plot_number_cols',
         )
-        
+
         st.markdown(
         """
         <style>
@@ -173,18 +171,19 @@ def session_plot_settings(need_click=True):
             default=draw_type_mapper_session_level.keys(),
             key='session_plot_selected_draw_types',
         )
-                
+
         cols[0].markdown(f'{n_session_to_draw} sessions to draw')
         draw_it_now_override = cols[2].checkbox('Auto show', value=not need_click, disabled=not need_click)
-        submitted = cols[0].form_submit_button("Update settings", type='primary')
-        
-        
+        submitted = cols[0].form_submit_button(
+            "Update settings", type="primary"
+        )
+
     if not need_click:
         return True
-        
+
     if draw_it_now_override:
         return True
-    
+
     draw_it = st.button(f'Show {n_session_to_draw} sessions!', use_container_width=False, type="primary")
     return draw_it
 
@@ -600,10 +599,10 @@ def app():
         # if st.session_state.tab_id == "tab_session_x_y":
         st.rerun()
 
-    add_tabs()
+    add_main_tabs()
 
 @st.fragment
-def add_tabs():
+def add_main_tabs():
     chosen_id = stx.tab_bar(data=[
         stx.TabBarItemData(id="tab_auto_train_history", title="🎓 Automatic Training History", description="Track progress"),
         stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
