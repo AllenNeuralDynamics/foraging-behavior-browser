@@ -713,15 +713,20 @@ def data_selector():
         #     st.session_state.df_selected_from_dataframe = pd.DataFrame()
         #     st.rerun()
 
-        cols = st.columns([5, 1, 1])
-        with cols[0].expander(f"Selected: {len(st.session_state.df_selected_from_plotly)} sessions, "
+        with st.expander(f"Selected: {len(st.session_state.df_selected_from_plotly)} sessions, "
                               f"{len(st.session_state.df_selected_from_plotly.h2o.unique())} mice", expanded=False):
             st.dataframe(st.session_state.df_selected_from_plotly)
-        if cols[1].button('all'):
+        cols = st.columns([1, 1, 1])
+            
+        if cols[0].button('sync'):
+            # simply rerun to update session states that are changed in fragment
+            st.rerun()
+            
+        if cols[1].button('select all'):
             st.session_state.df_selected_from_plotly = st.session_state.df_session_filtered
             st.rerun()
         
-        if cols[2].button('❌ '):
+        if cols[2].button('clear all'):
             st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
             st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
             st.rerun()
@@ -1063,14 +1068,14 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
         col = col_map[i%len(col_map)]
 
         if if_show_dots:
-            if not len(st.session_state.df_selected_from_plotly):   
-                this_session['colors'] = col  # all use normal colors
-            else:
-                merged = pd.merge(this_session, st.session_state.df_selected_from_plotly, on=['h2o', 'session'], how='left')
-                merged['colors'] = 'lightgrey'  # default, grey
-                merged.loc[merged.subject_id_y.notna(), 'colors'] = col   # only use normal colors for the selected dots 
-                this_session['colors'] = merged.colors.values
-                this_session = pd.concat([this_session.query('colors != "lightgrey"'), this_session.query('colors == "lightgrey"')])  # make sure the real color goes first
+            # if not len(st.session_state.df_selected_from_plotly):   
+            this_session['colors'] = col  # all use normal colors
+            # else:
+            #     merged = pd.merge(this_session, st.session_state.df_selected_from_plotly, on=['h2o', 'session'], how='left')
+            #     merged['colors'] = 'lightgrey'  # default, grey
+            #     merged.loc[merged.subject_id_y.notna(), 'colors'] = col   # only use normal colors for the selected dots 
+            #     this_session['colors'] = merged.colors.values
+            #     this_session = pd.concat([this_session.query('colors != "lightgrey"'), this_session.query('colors == "lightgrey"')])  # make sure the real color goes first
 
             fig.add_trace(go.Scattergl(
                             x=this_session[x_name], 
@@ -1081,7 +1086,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                             mode="markers",
                             line_width=line_width,
                             marker_size=this_session['dot_size'],
-                            marker_color=this_session['colors'],
+                            # marker_color=this_session['colors'],
                             opacity=dot_opacity,
                             hovertemplate =  '<b>%{customdata[0]}, %{customdata[1]}, Session %{customdata[2]}'
                                              '<br>%{customdata[4]} @ %{customdata[9]}'

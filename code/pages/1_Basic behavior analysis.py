@@ -8,7 +8,6 @@ import matplotlib
 from plotly.subplots import make_subplots
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-from streamlit_plotly_events import plotly_events
 from util.aws_s3 import load_data
 from util.streamlit import add_session_filter, data_selector, add_footnote
 from scipy.stats import gaussian_kde

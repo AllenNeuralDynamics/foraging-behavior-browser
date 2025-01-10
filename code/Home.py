@@ -23,7 +23,6 @@ from aind_auto_train import __version__ as auto_train_version
 from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
 from aind_auto_train.curriculum_manager import CurriculumManager
 from pygwalker.api.streamlit import StreamlitRenderer, init_streamlit_comm
-from streamlit_plotly_events import plotly_events
 from util.aws_s3 import (draw_session_plots_quick_preview, load_data,
                          show_debug_info,
                          show_session_level_img_by_key_and_prefix)
@@ -128,7 +127,7 @@ def draw_session_plots(df_to_draw_session):
                 my_bar.progress(int((i + 1) / len(df_to_draw_session) * 100))
 
 
-def session_plot_settings(need_click=True):
+def session_plot_settings(df_selected, need_click=True):
     with st.form(key='session_plot_settings'):
         st.markdown('##### Show plots for individual sessions ')
         cols = st.columns([2, 6, 1])
@@ -142,7 +141,7 @@ def session_plot_settings(need_click=True):
             key='session_plot_mode',
         )
 
-        n_session_to_draw = len(st.session_state.df_selected_from_plotly) \
+        n_session_to_draw = len(df_selected) \
             if 'selected from table or plot' in st.session_state.selected_draw_sessions \
             else len(st.session_state.df_session_filtered) 
 
@@ -243,7 +242,6 @@ def plot_x_y_session():
                                     if_use_x_quantile_all=if_use_x_quantile_all,
                                     q_quantiles_all=q_quantiles_all,
                                     title=names[(x_name, y_name)] if (x_name, y_name) in names else y_name,
-                                    states = st.session_state.df_selected_from_plotly,
                                     if_show_diagonal=if_show_diagonal,
                                     dot_size_base=dot_size,
                                     dot_size_mapping_name=size_mapper,
@@ -278,9 +276,9 @@ def plot_x_y_session():
         df_key_selected["session_date"] = pd.to_datetime(df_key_selected["session_date"])
         df_selected_from_plotly = df_x_y_session.merge(df_key_selected, on=["subject_id", "session_date"], how='inner')
         
-    if len(st.session_state.df_selected_from_plotly) == 1:
+    if len(df_selected_from_plotly) == 1:
         with cols[1]:
-            draw_session_plots_quick_preview(st.session_state.df_selected_from_plotly)
+            draw_session_plots_quick_preview(df_selected_from_plotly)
 
     return df_selected_from_plotly, cols
 
@@ -632,18 +630,16 @@ def add_main_tabs():
             # Add session_plot_setting
             with st.columns([1, 0.5])[0]:
                 st.markdown("***")
-                if_draw_all_sessions = session_plot_settings()
+                if_draw_all_sessions = session_plot_settings(df_selected_from_plotly)
 
-            df_to_draw_sessions = st.session_state.df_selected_from_plotly if 'selected' in st.session_state.selected_draw_sessions else st.session_state.df_session_filtered
+            df_to_draw_sessions = df_selected_from_plotly if 'selected' in st.session_state.selected_draw_sessions else st.session_state.df_session_filtered
 
             if if_draw_all_sessions and len(df_to_draw_sessions):
                 draw_session_plots(df_to_draw_sessions)
-                
-            if len(df_selected_from_plotly) and not set(df_selected_from_plotly.set_index(['h2o', 'session']).index) == set(
-                                                st.session_state.df_selected_from_plotly.set_index(['h2o', 'session']).index):
-                st.session_state.df_selected_from_plotly = df_selected_from_plotly
-                st.session_state.df_selected_from_dataframe = df_selected_from_plotly  # Sync selected on dataframe
-                st.rerun()
+            
+            st.session_state.df_selected_from_plotly = df_selected_from_plotly
+            st.session_state.df_selected_from_dataframe = df_selected_from_plotly  # Sync selected on dataframe
+              
                 
     elif chosen_id == "tab_pygwalker":
         with placeholder:
@@ -680,8 +676,8 @@ def add_main_tabs():
         with placeholder:
             cols = st.columns([1, 0.5])
             with cols[0]:
-                if_draw_all_sessions = session_plot_settings(need_click=False)
                 df_to_draw_sessions = st.session_state.df_selected_from_plotly if 'selected' in st.session_state.selected_draw_sessions else st.session_state.df_session_filtered
+                if_draw_all_sessions = session_plot_settings(df_to_draw_sessions, need_click=False)
 
             if if_draw_all_sessions and len(df_to_draw_sessions):
                 draw_session_plots(df_to_draw_sessions)
