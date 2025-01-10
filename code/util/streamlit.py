@@ -27,6 +27,7 @@ from .url_query_helper import (checkbox_wrapper_for_url_query, get_filter_type,
                                multiselect_wrapper_for_url_query,
                                selectbox_wrapper_for_url_query,
                                slider_wrapper_for_url_query)
+from.settings import override_plotly_theme
 
 custom_css = {
 ".ag-root.ag-unselectable.ag-layout-normal": {"font-size": "15px !important",
@@ -1125,6 +1126,8 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
     n_mice = len(df['h2o'].unique())
     n_sessions = len(df.groupby(['h2o', 'session']).count())
 
+    override_plotly_theme(fig, theme="simple_white")
+
     fig.update_layout(
         width=x_y_plot_figure_width,
         height=x_y_plot_figure_height,
@@ -1142,14 +1145,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                     b=130 * font_size_scale, 
                     t=100 * font_size_scale,
                     ),
-    )
-    fig.update_xaxes(showline=True, linewidth=2, linecolor='black', 
-                    #  range=[1, min(100, df[x_name].max())],
-                     ticks = "outside", tickcolor='black', ticklen=10, tickwidth=2, ticksuffix=' ')
-
-    fig.update_yaxes(showline=True, linewidth=2, linecolor='black',
-                     title_standoff=40,
-                     ticks = "outside", tickcolor='black', ticklen=10, tickwidth=2, ticksuffix=' ')
+    ) 
     return fig
 
 

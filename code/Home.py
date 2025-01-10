@@ -192,7 +192,7 @@ def plot_x_y_session():
     with st.expander("X-Y plot settings", expanded=True):            
         with st.form(key='x_y_plot_settings', border=False):
             cols = st.columns([1, 1, 1])
-            
+
             with cols[0]:
                 x_name, y_name, group_by = add_xy_selector(if_bonsai=True)
 
@@ -201,28 +201,28 @@ def plot_x_y_session():
                 if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor, if_show_diagonal,
                 dot_size, dot_opacity, line_width, x_y_plot_figure_width, x_y_plot_figure_height, 
                 font_size_scale, color_map) = add_xy_setting()
-            
+
             if st.session_state.x_y_plot_if_show_dots:
                 with cols[2]:
                     size_mapper, size_mapper_range, size_mapper_gamma = add_dot_property_mapper()
             else:
                 size_mapper = 'None'
                 size_mapper_range, size_mapper_gamma = None, None
-            
+
             submitted = st.form_submit_button("👉 Update X-Y settings 👈", type='primary')
-    
+
     # If no sessions are selected, use all filtered entries
     # df_x_y_session = st.session_state.df_selected_from_dataframe if if_plot_only_selected_from_dataframe else st.session_state.df_session_filtered
     df_x_y_session = st.session_state.df_session_filtered
-    
+
     names = {('session', 'foraging_eff'): 'Foraging efficiency',
              ('session', 'finished'):   'Finished trials', 
              }
 
     df_selected_from_plotly = pd.DataFrame()
     # for i, (title, (x_name, y_name)) in enumerate(names.items()):
-        # with cols[i]:
-    
+    # with cols[i]:
+
     if hasattr(st.session_state, 'x_y_plot_figure_width'):
         _x_y_plot_scale = st.session_state.x_y_plot_figure_width / 1300
         cols = st.columns([1 * _x_y_plot_scale, 0.7])
@@ -256,19 +256,28 @@ def plot_x_y_session():
                                     font_size_scale=font_size_scale,
                                     color_map=color_map,
                                     )
-        
-        # st.plotly_chart(fig)
-        selected = plotly_events(fig, click_event=True, hover_event=False, select_event=True, 
-                                 override_height=fig.layout.height * 1.1, override_width=fig.layout.width)
-    
+
+        selected = st.plotly_chart(fig, 
+                                   on_select="rerun",
+                                   use_container_width=True,
+                                   theme=None,  # full controlled by plotly chart itself
+                        )
+        # selected = plotly_events(fig, click_event=True, hover_event=False, select_event=True,
+        #                          override_height=fig.layout.height * 1.1, override_width=fig.layout.width)
+
     with cols[1]:
         st.markdown('#### 👀 Quick preview')
         st.markdown('###### Click on one session to preview here, or Box/Lasso select multiple sessions to draw them in the section below')
         st.markdown('(sometimes you have to click twice...)')
-      
+
     if len(selected):
-        df_selected_from_plotly = df_x_y_session.merge(pd.DataFrame(selected).rename({'x': x_name, 'y': y_name}, axis=1), 
-                                                    on=[x_name, y_name], how='inner')
+        df_key_selected = pd.DataFrame(
+            [data["customdata"][:2] for data in selected.selection.points],
+            columns=["subject_id", "session_date"],
+        )
+        df_key_selected["session_date"] = pd.to_datetime(df_key_selected["session_date"])
+        df_selected_from_plotly = df_x_y_session.merge(df_key_selected, on=["subject_id", "session_date"], how='inner')
+        
     if len(st.session_state.df_selected_from_plotly) == 1:
         with cols[1]:
             draw_session_plots_quick_preview(st.session_state.df_selected_from_plotly)
