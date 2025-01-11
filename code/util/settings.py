@@ -1,4 +1,5 @@
 import plotly.io as pio
+pio.json.config.default_engine = "orjson"
 
 # Setting up layout for each session
 draw_type_layout_definition = [

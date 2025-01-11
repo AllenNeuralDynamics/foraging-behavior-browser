@@ -10,6 +10,9 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import plotly.io as pio
+pio.json.config.default_engine = "orjson"
+
 from streamlit_plotly_events import plotly_events
 
 import time
