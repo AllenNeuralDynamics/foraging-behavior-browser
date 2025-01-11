@@ -211,7 +211,6 @@ def plot_x_y_session():
             submitted = st.form_submit_button("👉 Update X-Y settings 👈", type='primary')
 
     # If no sessions are selected, use all filtered entries
-    # df_x_y_session = st.session_state.df_selected_from_dataframe if if_plot_only_selected_from_dataframe else st.session_state.df_session_filtered
     df_x_y_session = st.session_state.df_session_filtered
 
     names = {('session', 'foraging_eff'): 'Foraging efficiency',
@@ -256,25 +255,27 @@ def plot_x_y_session():
                                     )
 
         selected = st.plotly_chart(fig, 
+                                   key='x_y_plot',
                                    on_select="rerun",
                                    use_container_width=True,
                                    theme=None,  # full controlled by plotly chart itself
                         )
-        # selected = plotly_events(fig, click_event=True, hover_event=False, select_event=True,
-        #                          override_height=fig.layout.height * 1.1, override_width=fig.layout.width)
 
     with cols[1]:
         st.markdown('#### 👀 Quick preview')
         st.markdown('###### Click on one session to preview here, or Box/Lasso select multiple sessions to draw them in the section below')
         st.markdown('(sometimes you have to click twice...)')
 
-    if len(selected):
+    if len(selected.selection.points):  # Selected this time
         df_key_selected = pd.DataFrame(
             [data["customdata"][:2] for data in selected.selection.points],
             columns=["subject_id", "session_date"],
         )
         df_key_selected["session_date"] = pd.to_datetime(df_key_selected["session_date"])
         df_selected_from_plotly = df_x_y_session.merge(df_key_selected, on=["subject_id", "session_date"], how='inner')
+        
+        # Update session state
+        st.session_state.df_selected_from_plotly = df_selected_from_plotly
         
     if len(df_selected_from_plotly) == 1:
         with cols[1]:
@@ -319,8 +320,8 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
         df['sessions_bonsai'] = pd.concat([df['sessions_bonsai'], df_bpod['sessions_bonsai']], axis=0)
         
     st.session_state.df = df
-    st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
-    st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
+    for source in ["dataframe", "plotly"]:
+        st.session_state[f'df_selected_from_{source}'] = pd.DataFrame(columns=['h2o', 'session'])
             
     # Init auto training database
     st.session_state.curriculum_manager = CurriculumManager(
@@ -537,11 +538,6 @@ def app():
         data_selector()
         add_footnote()
         
-        with st.expander('Debug', expanded=False):
-            if st.button('Clear session state and reload data'):
-                st.cache_data.clear()
-                init()
-                st.rerun()
         
     with st.container():
         # col1, col2 = st.columns([1.5, 1], gap='small')
@@ -582,9 +578,6 @@ def app():
                                                     step=50,
                                                     key='table_height',
         )
-            
-        # aggrid_outputs = aggrid_interactive_table_units(df=df['ephys_units'])
-        # st.session_state.df_session_filtered = aggrid_outputs['data']
         
         container_filtered_frame = st.container()
 
@@ -598,13 +591,14 @@ def app():
         table_height=table_height,
     )
 
-    if len(aggrid_outputs['selected_rows']) and not set(pd.DataFrame(aggrid_outputs['selected_rows']
-                                                                 ).set_index(['h2o', 'session']).index
-                                                        ) == set(st.session_state.df_selected_from_dataframe.set_index(['h2o', 'session']).index):
-        st.session_state.df_selected_from_dataframe = pd.DataFrame(aggrid_outputs['selected_rows'])
-        st.session_state.df_selected_from_plotly = st.session_state.df_selected_from_dataframe  # Sync selected on plotly
-        # if st.session_state.tab_id == "tab_session_x_y":
+    if len(aggrid_outputs['selected_rows']) \
+        and not set(pd.DataFrame(aggrid_outputs['selected_rows']).set_index(['h2o', 'session']).index
+            ) == set(st.session_state.df_selected_from_dataframe.set_index(['h2o', 'session']).index) \
+        and not st.session_state.get("df_selected_from_dataframe_just_overriden", False):  # so that if the user just overriden the df_selected_from_dataframe by pressing sidebar button, it won't sync selected rows in the table to session state
+        st.session_state.df_selected_from_dataframe = pd.DataFrame(aggrid_outputs['selected_rows'])  # Use selected in dataframe to update "selected"
         st.rerun()
+        
+    st.session_state["df_selected_from_dataframe_just_overriden"] = False  # Reset the flag anyway
 
     add_main_tabs()
 
@@ -612,8 +606,8 @@ def app():
 def add_main_tabs():
     chosen_id = stx.tab_bar(data=[
         stx.TabBarItemData(id="tab_auto_train_history", title="🎓 Automatic Training History", description="Track progress"),
-        stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
-        stx.TabBarItemData(id="tab_session_x_y", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
+        stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector (table)", description="Select sessions from the table and show figures"),
+        stx.TabBarItemData(id="tab_session_x_y", title="📈 Session X-Y plot", description="Select sessions from x-y plot and show figures"),
         stx.TabBarItemData(id="tab_pygwalker", title="📊 PyGWalker (Tableau)", description="Interactive dataframe explorer"),
         stx.TabBarItemData(id="tab_auto_train_curriculum", title="📚 Automatic Training Curriculums", description="Collection of curriculums"),
         # stx.TabBarItemData(id="tab_mouse_inspector", title="🐭 Mouse Inspector", description="Mouse-level summary"),
@@ -636,9 +630,6 @@ def add_main_tabs():
 
             if if_draw_all_sessions and len(df_to_draw_sessions):
                 draw_session_plots(df_to_draw_sessions)
-            
-            st.session_state.df_selected_from_plotly = df_selected_from_plotly
-            st.session_state.df_selected_from_dataframe = df_selected_from_plotly  # Sync selected on dataframe
               
                 
     elif chosen_id == "tab_pygwalker":
@@ -676,7 +667,7 @@ def add_main_tabs():
         with placeholder:
             cols = st.columns([1, 0.5])
             with cols[0]:
-                df_to_draw_sessions = st.session_state.df_selected_from_plotly if 'selected' in st.session_state.selected_draw_sessions else st.session_state.df_session_filtered
+                df_to_draw_sessions = st.session_state.df_selected_from_dataframe if 'selected' in st.session_state.get("selected_draw_sessions", "") else st.session_state.df_session_filtered
                 if_draw_all_sessions = session_plot_settings(df_to_draw_sessions, need_click=False)
 
             if if_draw_all_sessions and len(df_to_draw_sessions):
@@ -797,3 +788,4 @@ if __name__ == "__main__":
 
     if ok:
         app()
+        pass
