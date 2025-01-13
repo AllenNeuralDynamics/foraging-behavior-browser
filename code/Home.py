@@ -620,18 +620,21 @@ def add_main_tabs():
     if chosen_id == "tab_session_x_y":
         with placeholder:
             df_selected_from_plotly, x_y_cols = plot_x_y_session()
-            
+
             # Add session_plot_setting
             with st.columns([1, 0.5])[0]:
                 st.markdown("***")
                 if_draw_all_sessions = session_plot_settings(df_selected_from_plotly)
 
-            df_to_draw_sessions = df_selected_from_plotly if 'selected' in st.session_state.selected_draw_sessions else st.session_state.df_session_filtered
+            df_to_draw_sessions = (
+                df_selected_from_plotly
+                if "selected" in st.session_state.get("selected_draw_sessions", "sessions selected from table or plot")
+                else st.session_state.df_session_filtered
+            )
 
             if if_draw_all_sessions and len(df_to_draw_sessions):
                 draw_session_plots(df_to_draw_sessions)
-              
-                
+
     elif chosen_id == "tab_pygwalker":
         with placeholder:
             cols = st.columns([1, 4])
@@ -642,7 +645,7 @@ def add_main_tabs():
                     pyg_user_json = st.text_area("Export your plot settings to json by clicking `export_code` "
                                                  "button below and then paste your json here to reproduce your plots", 
                                                 key='pyg_walker', height=100)
-            
+
             # If pyg_user_json is not empty, use it; otherwise, use the default gw_config.json
             if pyg_user_json:
                 try:
@@ -660,24 +663,30 @@ def add_main_tabs():
                     df=st.session_state.df_session_filtered,
                     spec="./gw_config.json",
                     )
-                            
+
             pygwalker_renderer.render_explore()
-        
+
     elif chosen_id == "tab_session_inspector":
         with placeholder:
             cols = st.columns([1, 0.5])
             with cols[0]:
-                df_to_draw_sessions = st.session_state.df_selected_from_dataframe if 'selected' in st.session_state.get("selected_draw_sessions", "") else st.session_state.df_session_filtered
-                if_draw_all_sessions = session_plot_settings(df_to_draw_sessions, need_click=False)
+                df_to_draw_sessions = (
+                    st.session_state.df_selected_from_dataframe
+                    if "selected" in st.session_state.get("selected_draw_sessions", "sessions selected from table or plot")
+                    else st.session_state.df_session_filtered
+                )
+                if_draw_all_sessions = session_plot_settings(
+                    df_to_draw_sessions, need_click=False
+                )
 
             if if_draw_all_sessions and len(df_to_draw_sessions):
                 draw_session_plots(df_to_draw_sessions)
-                
+
     elif chosen_id == "tab_mouse_inspector":
         with placeholder:
             selected_subject_id = st.columns([1, 3])[0].selectbox('Select a mouse', options=st.session_state.df_session_filtered['subject_id'].unique())
             st.markdown(f"### [Go to WaterLog](http://eng-tools:8004/water_weight_log/?external_donor_name={selected_subject_id})")
-            
+
     elif chosen_id == "tab_auto_train_history":  # Automatic training history
         with placeholder:
             add_auto_train_manager()
@@ -687,7 +696,7 @@ def add_main_tabs():
             by=['curriculum_version', 'curriculum_schema_version', 'curriculum_name'],
             ascending=[False, True, False], 
             ).reset_index().drop(columns='index').query("curriculum_name != 'Dummy task'")
-        
+
         with placeholder:
             # Show curriculum manager dataframe
             st.markdown("#### Select auto training curriculums")
@@ -695,7 +704,7 @@ def add_main_tabs():
             # Curriculum drop down selector
             cols = st.columns([0.8, 0.5, 0.8, 4])
             cols[3].markdown(f"(aind_auto_train lib version = {auto_train_version})")
-            
+
             options = list(df_curriculums['curriculum_name'].unique())
             selected_curriculum_name = selectbox_wrapper_for_url_query(
                 st_prefix=cols[0],
@@ -705,7 +714,7 @@ def add_main_tabs():
                 default_override=True,
                 key='auto_training_curriculum_name',
             )
-                       
+
             options = list(df_curriculums[
                 df_curriculums['curriculum_name'] == selected_curriculum_name
                 ]['curriculum_version'].unique())
@@ -717,12 +726,12 @@ def add_main_tabs():
                 default_override=True,
                 key='auto_training_curriculum_version',
             )
-            
+
             options = list(df_curriculums[
                 (df_curriculums['curriculum_name'] == selected_curriculum_name) 
                 & (df_curriculums['curriculum_version'] == selected_curriculum_version)
                 ]['curriculum_schema_version'].unique())
-            
+
             selected_curriculum_schema_version = selectbox_wrapper_for_url_query(
                 st_prefix=cols[2],
                 label='Curriculum schema version',
@@ -731,31 +740,30 @@ def add_main_tabs():
                 default_override=True,
                 key='auto_training_curriculum_schema_version',
             )
-                                   
+
             selected_curriculum = st.session_state.curriculum_manager.get_curriculum(
                 curriculum_name=selected_curriculum_name,
                 curriculum_schema_version=selected_curriculum_schema_version,
                 curriculum_version=selected_curriculum_version,
                 )
-            
+
             # Get selected curriculum from previous selected or the URL
             if 'auto_training_curriculum_name' in st.session_state:
                 selected_row = {'curriculum_name': st.session_state['auto_training_curriculum_name'],
                                 'curriculum_schema_version': st.session_state['auto_training_curriculum_schema_version'],
                                 'curriculum_version': st.session_state['auto_training_curriculum_version']}
                 matched_curriculum = df_curriculums[(df_curriculums[list(selected_row)] == pd.Series(selected_row)).all(axis=1)]
-                
+
                 if len(matched_curriculum):
                     pre_selected_rows = matched_curriculum.index.to_list() 
                 else:
                     selected_row = None # Clear selected row if not found
                     pre_selected_rows = None
-            
-            # Show df_curriculum       
+
+            # Show df_curriculum
             aggrid_interactive_table_basic(df=df_curriculums,
                                                 pre_selected_rows=pre_selected_rows)        
 
-            
             if selected_curriculum is not None:
                 curriculum = selected_curriculum['curriculum']
                 # Show diagrams
@@ -775,10 +783,9 @@ def add_main_tabs():
         st.markdown('---\n##### Debug zone')
         show_debug_info()
 
-    
     # Update back to URL
     sync_session_state_to_URL()
-    
+
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
 
 if __name__ == "__main__":
