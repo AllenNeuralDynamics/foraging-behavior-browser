@@ -22,6 +22,8 @@ tabulate==0.9.0
 aind-data-access-api[docdb]==0.13.0
 matplotlib_venn==1.1.1
 orjson==3.10.14
+streamlit-bokeh3-events==0.1.4
+bokeh==3.4.3
 git+https://github.com/AllenNeuralDynamics/aind-foraging-behavior-bonsai-automatic-training.git@main
 git+https://github.com/AllenNeuralDynamics/aind-dynamic-foraging-models.git@develop
 git+https://github.com/AllenNeuralDynamics/aind-behavior-gym.git@develop
