@@ -15,6 +15,7 @@ pio.json.config.default_engine = "orjson"
 import statsmodels.api as sm
 import streamlit as st
 import streamlit.components.v1 as components
+from streamlit_bokeh3_events import streamlit_bokeh3_events
 from pandas.api.types import (is_categorical_dtype, is_numeric_dtype,
                               is_string_dtype)
 from scipy.stats import linregress
@@ -24,7 +25,7 @@ from st_aggrid.shared import (ColumnsAutoSizeMode, DataReturnMode,
 from streamlit_plotly_events import plotly_events
 
 from .aws_s3 import draw_session_plots_quick_preview
-from .plot_autotrain_manager import plot_manager_all_progress
+from .plot_autotrain_manager import plot_manager_all_progress_bokeh
 from .url_query_helper import (checkbox_wrapper_for_url_query, get_filter_type,
                                multiselect_wrapper_for_url_query,
                                selectbox_wrapper_for_url_query,
@@ -825,8 +826,9 @@ def add_auto_train_manager():
         highlight_subjects = [str(x) for x in highlight_subjects]
     else:
         highlight_subjects = []
-
-    fig_auto_train = plot_manager_all_progress(
+        
+    # --- Bokeh ---
+    fig_auto_train = plot_manager_all_progress_bokeh(
         x_axis=x_axis,
         recent_days=recent_weeks*7,
         sort_by=sort_by,
@@ -836,54 +838,83 @@ def add_auto_train_manager():
         highlight_subjects=highlight_subjects,
         if_show_fig=False
     )
+    
+    event_result = streamlit_bokeh3_events(
+        events="TestSelectEvent",
+        bokeh_plot=fig_auto_train,
+        key="foo1",
+        debounce_time=100,
+        refresh_on_update=False,
+        override_height=800,
+    )
 
-    fig_auto_train.update_layout(
-        hoverlabel=dict(
-            font_size=20,
-        ),
-        font=dict(size=18),
-        height=30 * len(df_training_manager.subject_id.unique()),
-        xaxis_side='top',
-        title='',
-    )            
+    # some event was thrown
+    if event_result is not None:
+        # TestSelectEvent was thrown
+        if "TestSelectEvent" in event_result:
+            st.subheader("Selected Points' Pandas Stat summary")
+            indices = event_result["TestSelectEvent"].get("indices", [])
+            st.table(indices)
 
-    cols = st.columns([2, 1])
-    with cols[0]:
-        selected_ = plotly_events(fig_auto_train,
-                                    override_height=fig_auto_train.layout.height * 1.1, 
-                                    override_width=fig_auto_train.layout.width,
-                                    click_event=True,
-                                    select_event=True,
-                                    )
-    with cols[1]:
-        st.markdown('#### 👀 Quick preview')
-        st.markdown('###### Click on one session to preview here')
-        if selected_:
-            # Some hacks to get back selected data
-            curve_number = selected_[0]['curveNumber']
-            point_number = selected_[0]['pointNumber']
-            this_subject = fig_auto_train['data'][curve_number]
-            session_date = datetime.strptime(this_subject['customdata'][point_number][1], "%Y-%m-%d")
-            subject_id = fig_auto_train['data'][curve_number]['name'].split(' ')[1]
+    # --- Plotly ---
+    # fig_auto_train = plot_manager_all_progress(
+    #     x_axis=x_axis,
+    #     recent_days=recent_weeks*7,
+    #     sort_by=sort_by,
+    #     sort_order=sort_order,
+    #     marker_size=marker_size,
+    #     marker_edge_width=marker_edge_width,
+    #     highlight_subjects=highlight_subjects,
+    #     if_show_fig=False
+    # )
 
-            df_selected = (st.session_state.df['sessions_bonsai'].query(
-                f'''subject_id == "{subject_id}" and session_date == "{session_date}"'''))
-            draw_session_plots_quick_preview(df_selected)
+    # fig_auto_train.update_layout(
+    #     hoverlabel=dict(
+    #         font_size=20,
+    #     ),
+    #     font=dict(size=18),
+    #     height=30 * len(df_training_manager.subject_id.unique()),
+    #     xaxis_side='top',
+    #     title='',
+    # )            
+
+    # cols = st.columns([2, 1])
+    # with cols[0]:
+    #     selected_ = plotly_events(fig_auto_train,
+    #                                 override_height=fig_auto_train.layout.height * 1.1, 
+    #                                 override_width=fig_auto_train.layout.width,
+    #                                 click_event=True,
+    #                                 select_event=True,
+    #                                 )
+    # with cols[1]:
+    #     st.markdown('#### 👀 Quick preview')
+    #     st.markdown('###### Click on one session to preview here')
+    #     if selected_:
+    #         # Some hacks to get back selected data
+    #         curve_number = selected_[0]['curveNumber']
+    #         point_number = selected_[0]['pointNumber']
+    #         this_subject = fig_auto_train['data'][curve_number]
+    #         session_date = datetime.strptime(this_subject['customdata'][point_number][1], "%Y-%m-%d")
+    #         subject_id = fig_auto_train['data'][curve_number]['name'].split(' ')[1]
+
+    #         df_selected = (st.session_state.df['sessions_bonsai'].query(
+    #             f'''subject_id == "{subject_id}" and session_date == "{session_date}"'''))
+    #         draw_session_plots_quick_preview(df_selected)
 
     # -- Show dataframe --
     # only show filtered subject
-    df_training_manager = df_training_manager[df_training_manager['subject_id'].isin(
-        st.session_state.df_session_filtered['subject_id'].unique().astype(str))]
+    # df_training_manager = df_training_manager[df_training_manager['subject_id'].isin(
+    #     st.session_state.df_session_filtered['subject_id'].unique().astype(str))]
 
-    # reorder columns
-    df_training_manager = df_training_manager[['subject_id', 'session_date', 'session', 
-                                                'curriculum_name', 'curriculum_version', 'curriculum_schema_version',
-                                                'current_stage_suggested', 'current_stage_actual',
-                                                'session_at_current_stage',
-                                                'if_closed_loop', 'if_overriden_by_trainer',
-                                                'foraging_efficiency', 'finished_trials', 
-                                                'decision', 'next_stage_suggested'
-                                                ]]
+    # # reorder columns
+    # df_training_manager = df_training_manager[['subject_id', 'session_date', 'session', 
+    #                                             'curriculum_name', 'curriculum_version', 'curriculum_schema_version',
+    #                                             'current_stage_suggested', 'current_stage_actual',
+    #                                             'session_at_current_stage',
+    #                                             'if_closed_loop', 'if_overriden_by_trainer',
+    #                                             'foraging_efficiency', 'finished_trials', 
+    #                                             'decision', 'next_stage_suggested'
+    #                                             ]]
 
     # with st.expander('Automatic training manager', expanded=True):
     #     st.dataframe(df_training_manager, height=3000)

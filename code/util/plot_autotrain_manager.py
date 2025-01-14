@@ -11,95 +11,57 @@ from aind_auto_train.plot.curriculum import get_stage_color_mapper
 from aind_auto_train.schema.curriculum import TrainingStage
 
 from bokeh.plotting import figure, show
-from bokeh.models import ColumnDataSource, HoverTool, ColorBar, LinearColorMapper
-from bokeh.layouts import gridplot
+from bokeh.models import ColumnDataSource, HoverTool, Rect
+from bokeh.layouts import column
+from bokeh.palettes import Category20
+
 
 def plot_manager_all_progress_bokeh(
-    manager: "AutoTrainManager",
-    x_axis: ["session", "date", "relative_date"] = "session",  # type: ignore
-    sort_by: [
-        "subject_id",
-        "first_date",
-        "last_date",
-        "progress_to_graduated",
-    ] = "subject_id",
-    sort_order: ["ascending", "descending"] = "descending",
-    recent_days: int = None,
+    x_axis: ["session", "date", "relative_date"]="session",  # type: ignore
+    sort_by="subject_id",  # "subject_id", "first_date", "last_date", "progress_to_graduated"
+    sort_order="descending",  # "ascending", "descending"
+    recent_days=None,
     marker_size=10,
     marker_edge_width=2,
     highlight_subjects=[],
-    if_show_fig=True,
+    if_show_fig=False,
 ):
-
-    # Set default order
-    df_manager = manager.df_manager.sort_values(by=['subject_id', 'session'],
-                                                ascending=[sort_order == 'ascending', False])
+    manager = st.session_state.auto_train_manager
+    df_manager = manager.df_manager.sort_values(
+        by=["subject_id", "session"],
+        ascending=[sort_order == "ascending", False]
+    )
 
     if not len(df_manager):
         return None
 
-    # Get some additional metadata from the master table
-    df_tmp_rig_user_name = st.session_state.df['sessions_bonsai'].loc[:, ['subject_id', 'session_date', 'rig', 'user_name']]
+    # Metadata merge
+    df_tmp_rig_user_name = st.session_state.df['sessions_bonsai'][['subject_id', 'session_date', 'rig', 'user_name']]
     df_tmp_rig_user_name.session_date = df_tmp_rig_user_name.session_date.astype(str)
 
-    # Sort mice
-    if sort_by == 'subject_id':
+    # Sort subjects
+    if sort_by == "subject_id":
         subject_ids = df_manager.subject_id.unique()
-    elif sort_by == 'first_date':
-        subject_ids = pd.DataFrame(df_manager.groupby('subject_id').session_date.min()
-                                   ).reset_index().sort_values(
-                                       by=['session_date', 'subject_id'],
-                                       ascending=sort_order == 'ascending').subject_id
-    elif sort_by == 'last_date':
-        subject_ids = pd.DataFrame(df_manager.groupby('subject_id').session_date.max()
-                                    ).reset_index().sort_values(
-                                            by=['session_date', 'subject_id'],
-                                            ascending=sort_order == 'ascending').subject_id
-    elif sort_by == 'progress_to_graduated':
+    elif sort_by == "first_date":
+        subject_ids = df_manager.groupby('subject_id').session_date.min().sort_values(ascending=sort_order == "ascending").index
+    elif sort_by == "last_date":
+        subject_ids = df_manager.groupby('subject_id').session_date.max().sort_values(ascending=sort_order == "ascending").index
+    elif sort_by == "progress_to_graduated":
         manager.compute_stats()
         df_stats = manager.df_manager_stats
-
-        # Sort by 'first_entry' of GRADUATED
-        subject_ids = df_stats.reset_index().set_index(
-            'subject_id'
-        ).query(
-            f'current_stage_actual == "GRADUATED"'
-        )['first_entry'].sort_values(
-            ascending=sort_order != 'ascending').index.to_list()
-
-        # Append subjects that have not graduated
-        subject_ids = subject_ids + [s for s in df_manager.subject_id.unique() if s not in subject_ids]
-
+        graduated_subjects = df_stats.query('current_stage_actual == "GRADUATED"').index.tolist()
+        subject_ids = graduated_subjects + [s for s in df_manager.subject_id.unique() if s not in graduated_subjects]
     else:
-        raise ValueError(
-            f'sort_by must be in {["subject_id", "first_date", "last_date", "progress"]}')
+        raise ValueError("Invalid sort_by value.")
 
-    # Preparing the scatter plot
-    plots = []
+    # Set up data source
+    source_data = []
+    stage_color_mapper = get_stage_color_mapper(stage_list=list(TrainingStage.__members__))
+
     for n, subject_id in enumerate(subject_ids):
-        df_subject = df_manager[df_manager['subject_id'] == subject_id]
-
-        # Get stage_color_mapper
-        stage_color_mapper = get_stage_color_mapper(stage_list=list(TrainingStage.__members__))
-
-        # Get h2o if available
-        if 'h2o' in manager.df_behavior:
-            h2o = manager.df_behavior[
-                manager.df_behavior['subject_id'] == subject_id]['h2o'].iloc[0]
-        else:
-            h2o = None
-
-        df_subject = df_subject.merge(
-            df_tmp_rig_user_name,
-            on=['subject_id', 'session_date'], how='left')
-
-        # Handle open loop sessions
-        open_loop_ids = df_subject.if_closed_loop == False
-        color_actual = df_subject['current_stage_actual'].map(
-            stage_color_mapper)
-        color_actual[open_loop_ids] = 'lightgrey'
-        stage_actual = df_subject.current_stage_actual.values
-        stage_actual[open_loop_ids] = 'unknown (open loop)'
+        df_subject = df_manager[df_manager["subject_id"] == subject_id].merge(
+            df_tmp_rig_user_name, on=["subject_id", "session_date"], how="left"
+        )
 
         # Select x
         if x_axis == 'session':
@@ -119,53 +81,57 @@ def plot_manager_all_progress_bokeh(
 
         y = len(subject_ids) - n  # Y axis
 
-        source = ColumnDataSource(data=dict(
-            x=x,
-            y=[y] * len(df_subject),
-            stage_actual=stage_actual,
-            curriculum_name=df_subject.curriculum_name,
-            curriculum_version=df_subject.curriculum_version,
-            rig=df_subject.rig,
-            user_name=df_subject.user_name,
-            session=df_subject.session,
-            session_date=df_subject.session_date,
-            foraging_efficiency=df_subject.foraging_efficiency,
-            finished_trials=df_subject.finished_trials,
-            task=df_subject.task
-        ))
+        source_data.append(
+            pd.DataFrame(
+                dict(
+                    x=x,
+                    y=[y] * len(df_subject),
+                    stage_actual=df_subject["current_stage_actual"],
+                    stage_suggested=df_subject["current_stage_suggested"],
+                    color=df_subject["current_stage_actual"].map(stage_color_mapper),
+                )
+            )
+        )
 
-        p = figure(plot_width=900, plot_height=200, title=f"Mouse {subject_id}",
-                   x_axis_label=x_axis, y_axis_label='Mouse', tools='pan,wheel_zoom,box_zoom,reset,save')
+    source = ColumnDataSource(pd.concat(source_data, ignore_index=True))
 
-        p.scatter(x='x', y='y', size=marker_size, source=source,
-                  fill_alpha=0.6, line_width=marker_edge_width, color=color_actual)
+    # Create Bokeh figure
+    p = figure(
+        title="Training Progress",
+        x_axis_label=x_axis,
+        y_axis_label="Subjects",
+        height=1200,
+        width=1500,
+    )
+    p.circle(x="x", y="y", size=marker_size, color="color", source=source)
 
-        hover = HoverTool()
-        hover.tooltips = [
-            ("Subject", "@stage_actual"),
-            ("Curriculum Name", "@curriculum_name"),
-            ("Curriculum Version", "@curriculum_version"),
-            ("Rig", "@rig"),
-            ("User Name", "@user_name"),
+    # Add hover tool
+    hover = HoverTool(
+        tooltips=[
+            ("Subject", "@subject_id"),
             ("Session", "@session"),
-            ("Session Date", "@session_date"),
-            ("Foraging Efficiency", "@foraging_efficiency"),
-            ("Finished Trials", "@finished_trials"),
-            ("Task", "@task")
+            ("Stage Actual", "@stage_actual"),
+            ("Stage Suggested", "@stage_suggested"),
         ]
-        p.add_tools(hover)
+    )
+    p.add_tools(hover)
 
-        plots.append(p)
+    # # Highlight subjects
+    # for subject_id in highlight_subjects:
+    #     rect = Rect(
+    #         x0=xrange_min,
+    #         x1=xrange_max,
+    #         y0=subject_id - 0.5,
+    #         y1=subject_id + 0.5,
+    #         fill_color="gray",
+    #         fill_alpha=0.3,
+    #     )
+    #     p.add_glyph(source, rect)
 
-    # Create grid plot
-    grid = gridplot(plots, ncols=1)
-
-    # Show the plot
     if if_show_fig:
-        show(grid)
+        show(p)
 
-    return grid
-
+    return p
 
 @st.cache_data(ttl=3600 * 24)
 def plot_manager_all_progress(
