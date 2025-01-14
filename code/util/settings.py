@@ -39,6 +39,7 @@ draw_types_quick_preview = ["1. Choice history", "3. Logistic regression (Su2022
 # For plotly styling
 PLOTLY_FIG_DEFAULT = dict(
         font_family="Arial",
+        legend_font_color='black',
     )
 PLOTLY_AXIS_DEFAULT = dict(
         showline=True,
@@ -98,6 +99,7 @@ def override_plotly_theme(
             color="black"     # Font color
         )
 
+    # Figure-level settings
     fig.update_layout(
         font_size=22 * font_size_scale,
         hoverlabel_font_size=17 * font_size_scale,

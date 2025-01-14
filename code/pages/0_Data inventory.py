@@ -299,18 +299,18 @@ def plot_histogram_over_time(df, venn_preset, time_period="Daily", if_sync_y_lim
             height=500,
             bargap=0.05,  # Gap between bars of adjacent locations
             bargroupgap=0.1,  # Gap between bars of the same location
-            barmode='group',  # Grouped style
+            barmode="group",  # Grouped style
             showlegend=True,
+            title="Monthly counts",
             legend=dict(
                 orientation="h",  # Horizontal legend
                 y=-0.2,  # Position below the plot
                 x=0.5,  # Center the legend
                 xanchor="center",  # Anchor the legend's x position
-                yanchor="top"  # Anchor the legend's y position
+                yanchor="top",  # Anchor the legend's y position
             ),
-            title="Monthly counts"
         )
-        
+
     return fig
 
 def app():
