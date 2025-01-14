@@ -107,21 +107,16 @@ def plot_manager_all_progress_bokeh(
     <div style="width: 600px;">
         <div>
             <img
-                src="@imgs" height="200" alt="@imgs" width="600"
+                src="@imgs" height="300" alt="@imgs" width="800"
                 style="display: block; margin: 0 auto 15px auto;"
                 border="2"
             ></img>
         </div>
         <div style="text-align: left;">
-            <span style="font-size: 17px; font-weight: bold;">@desc</span>
-            <span style="font-size: 15px; color: #966;">[$index]</span>
+            <span style="font-size: 17px; font-weight: bold;">Subject: @subject_id</span>
         </div>
         <div style="margin-top: 5px;">
             <span>@fonts{safe}</span>
-        </div>
-        <div style="margin-top: 5px;">
-            <span style="font-size: 15px;">Location</span>
-            <span style="font-size: 10px; color: #696;">($x, $y)</span>
         </div>
     </div>
     """
@@ -149,7 +144,7 @@ def plot_manager_all_progress_bokeh(
         tooltips=TOOLTIPS,
     )
     
-    p.circle(x="x", y="y", size=marker_size, color="color", source=source)
+    p.scatter(x="x", y="y", size=marker_size, color="color", source=source)
 
     # # Highlight subjects
     # for subject_id in highlight_subjects:
