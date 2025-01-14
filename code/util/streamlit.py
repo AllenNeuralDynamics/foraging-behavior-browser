@@ -1140,25 +1140,17 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
     n_mice = len(df['h2o'].unique())
     n_sessions = len(df.groupby(['h2o', 'session']).count())
 
-    override_plotly_theme(fig, theme="simple_white")
+    override_plotly_theme(fig, theme="simple_white", font_size_scale=font_size_scale)
 
     fig.update_layout(
         width=x_y_plot_figure_width,
         height=x_y_plot_figure_height,
-        xaxis_title=x_name,
-        yaxis_title=y_name,
-        font=dict(size=24 * font_size_scale),
+        xaxis_title_text=x_name,
+        yaxis_title_text=y_name,
         hovermode="closest",
-        hoverlabel=dict(font_size=17 * font_size_scale),
         legend={"traceorder": "reversed"},
-        legend_font_size=20 * font_size_scale,
         title=f"{title}, {n_mice} mice, {n_sessions} sessions",
         dragmode="zoom",  # 'select',
-        margin=dict(l=130 * font_size_scale, 
-                    r=50 * font_size_scale, 
-                    b=130 * font_size_scale, 
-                    t=100 * font_size_scale,
-                    ),
     ) 
     return fig
 

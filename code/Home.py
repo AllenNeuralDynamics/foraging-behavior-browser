@@ -257,7 +257,7 @@ def plot_x_y_session():
         selected = st.plotly_chart(fig, 
                                    key='x_y_plot',
                                    on_select="rerun",
-                                   use_container_width=True,
+                                   use_container_width=False,
                                    theme=None,  # full controlled by plotly chart itself
                         )
 
@@ -622,7 +622,7 @@ def add_main_tabs():
             df_selected_from_plotly, x_y_cols = plot_x_y_session()
 
             # Add session_plot_setting
-            with st.columns([1, 0.5])[0]:
+            with st.columns([1])[0]:
                 st.markdown("***")
                 if_draw_all_sessions = session_plot_settings(df_selected_from_plotly)
 
@@ -668,7 +668,7 @@ def add_main_tabs():
 
     elif chosen_id == "tab_session_inspector":
         with placeholder:
-            cols = st.columns([1, 0.5])
+            cols = st.columns([1])
             with cols[0]:
                 df_to_draw_sessions = (
                     st.session_state.df_selected_from_dataframe

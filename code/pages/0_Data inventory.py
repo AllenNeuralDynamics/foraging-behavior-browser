@@ -13,8 +13,6 @@ from plotly.subplots import make_subplots
 import plotly.io as pio
 pio.json.config.default_engine = "orjson"
 
-from streamlit_plotly_events import plotly_events
-
 import time
 import streamlit_nested_layout
 
@@ -25,6 +23,7 @@ from util.fetch_data_docDB import (
 )
 from util.reformat import formatting_metadata_df
 from util.aws_s3 import load_raw_sessions_on_VAST
+from util.settings import override_plotly_theme
 from Home import init
 
 
@@ -254,7 +253,7 @@ def plot_histogram_over_time(df, venn_preset, time_period="Daily", if_sync_y_lim
             rows=len(columns),
             cols=1,
             shared_xaxes=True,
-            vertical_spacing=0.05,
+            vertical_spacing=0.1,
             subplot_titles=columns,
         )
 
@@ -280,7 +279,7 @@ def plot_histogram_over_time(df, venn_preset, time_period="Daily", if_sync_y_lim
 
         # Updating layout
         fig.update_layout(
-            height=200 * len(columns),
+            height=250 * len(columns),
             showlegend=False,
             title=f"{time_period} counts",
         )
@@ -434,7 +433,7 @@ def app():
     # --- Venn diagram from presets ---
     if VENN_PRESET:
         add_venn_diagrms(df_merged)
-        
+
 @st.fragment
 def add_venn_diagrms(df_merged):
 
@@ -504,14 +503,8 @@ def add_venn_diagrms(df_merged):
                 if_sync_y_limits=if_sync_y_limits,
                 if_separate_plots=if_separate_plots,
             )
-            plotly_events(
-                fig,
-                click_event=False,
-                hover_event=False,
-                select_event=False,
-                override_height=fig.layout.height * 1.1,
-                override_width=fig.layout.width,
-            )
+            override_plotly_theme(fig, font_size_scale=1.0)
+            st.plotly_chart(fig, use_container_width=True)
 
         st.markdown("---")
 
