@@ -60,8 +60,6 @@ def plot_manager_all_progress_bokeh(
     source_data = []
     stage_color_mapper = get_stage_color_mapper(stage_list=list(TrainingStage.__members__))
 
-    subject_ids = subject_ids[:10]  # Limit to 10 subjects for now
-
     for n, subject_id in enumerate(subject_ids):
         df_subject = df_manager[df_manager["subject_id"] == subject_id].merge(
             df_tmp_rig_user_name, on=["subject_id", "session_date"], how="left"
@@ -145,7 +143,7 @@ def plot_manager_all_progress_bokeh(
         title="Training Progress",
         x_axis_label=x_axis,
         y_axis_label="Subjects",
-        height=1200,
+        height=2000,
         width=1500,
         tools=[hover, "lasso_select", "reset", "tap", "pan", "wheel_zoom"],
         tooltips=TOOLTIPS,
@@ -174,7 +172,7 @@ def get_s3_public_url(
     subject_id, session_date, nwb_suffix, figure_suffix="choice_history.png",
     result_path="foraging_nwb_bonsai_processed", bucket_name="aind-behavior-data", 
 ):
-    nwb_suffix = "" if np.isnan(nwb_suffix) else f"_{nwb_suffix}"
+    nwb_suffix = "" if np.isnan(nwb_suffix) or int(nwb_suffix) == 0 else f"_{int(nwb_suffix)}"
     return (
         f"https://{bucket_name}.s3.us-west-2.amazonaws.com/{result_path}/"
         f"{subject_id}_{session_date}{nwb_suffix}/{subject_id}_{session_date}{nwb_suffix}_{figure_suffix}"

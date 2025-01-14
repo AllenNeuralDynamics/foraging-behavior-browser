@@ -845,7 +845,7 @@ def add_auto_train_manager():
         key="foo1",
         debounce_time=100,
         refresh_on_update=False,
-        override_height=800,
+        override_height=2000,
     )
 
     # some event was thrown
