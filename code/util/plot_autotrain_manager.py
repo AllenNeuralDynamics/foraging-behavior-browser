@@ -15,8 +15,6 @@ from bokeh.models import ColumnDataSource, HoverTool, Rect
 from bokeh.layouts import column
 from bokeh.palettes import Category20
 
-URL = ["https://aind-behavior-data.s3.us-west-2.amazonaws.com/foraging_nwb_bonsai_processed/703548_2024-02-08_81100/703548_2024-02-08_81100_choice_history.png"]
-
 
 def plot_manager_all_progress_bokeh(
     x_axis: ["session", "date", "relative_date"]="session",  # type: ignore
@@ -38,7 +36,9 @@ def plot_manager_all_progress_bokeh(
         return None
 
     # Metadata merge
-    df_tmp_rig_user_name = st.session_state.df['sessions_bonsai'][['subject_id', 'session_date', 'rig', 'user_name']]
+    df_tmp_rig_user_name = st.session_state.df["sessions_bonsai"][
+        ["subject_id", "session_date", "rig", "user_name", "nwb_suffix"]
+    ]
     df_tmp_rig_user_name.session_date = df_tmp_rig_user_name.session_date.astype(str)
 
     # Sort subjects
@@ -95,7 +95,14 @@ def plot_manager_all_progress_bokeh(
                     stage_actual=df_subject["current_stage_actual"],
                     stage_suggested=df_subject["current_stage_suggested"],
                     color=df_subject["current_stage_actual"].map(stage_color_mapper),
-                    imgs=URL[0],
+                    imgs=df_subject.apply(
+                        lambda x: get_s3_public_url(
+                            subject_id=x["subject_id"],
+                            session_date=x["session_date"],
+                            nwb_suffix=x["nwb_suffix"],
+                        ),
+                        axis=1,
+                    )
                 )
             )
         )
@@ -132,7 +139,7 @@ def plot_manager_all_progress_bokeh(
         anchor="top_right",
         point_policy="snap_to_data",
     )
-    
+
     # Create Bokeh figure
     p = figure(
         title="Training Progress",
@@ -143,7 +150,7 @@ def plot_manager_all_progress_bokeh(
         tools=[hover, "lasso_select", "reset", "tap", "pan", "wheel_zoom"],
         tooltips=TOOLTIPS,
     )
-    
+
     p.scatter(x="x", y="y", size=marker_size, color="color", source=source)
 
     # # Highlight subjects
@@ -162,6 +169,16 @@ def plot_manager_all_progress_bokeh(
         show(p)
 
     return p
+
+def get_s3_public_url(
+    subject_id, session_date, nwb_suffix, figure_suffix="choice_history.png",
+    result_path="foraging_nwb_bonsai_processed", bucket_name="aind-behavior-data", 
+):
+    nwb_suffix = "" if np.isnan(nwb_suffix) else f"_{nwb_suffix}"
+    return (
+        f"https://{bucket_name}.s3.us-west-2.amazonaws.com/{result_path}/"
+        f"{subject_id}_{session_date}{nwb_suffix}/{subject_id}_{session_date}{nwb_suffix}_{figure_suffix}"
+    )
 
 @st.cache_data(ttl=3600 * 24)
 def plot_manager_all_progress(
