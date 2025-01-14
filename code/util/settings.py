@@ -82,7 +82,7 @@ def override_plotly_theme(
         if axis.startswith('xaxis') or axis.startswith('yaxis'):
             fig.layout[axis].update(axis_specs)
             fig.layout[axis].update(
-                tickfont_size=20 * font_size_scale, 
+                tickfont_size=22 * font_size_scale, 
                 title_font_size=22 * font_size_scale,
             )
         if axis.startswith("yaxis"):
@@ -101,7 +101,7 @@ def override_plotly_theme(
     fig.update_layout(
         font_size=22 * font_size_scale,
         hoverlabel_font_size=17 * font_size_scale,
-        legend_font_size=20 * font_size_scale,
+        legend_font_size=17 * font_size_scale,
         margin=dict(
             l=130 * font_size_scale,
             r=50 * font_size_scale,

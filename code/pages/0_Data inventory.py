@@ -503,7 +503,7 @@ def add_venn_diagrms(df_merged):
                 if_sync_y_limits=if_sync_y_limits,
                 if_separate_plots=if_separate_plots,
             )
-            override_plotly_theme(fig, font_size_scale=1.0)
+            override_plotly_theme(fig, font_size_scale=0.9)
             st.plotly_chart(fig, use_container_width=True)
 
         st.markdown("---")
