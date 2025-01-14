@@ -15,6 +15,8 @@ from bokeh.models import ColumnDataSource, HoverTool, Rect
 from bokeh.layouts import column
 from bokeh.palettes import Category20
 
+URL = ["https://aind-behavior-data.s3.us-west-2.amazonaws.com/foraging_nwb_bonsai_processed/703548_2024-02-08_81100/703548_2024-02-08_81100_choice_history.png"]
+
 
 def plot_manager_all_progress_bokeh(
     x_axis: ["session", "date", "relative_date"]="session",  # type: ignore
@@ -58,6 +60,8 @@ def plot_manager_all_progress_bokeh(
     source_data = []
     stage_color_mapper = get_stage_color_mapper(stage_list=list(TrainingStage.__members__))
 
+    subject_ids = subject_ids[:10]  # Limit to 10 subjects for now
+
     for n, subject_id in enumerate(subject_ids):
         df_subject = df_manager[df_manager["subject_id"] == subject_id].merge(
             df_tmp_rig_user_name, on=["subject_id", "session_date"], how="left"
@@ -86,15 +90,54 @@ def plot_manager_all_progress_bokeh(
                 dict(
                     x=x,
                     y=[y] * len(df_subject),
+                    subject_id=subject_id,
+                    session=df_subject["session"],
                     stage_actual=df_subject["current_stage_actual"],
                     stage_suggested=df_subject["current_stage_suggested"],
                     color=df_subject["current_stage_actual"].map(stage_color_mapper),
+                    imgs=URL[0],
                 )
             )
         )
 
     source = ColumnDataSource(pd.concat(source_data, ignore_index=True))
 
+    # Add hover tool
+    TOOLTIPS = """
+    <div style="width: 600px;">
+        <div>
+            <img
+                src="@imgs" height="200" alt="@imgs" width="600"
+                style="display: block; margin: 0 auto 15px auto;"
+                border="2"
+            ></img>
+        </div>
+        <div style="text-align: left;">
+            <span style="font-size: 17px; font-weight: bold;">@desc</span>
+            <span style="font-size: 15px; color: #966;">[$index]</span>
+        </div>
+        <div style="margin-top: 5px;">
+            <span>@fonts{safe}</span>
+        </div>
+        <div style="margin-top: 5px;">
+            <span style="font-size: 15px;">Location</span>
+            <span style="font-size: 10px; color: #696;">($x, $y)</span>
+        </div>
+    </div>
+    """
+
+    hover = HoverTool(
+        tooltips= [
+            ("Subject", "@subject_id"),
+            ("Session", "@session"),
+            ("Stage Actual", "@stage_actual"),
+            ("Stage Suggested", "@stage_suggested"),
+        ],
+        attachment="right",
+        anchor="top_right",
+        point_policy="snap_to_data",
+    )
+    
     # Create Bokeh figure
     p = figure(
         title="Training Progress",
@@ -102,19 +145,11 @@ def plot_manager_all_progress_bokeh(
         y_axis_label="Subjects",
         height=1200,
         width=1500,
+        tools=[hover, "lasso_select", "reset", "tap", "pan", "wheel_zoom"],
+        tooltips=TOOLTIPS,
     )
+    
     p.circle(x="x", y="y", size=marker_size, color="color", source=source)
-
-    # Add hover tool
-    hover = HoverTool(
-        tooltips=[
-            ("Subject", "@subject_id"),
-            ("Session", "@session"),
-            ("Stage Actual", "@stage_actual"),
-            ("Stage Suggested", "@stage_suggested"),
-        ]
-    )
-    p.add_tools(hover)
 
     # # Highlight subjects
     # for subject_id in highlight_subjects:
