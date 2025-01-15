@@ -172,15 +172,15 @@ def plot_manager_all_progress_bokeh(
 
     # Add hover tool 
     TOOLTIPS = """
-                <div style="width: 1200px; border: 5px solid @color; display: flex; flex-direction: row; align-items: center; padding: 5px">
-                    <div style="text-align: left; flex: auto">
+                <div style="max-width: 1200px; border: 5px solid @color; display: flex; flex-direction: row; align-items: center; padding: 10px;">
+                    <div style="text-align: left; flex: 1; white-space: nowrap; margin: 0 10px">
                         <span style="font-size: 15px;">
                             <b>Subject: @subject_id</b><br>
                             <b>@session_date, Session @session</b><br>
                             <b>@user_name</b> @ <b>@rig</b><br>
                             <b>@curriculum_name</b><b>_v</b><b>@curriculum_version</b><br>
-                            Suggested Stage: <b>@current_stage_suggested</b><br>
-                            Actual Stage: <b>@current_stage_actual</b><br>
+                            Suggested: <b>@current_stage_suggested</b><br>
+                            Actual: <b>@current_stage_actual</b><br>
                             <hr style="margin: 5px 0;">
                             Session Task: <b>@task</b><br>
                             Foraging Efficiency: <b>@foraging_efficiency</b><br>
@@ -190,12 +190,10 @@ def plot_manager_all_progress_bokeh(
                             Next Suggested: <b>@next_stage_suggested</b>
                         </span>
                     </div>
-                    <div style="flex: auto;">
+                    <div style="flex: 1;">
                         <img
                             src="@imgs" height="250" alt="@imgs" width="800"
-                            style="display: block; margin: 0 auto auto auto;"
-                            border="1"
-                        ></img>
+                            style="display: block; margin: 10px 10px; border: 1px solid black; border-radius: 5px;">
                     </div>
                 </div>
                 """
