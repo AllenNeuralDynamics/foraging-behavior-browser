@@ -268,6 +268,7 @@ def plot_manager_all_progress_bokeh(
 
     for subject_id in highlight_subjects:
         y = {v: k for k, v in y_subjec_id_mapper.items()}.get(subject_id)
+        if y is None: continue
         rect = Rect(
             x=(
                 (p.x_range.end + p.x_range.start) / 2
@@ -277,8 +278,9 @@ def plot_manager_all_progress_bokeh(
             width=p.x_range.end - p.x_range.start,
             y=y,
             height=1,
-            fill_color="gray",
-            fill_alpha=0.2,
+            fill_color="blue",
+            fill_alpha=0.1,
+            line_width=0,
         )
         p.add_glyph(rect)
 

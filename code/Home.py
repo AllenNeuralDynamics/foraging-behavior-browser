@@ -692,7 +692,7 @@ def add_main_tabs():
             st.markdown("#### Select auto training curriculums")
 
             # Curriculum drop down selector
-            cols = st.columns([0.8, 0.5, 0.8, 4])
+            cols = st.columns([0.8, 0.8, 0.8, 3])
             cols[3].markdown(f"(aind_auto_train lib version = {auto_train_version})")
 
             options = list(df_curriculums['curriculum_name'].unique())
