@@ -187,7 +187,7 @@ def plot_manager_all_progress_bokeh(
                                 <b>@user_name</b> @ <b>@rig</b><br>
                                 <b>@curriculum_name</b><b>_v</b><b>@curriculum_version</b><br>
                                 Suggested: <b>@current_stage_suggested</b><br>
-                                Actual: <b>@current_stage_actual</b><br>
+                                Actual: <span style="color: @color"><b>@current_stage_actual</b></span><br>
                                 <hr style="margin: 5px 0;">
                                 Session Task: <b>@task</b><br>
                                 Foraging Efficiency: <b>@foraging_eff_random_seed</b><br>
