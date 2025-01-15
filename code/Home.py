@@ -572,7 +572,8 @@ def app():
 
         
     if len(st.session_state.df_session_filtered) == 0:
-        st.markdown('## No filtered results!')
+        st.markdown('## No filtered results! :thinking_face:')
+        st.markdown('### :bulb: Try clicking "Reset filters" and add your filters again!')
         return
 
     aggrid_outputs = aggrid_interactive_table_session(
