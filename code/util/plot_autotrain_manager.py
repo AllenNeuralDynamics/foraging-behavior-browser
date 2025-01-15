@@ -59,8 +59,17 @@ def plot_manager_all_progress_bokeh_source(
     elif sort_by == "progress_to_graduated":
         manager.compute_stats()
         df_stats = manager.df_manager_stats
-        graduated_subjects = df_stats.query('current_stage_actual == "GRADUATED"').index.tolist()
-        subject_ids = graduated_subjects + [s for s in df_to_draw.subject_id.unique() if s not in graduated_subjects]
+        
+        # Sort by 'first_entry' of GRADUATED
+        subject_ids = df_stats.reset_index().set_index(
+            'subject_id'
+        ).query(
+            f'current_stage_actual == "GRADUATED"'
+        )['first_entry'].sort_values(
+            ascending=sort_order != 'ascending').index.to_list()
+
+        # Append subjects that have not graduated
+        subject_ids = subject_ids + [s for s in df_manager.subject_id.unique() if s not in subject_ids]
     else:
         raise ValueError("Invalid sort_by value.")
 
