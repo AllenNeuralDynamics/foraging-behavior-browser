@@ -117,6 +117,7 @@ def plot_manager_all_progress_bokeh_source(
                     rig=df_subject["rig"],
                     user_name=df_subject["user_name"],
                     color=df_subject["current_stage_actual"].map(stage_color_mapper),
+                    edge_color=df_subject["current_stage_suggested"].map(stage_color_mapper),
                     imgs=df_subject.apply(
                         lambda x: get_s3_public_url(
                             subject_id=x["subject_id"],
@@ -170,7 +171,7 @@ def plot_manager_all_progress_bokeh(
         ),
     )
 
-    # Add hover tool 
+    # Add hover tool
     TOOLTIPS = """
                 <div style="max-width: 1200px; border: 5px solid @color; display: flex; flex-direction: row; align-items: center; padding: 10px;">
                     <div style="text-align: left; flex: 1; white-space: nowrap; margin: 0 10px">
@@ -239,7 +240,15 @@ def plot_manager_all_progress_bokeh(
         # renderers=p.renderers,
     )
 
-    p.scatter(x="x", y="y", size=marker_size, color="color", source=source)
+    p.scatter(
+        x="x",
+        y="y",
+        size=marker_size,
+        color="color",
+        line_color="edge_color",
+        line_width=marker_edge_width,
+        source=source,
+    )
 
     # Customize the plot
     p.yaxis.ticker = np.arange(1, len(subject_ids)+1)  # Tick positions corresponding to y values
