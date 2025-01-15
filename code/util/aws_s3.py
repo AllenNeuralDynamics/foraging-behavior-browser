@@ -51,14 +51,14 @@ def load_raw_sessions_on_VAST():
 @st.cache_data(ttl=12*3600)
 def load_auto_train():
     # Init auto training database
-    st.session_state.curriculum_manager = CurriculumManager(
+    curriculum_manager = CurriculumManager(
         saved_curriculums_on_s3=dict(
             bucket='aind-behavior-data',
             root='foraging_auto_training/saved_curriculums/'
         ),
         saved_curriculums_local=os.path.expanduser('~/curriculum_manager/'),
     )
-    st.session_state.auto_train_manager = DynamicForagingAutoTrainManager(
+    auto_train_manager = DynamicForagingAutoTrainManager(
         manager_name='447_demo',
         df_behavior_on_s3=dict(bucket='aind-behavior-data',
                                 root='foraging_nwb_bonsai_processed/',
@@ -67,11 +67,13 @@ def load_auto_train():
                                 root='foraging_auto_training/')
     )
     
-    _df = st.session_state.auto_train_manager.df_manager.copy()
+    _df = auto_train_manager.df_manager.copy()
     # Remove invalid subject_id
     _df = _df[(999999 > _df["subject_id"].astype(int)) 
               & (_df["subject_id"].astype(int) > 300000)]
-    st.session_state.auto_train_manager.df_manager = _df    
+    auto_train_manager.df_manager = _df
+    
+    return auto_train_manager, curriculum_manager
 
 def draw_session_plots_quick_preview(df_to_draw_session):
 

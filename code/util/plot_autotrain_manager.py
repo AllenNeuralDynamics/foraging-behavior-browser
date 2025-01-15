@@ -18,13 +18,14 @@ from bokeh.layouts import column
 
 @st.cache_data(ttl=3600 * 12)
 def plot_manager_all_progress_bokeh_source(
-        x_axis="session",  # type: ignore
-        sort_by="subject_id",  # "subject_id", "first_date", "last_date", "progress_to_graduated"
-        sort_order="descending",  # "ascending", "descending"
-        recent_days=None,
-        marker_size=10,
-        marker_edge_width=2,
-        highlight_subjects=[],
+    x_axis="session",
+    sort_by="subject_id",  # "subject_id", "first_date", "last_date", "progress_to_graduated"
+    sort_order="descending",  # "ascending", "descending"
+    recent_days=None,
+    marker_size=10,
+    marker_edge_width=2,
+    highlight_subjects=[],
+    if_show_fig=False,
 ):
     manager = st.session_state.auto_train_manager
     df_manager = manager.df_manager.sort_values(
@@ -39,55 +40,55 @@ def plot_manager_all_progress_bokeh_source(
     df_tmp_rig_user_name = st.session_state.df["sessions_bonsai"][
         ["subject_id", "session_date", "rig", "user_name", "nwb_suffix"]
     ]
-    df_tmp_rig_user_name.session_date = df_tmp_rig_user_name.session_date.astype(str)
+    df_tmp_rig_user_name["session_date"] = df_tmp_rig_user_name["session_date"].astype(str)
+    
+    # Filter recent days
+    df_to_draw = df_manager.copy()
+    df_to_draw['session_date'] = pd.to_datetime(df_to_draw['session_date'])
+    if x_axis == 'date' and recent_days is not None:
+        date_start = datetime.today() - pd.Timedelta(days=recent_days)
+        df_to_draw = df_to_draw.query('session_date >= @date_start')
 
     # Sort subjects
     if sort_by == "subject_id":
-        subject_ids = df_manager.subject_id.unique()
+        subject_ids = df_to_draw.subject_id.unique()
     elif sort_by == "first_date":
-        subject_ids = df_manager.groupby('subject_id').session_date.min().sort_values(ascending=sort_order == "ascending").index
+        subject_ids = df_to_draw.groupby('subject_id').session_date.min().sort_values(ascending=sort_order == "ascending").index
     elif sort_by == "last_date":
-        subject_ids = df_manager.groupby('subject_id').session_date.max().sort_values(ascending=sort_order == "ascending").index
+        subject_ids = df_to_draw.groupby('subject_id').session_date.max().sort_values(ascending=sort_order == "ascending").index
     elif sort_by == "progress_to_graduated":
         manager.compute_stats()
         df_stats = manager.df_manager_stats
         graduated_subjects = df_stats.query('current_stage_actual == "GRADUATED"').index.tolist()
-        subject_ids = graduated_subjects + [s for s in df_manager.subject_id.unique() if s not in graduated_subjects]
+        subject_ids = graduated_subjects + [s for s in df_to_draw.subject_id.unique() if s not in graduated_subjects]
     else:
         raise ValueError("Invalid sort_by value.")
+    
+    # Select x
+    if x_axis == 'session':
+        df_to_draw["x"] = df_to_draw['session']
+    elif x_axis == 'date':
+        df_to_draw["x"] = df_to_draw['session_date']
+    elif x_axis == 'relative_date':
+        x = df_to_draw['session_date']
+        df_to_draw["x"] = (x - x.min()).dt.days
+        
+    df_to_draw["session_date"] = df_to_draw["session_date"].dt.strftime('%Y-%m-%d')
 
     # Set up data source
     source_data = []
     stage_color_mapper = get_stage_color_mapper(stage_list=list(TrainingStage.__members__))
 
     for n, subject_id in enumerate(subject_ids):
-        df_subject = df_manager[df_manager["subject_id"] == subject_id].merge(
+        df_subject = df_to_draw[df_to_draw["subject_id"] == subject_id].merge(
             df_tmp_rig_user_name, on=["subject_id", "session_date"], how="left"
         )
-
-        # Select x
-        if x_axis == 'session':
-            x = df_subject['session']
-        elif x_axis == 'date':
-            x = pd.to_datetime(df_subject['session_date'])
-        elif x_axis == 'relative_date':
-            x = pd.to_datetime(df_subject['session_date'])
-            x = (x - x.min()).dt.days
-        else:
-            raise ValueError(
-                f"x_axis can only be in ['session', 'date', 'relative_date']")
-
-        # Cache x range
-        xrange_min = x.min() if n == 0 else min(x.min(), xrange_min)
-        xrange_max = x.max() if n == 0 else max(x.max(), xrange_max)
-
-        y = len(subject_ids) - n  # Y axis
 
         source_data.append(
             pd.DataFrame(
                 dict(
-                    x=x,
-                    y=[y] * len(df_subject),
+                    x=df_subject.x,
+                    y=[len(subject_ids) - n] * len(df_subject),
                     subject_id=subject_id,
                     session=df_subject["session"],
                     stage_actual=df_subject["current_stage_actual"],
@@ -109,7 +110,7 @@ def plot_manager_all_progress_bokeh_source(
 
 
 def plot_manager_all_progress_bokeh(
-    x_axis="session",  # type: ignore
+    x_axis="session",
     sort_by="subject_id",  # "subject_id", "first_date", "last_date", "progress_to_graduated"
     sort_order="descending",  # "ascending", "descending"
     recent_days=None,
@@ -127,6 +128,7 @@ def plot_manager_all_progress_bokeh(
         marker_size=marker_size,
         marker_edge_width=marker_edge_width,
         highlight_subjects=highlight_subjects,
+        if_show_fig=if_show_fig,
     )
     source = ColumnDataSource(data_df)
 

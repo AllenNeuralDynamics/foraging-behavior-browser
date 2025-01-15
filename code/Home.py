@@ -325,8 +325,10 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     for source in ["dataframe", "plotly"]:
         st.session_state[f'df_selected_from_{source}'] = pd.DataFrame(columns=['h2o', 'session'])
             
-    load_auto_train()
-  
+    # Load autotrain
+    auto_train_manager, curriculum_manager = load_auto_train()
+    st.session_state.auto_train_manager = auto_train_manager
+    st.session_state.curriculum_manager = curriculum_manager
    
     # Some ad-hoc modifications on df_sessions
     _df = st.session_state.df['sessions_bonsai']  # temporary df alias

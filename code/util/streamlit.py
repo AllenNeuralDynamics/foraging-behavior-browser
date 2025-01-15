@@ -772,8 +772,6 @@ def _add_download_filtered_session():
 
 def add_auto_train_manager():
 
-    st.session_state.auto_train_manager.df_manager = st.session_state.auto_train_manager.df_manager[
-        st.session_state.auto_train_manager.df_manager.subject_id.astype(float) > 0]  # Remove dummy mouse 0
     df_training_manager = st.session_state.auto_train_manager.df_manager
 
     # -- Show plotly chart --
@@ -808,12 +806,12 @@ def add_auto_train_manager():
     marker_size = cols[3].number_input('Marker size', value=15, step=1)
     marker_edge_width = cols[4].number_input('Marker edge width', value=3, step=1)
     
-    recent_weeks = slider_wrapper_for_url_query(cols[5],
-                                                label="only recent weeks",
+    recent_months = slider_wrapper_for_url_query(cols[5],
+                                                label="only recent months",
                                                 min_value=1,
-                                                max_value=52,
+                                                max_value=12*3,
                                                 step=1,
-                                                key='auto_training_history_recent_weeks',
+                                                key='auto_training_history_recent_months',
                                                 default=8,
                                                 disabled=x_axis != 'date',
                                                 )
@@ -830,7 +828,7 @@ def add_auto_train_manager():
     # --- Bokeh ---
     fig_auto_train, data_df = plot_manager_all_progress_bokeh(
         x_axis=x_axis,
-        recent_days=recent_weeks*7,
+        recent_days=recent_months*30.437,  # Turn months into days
         sort_by=sort_by,
         sort_order=sort_order,
         marker_size=marker_size,
@@ -858,7 +856,7 @@ def add_auto_train_manager():
     # --- Plotly ---
     # fig_auto_train = plot_manager_all_progress(
     #     x_axis=x_axis,
-    #     recent_days=recent_weeks*7,
+    #     recent_days=recent_months*7,
     #     sort_by=sort_by,
     #     sort_order=sort_order,
     #     marker_size=marker_size,
