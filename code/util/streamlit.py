@@ -803,7 +803,7 @@ def add_auto_train_manager():
         key="auto_training_history_sort_order",
     )
 
-    marker_size = cols[3].number_input('Marker size', value=15, step=1)
+    marker_size = cols[3].number_input('Marker size', value=12, step=1)
     marker_edge_width = cols[4].number_input('Marker edge width', value=3, step=1)
     
     recent_months = slider_wrapper_for_url_query(cols[5],
