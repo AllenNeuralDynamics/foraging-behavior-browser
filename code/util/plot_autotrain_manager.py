@@ -118,11 +118,21 @@ def plot_manager_all_progress_bokeh_source(
                     user_name=df_subject["user_name"],
                     color=df_subject["current_stage_actual"].map(stage_color_mapper),
                     edge_color=df_subject["current_stage_suggested"].map(stage_color_mapper),
-                    imgs=df_subject.apply(
+                    imgs_1=df_subject.apply(
                         lambda x: get_s3_public_url(
                             subject_id=x["subject_id"],
                             session_date=x["session_date"],
                             nwb_suffix=x["nwb_suffix"],
+                            figure_suffix="choice_history.png",
+                        ),
+                        axis=1,
+                    ),
+                    imgs_2=df_subject.apply(
+                        lambda x: get_s3_public_url(
+                            subject_id=x["subject_id"],
+                            session_date=x["session_date"],
+                            nwb_suffix=x["nwb_suffix"],
+                            figure_suffix="logistic_regression_Su2022.png",
                         ),
                         axis=1,
                     ),
@@ -160,29 +170,34 @@ def plot_manager_all_progress_bokeh(
 
     # Add hover tool
     TOOLTIPS = """
-                <div style="max-width: 1200px; border: 5px solid @color; display: flex; flex-direction: row; align-items: center; padding: 10px;">
-                    <div style="text-align: left; flex: 1; white-space: nowrap; margin: 0 10px">
-                        <span style="font-size: 15px;">
-                            <b>Subject: @subject_id</b><br>
-                            <b>@session_date, Session @session</b><br>
-                            <b>@user_name</b> @ <b>@rig</b><br>
-                            <b>@curriculum_name</b><b>_v</b><b>@curriculum_version</b><br>
-                            Suggested: <b>@current_stage_suggested</b><br>
-                            Actual: <b>@current_stage_actual</b><br>
-                            <hr style="margin: 5px 0;">
-                            Session Task: <b>@task</b><br>
-                            Foraging Efficiency: <b>@foraging_efficiency</b><br>
-                            Finished Trials: <b>@finished_trials</b><br>
-                            <hr style="margin: 5px 0;">
-                            Decision: <b>@decision</b><br>
-                            Next Suggested: <b>@next_stage_suggested</b>
-                        </span>
+                <div style="max-width: 1200px; border: 5px solid @color; align-items: top; padding: 10px;">                        
+                    <div style="display: flex; flex-direction: row; align-items: top; padding: 10px;">
+                        <div style="text-align: left; flex: auto; white-space: nowrap; margin: 0 10px">
+                            <span style="font-size: 15px;">
+                                <b>Subject: @subject_id</b><br>
+                                <b>@session_date, Session @session</b><br>
+                                <b>@user_name</b> @ <b>@rig</b><br>
+                                <b>@curriculum_name</b><b>_v</b><b>@curriculum_version</b><br>
+                                Suggested: <b>@current_stage_suggested</b><br>
+                                Actual: <b>@current_stage_actual</b><br>
+                                <hr style="margin: 5px 0;">
+                                Session Task: <b>@task</b><br>
+                                Foraging Efficiency: <b>@foraging_efficiency</b><br>
+                                Finished Trials: <b>@finished_trials</b><br>
+                                <hr style="margin: 5px 0;">
+                                Decision: <b>@decision</b><br>
+                                Next Suggested: <b>@next_stage_suggested</b>
+                            </span>
+                        </div>
+                        <div style="flex: auto;">
+                            <img
+                                src="@imgs_2" height="300" alt="@imgs_2" width="350"
+                                style="display: block; margin: 10px 10px; border: 1px solid black; border-radius: 5px;">
+                        </div>
                     </div>
-                    <div style="flex: 1;">
-                        <img
-                            src="@imgs" height="250" alt="@imgs" width="800"
-                            style="display: block; margin: 10px 10px; border: 1px solid black; border-radius: 5px;">
-                    </div>
+                    <img
+                        src="@imgs_1" height="300" alt="@imgs_1" width="900"
+                        style="display: block; margin: 10px 10px; border: 1px solid black; border-radius: 5px;">
                 </div>
                 """
 
@@ -192,7 +207,7 @@ def plot_manager_all_progress_bokeh(
         x_axis_label=x_axis,
         y_axis_label="Subjects",
         height=20*len(subject_ids),
-        width=1000,
+        width=1400,
         # tools=[hover, "lasso_select", "reset", "tap", "pan", "wheel_zoom"],
         # tooltips=TOOLTIPS,
     )
@@ -206,7 +221,7 @@ def plot_manager_all_progress_bokeh(
         line_width=marker_edge_width,
         source=source,
     )
-    
+
     hover = HoverTool(
         tooltips=TOOLTIPS,
         # attachment="right",
@@ -231,14 +246,14 @@ def plot_manager_all_progress_bokeh(
         # ),
         renderers=[scatter_renderer],
     )
-    
+
     p.add_tools(hover, "tap")
 
     p.x_range.start = data_df.x.min() - (1 if x_axis != "date" else pd.Timedelta(days=1))
     p.x_range.end = data_df.x.max() + (1 if x_axis != "date" else pd.Timedelta(days=1))
     p.y_range.start = 0
     p.y_range.end = len(subject_ids) + 1
-    
+
     # Highlight subjects
     y_subjec_id_mapper = {len(subject_ids) - i: subject_ids[i] for i in range(len(subject_ids))}
 
@@ -257,7 +272,7 @@ def plot_manager_all_progress_bokeh(
             fill_alpha=0.2,
         )
         p.add_glyph(rect)
-        
+
     # Customize the plot
     p.yaxis.ticker = np.arange(1, len(subject_ids)+1)  # Tick positions corresponding to y values
     p.yaxis.major_label_overrides = y_subjec_id_mapper  # Map numeric ticks to string labels
@@ -290,7 +305,7 @@ def plot_manager_all_progress_bokeh(
         """,
         ),
     )
-    
+
     if if_show_fig:
         show(p)
 
