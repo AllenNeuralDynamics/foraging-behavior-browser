@@ -843,7 +843,7 @@ def add_auto_train_manager():
         key="autotrain_manager",
         debounce_time=100,
         refresh_on_update=True,
-        override_height=2000,
+        override_height=fig_auto_train.height,
     )
 
     # some event was thrown
@@ -900,21 +900,21 @@ def add_auto_train_manager():
 
     # -- Show dataframe --
     # only show filtered subject
-    # df_training_manager = df_training_manager[df_training_manager['subject_id'].isin(
-    #     st.session_state.df_session_filtered['subject_id'].unique().astype(str))]
+    df_training_manager = df_training_manager[df_training_manager['subject_id'].isin(
+        st.session_state.df_session_filtered['subject_id'].unique().astype(str))]
 
-    # # reorder columns
-    # df_training_manager = df_training_manager[['subject_id', 'session_date', 'session', 
-    #                                             'curriculum_name', 'curriculum_version', 'curriculum_schema_version',
-    #                                             'current_stage_suggested', 'current_stage_actual',
-    #                                             'session_at_current_stage',
-    #                                             'if_closed_loop', 'if_overriden_by_trainer',
-    #                                             'foraging_efficiency', 'finished_trials', 
-    #                                             'decision', 'next_stage_suggested'
-    #                                             ]]
+    # reorder columns
+    df_training_manager = df_training_manager[['subject_id', 'session_date', 'session', 
+                                                'curriculum_name', 'curriculum_version', 'curriculum_schema_version',
+                                                'current_stage_suggested', 'current_stage_actual',
+                                                'session_at_current_stage',
+                                                'if_closed_loop', 'if_overriden_by_trainer',
+                                                'foraging_efficiency', 'finished_trials', 
+                                                'decision', 'next_stage_suggested'
+                                                ]]
 
-    # with st.expander('Automatic training manager', expanded=True):
-    #     st.dataframe(df_training_manager, height=3000)
+    with st.expander('Automatic training manager', expanded=False):
+        st.dataframe(df_training_manager, height=3000)
 
 @st.cache_data(ttl=3600*24)                
 def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='h2o',

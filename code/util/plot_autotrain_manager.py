@@ -13,7 +13,7 @@ from aind_auto_train.schema.curriculum import TrainingStage
 from .aws_s3 import get_s3_public_url
 
 from bokeh.plotting import figure, show
-from bokeh.models import ColumnDataSource, HoverTool, Rect, CustomJS
+from bokeh.models import ColumnDataSource, HoverTool, Rect, CustomJS, LinearAxis, DatetimeTickFormatter
 from bokeh.layouts import column
 
 @st.cache_data(ttl=3600 * 12)
@@ -41,7 +41,7 @@ def plot_manager_all_progress_bokeh_source(
         ["subject_id", "session_date", "rig", "user_name", "nwb_suffix"]
     ]
     df_tmp_rig_user_name["session_date"] = df_tmp_rig_user_name["session_date"].astype(str)
-    
+
     # Filter recent days
     df_to_draw = df_manager.copy()
     df_to_draw['session_date'] = pd.to_datetime(df_to_draw['session_date'])
@@ -63,16 +63,20 @@ def plot_manager_all_progress_bokeh_source(
         subject_ids = graduated_subjects + [s for s in df_to_draw.subject_id.unique() if s not in graduated_subjects]
     else:
         raise ValueError("Invalid sort_by value.")
-    
+
     # Select x
     if x_axis == 'session':
         df_to_draw["x"] = df_to_draw['session']
     elif x_axis == 'date':
         df_to_draw["x"] = df_to_draw['session_date']
     elif x_axis == 'relative_date':
-        x = df_to_draw['session_date']
-        df_to_draw["x"] = (x - x.min()).dt.days
-        
+        # groupby subject_id and all subtracted by the min date of each subject
+        df_to_draw["x"] = (
+            df_to_draw.groupby("subject_id")["session_date"]
+            .transform(lambda x: x - x.min())
+            .dt.days
+        )
+
     df_to_draw["session_date"] = df_to_draw["session_date"].dt.strftime('%Y-%m-%d')
 
     # Set up data source
@@ -106,7 +110,9 @@ def plot_manager_all_progress_bokeh_source(
             )
         )
 
-    return pd.concat(source_data, ignore_index=True)
+    data_df = pd.concat(source_data, ignore_index=True)
+
+    return data_df, subject_ids
 
 
 def plot_manager_all_progress_bokeh(
@@ -120,7 +126,7 @@ def plot_manager_all_progress_bokeh(
     if_show_fig=False,
 ):
 
-    data_df = plot_manager_all_progress_bokeh_source(
+    data_df, subject_ids = plot_manager_all_progress_bokeh_source(
         x_axis=x_axis,
         sort_by=sort_by,
         sort_order=sort_order,
@@ -178,17 +184,33 @@ def plot_manager_all_progress_bokeh(
 
     # Create Bokeh figure
     p = figure(
-        title="Training Progress",
+        title="AutoTrain Progress",
         x_axis_label=x_axis,
         y_axis_label="Subjects",
-        height=2000,
-        width=1500,
+        height=20*len(subject_ids),
+        width=1300,
         tools=[hover, "lasso_select", "reset", "tap", "pan", "wheel_zoom"],
         tooltips=TOOLTIPS,
     )
 
     p.scatter(x="x", y="y", size=marker_size, color="color", source=source)
-
+    
+    # Cusomize the plot
+    p.yaxis.ticker = np.arange(1, len(subject_ids)+1)  # Tick positions corresponding to y values
+    p.yaxis.major_label_overrides = {len(subject_ids) - i: subject_ids[i] for i in range(len(subject_ids))}  # Map numeric ticks to string labels
+    p.y_range.start = 0
+    p.y_range.end = len(subject_ids) + 1
+    
+    top_axis = LinearAxis(axis_label=x_axis)
+    p.add_layout(top_axis, "above")  # Add the new axis to the "above" location
+    if x_axis == "date":
+        p.xaxis.formatter = DatetimeTickFormatter(
+            days="%b %d, %Y",  # Format for days
+            months="%b %Y",    # Format for months
+            years="%Y",        # Format for years
+        )
+    
+    
     # # Highlight subjects
     # for subject_id in highlight_subjects:
     #     rect = Rect(
