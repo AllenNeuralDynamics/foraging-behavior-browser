@@ -20,10 +20,10 @@ import pandas as pd
 import streamlit as st
 import streamlit_nested_layout
 from aind_auto_train import __version__ as auto_train_version
-from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
-from aind_auto_train.curriculum_manager import CurriculumManager
 from pygwalker.api.streamlit import StreamlitRenderer, init_streamlit_comm
-from util.aws_s3 import (draw_session_plots_quick_preview, load_data,
+from util.aws_s3 import (draw_session_plots_quick_preview, 
+                         load_data,
+                         load_auto_train,
                          show_debug_info,
                          show_session_level_img_by_key_and_prefix)
 from util.fetch_data_docDB import load_data_from_docDB
@@ -287,6 +287,8 @@ def plot_x_y_session():
 def show_curriculums():
     pass
 
+    
+
 # ------- Layout starts here -------- #
 def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     
@@ -323,22 +325,7 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     for source in ["dataframe", "plotly"]:
         st.session_state[f'df_selected_from_{source}'] = pd.DataFrame(columns=['h2o', 'session'])
             
-    # Init auto training database
-    st.session_state.curriculum_manager = CurriculumManager(
-        saved_curriculums_on_s3=dict(
-            bucket='aind-behavior-data',
-            root='foraging_auto_training/saved_curriculums/'
-        ),
-        saved_curriculums_local=os.path.expanduser('~/curriculum_manager/'),
-    )
-    st.session_state.auto_train_manager = DynamicForagingAutoTrainManager(
-        manager_name='447_demo',
-        df_behavior_on_s3=dict(bucket='aind-behavior-data',
-                                root='foraging_nwb_bonsai_processed/',
-                                file_name='df_sessions.pkl'),
-        df_manager_root_on_s3=dict(bucket='aind-behavior-data',
-                                root='foraging_auto_training/')
-    )
+    load_auto_train()
   
    
     # Some ad-hoc modifications on df_sessions
