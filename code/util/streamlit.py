@@ -842,19 +842,19 @@ def add_auto_train_manager():
     event_result = streamlit_bokeh3_events(
         events="TestSelectEvent",
         bokeh_plot=fig_auto_train,
-        key="foo1",
+        key="autotrain_manager",
         debounce_time=100,
-        refresh_on_update=False,
+        refresh_on_update=True,
         override_height=2000,
     )
 
     # some event was thrown
-    if event_result is not None:
-        # TestSelectEvent was thrown
-        if "TestSelectEvent" in event_result:
-            st.subheader("Selected Points' Pandas Stat summary")
-            indices = event_result["TestSelectEvent"].get("indices", [])
-            st.table(indices)
+    # if event_result is not None:
+    #     # TestSelectEvent was thrown
+    #     if "TestSelectEvent" in event_result:
+    #         st.subheader("Selected Points' Pandas Stat summary")
+    #         indices = event_result["TestSelectEvent"].get("indices", [])
+    #         st.table(indices)
 
     # --- Plotly ---
     # fig_auto_train = plot_manager_all_progress(

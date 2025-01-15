@@ -10,21 +10,21 @@ import streamlit as st
 from aind_auto_train.plot.curriculum import get_stage_color_mapper
 from aind_auto_train.schema.curriculum import TrainingStage
 
+from .aws_s3 import get_s3_public_url
+
 from bokeh.plotting import figure, show
 from bokeh.models import ColumnDataSource, HoverTool, Rect
 from bokeh.layouts import column
-from bokeh.palettes import Category20
 
-
-def plot_manager_all_progress_bokeh(
-    x_axis: ["session", "date", "relative_date"]="session",  # type: ignore
-    sort_by="subject_id",  # "subject_id", "first_date", "last_date", "progress_to_graduated"
-    sort_order="descending",  # "ascending", "descending"
-    recent_days=None,
-    marker_size=10,
-    marker_edge_width=2,
-    highlight_subjects=[],
-    if_show_fig=False,
+@st.cache_data(ttl=3600 * 12)
+def plot_manager_all_progress_bokeh_source(
+        x_axis="session",  # type: ignore
+        sort_by="subject_id",  # "subject_id", "first_date", "last_date", "progress_to_graduated"
+        sort_order="descending",  # "ascending", "descending"
+        recent_days=None,
+        marker_size=10,
+        marker_edge_width=2,
+        highlight_subjects=[],
 ):
     manager = st.session_state.auto_train_manager
     df_manager = manager.df_manager.sort_values(
@@ -105,7 +105,30 @@ def plot_manager_all_progress_bokeh(
             )
         )
 
-    source = ColumnDataSource(pd.concat(source_data, ignore_index=True))
+    return pd.concat(source_data, ignore_index=True)
+
+
+def plot_manager_all_progress_bokeh(
+    x_axis="session",  # type: ignore
+    sort_by="subject_id",  # "subject_id", "first_date", "last_date", "progress_to_graduated"
+    sort_order="descending",  # "ascending", "descending"
+    recent_days=None,
+    marker_size=10,
+    marker_edge_width=2,
+    highlight_subjects=[],
+    if_show_fig=False,
+):
+    source = ColumnDataSource(
+        plot_manager_all_progress_bokeh_source(
+            x_axis=x_axis,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            recent_days=recent_days,
+            marker_size=marker_size,
+            marker_edge_width=marker_edge_width,
+            highlight_subjects=highlight_subjects,
+        )
+    )
 
     # Add hover tool
     TOOLTIPS = """
@@ -168,15 +191,6 @@ def plot_manager_all_progress_bokeh(
 
     return p
 
-def get_s3_public_url(
-    subject_id, session_date, nwb_suffix, figure_suffix="choice_history.png",
-    result_path="foraging_nwb_bonsai_processed", bucket_name="aind-behavior-data", 
-):
-    nwb_suffix = "" if np.isnan(nwb_suffix) or int(nwb_suffix) == 0 else f"_{int(nwb_suffix)}"
-    return (
-        f"https://{bucket_name}.s3.us-west-2.amazonaws.com/{result_path}/"
-        f"{subject_id}_{session_date}{nwb_suffix}/{subject_id}_{session_date}{nwb_suffix}_{figure_suffix}"
-    )
 
 @st.cache_data(ttl=3600 * 24)
 def plot_manager_all_progress(

@@ -1,5 +1,5 @@
 import json
-
+import numpy as np
 import pandas as pd
 import s3fs
 import streamlit as st
@@ -139,3 +139,14 @@ def show_debug_info():
         with fs.open(s3_nwb_folder['bonsai'] + 'bonsai_pipeline.log') as file:
             log_content = file.read().decode('utf-8')
         st.text(log_content)
+        
+        
+def get_s3_public_url(
+    subject_id, session_date, nwb_suffix, figure_suffix="choice_history.png",
+    result_path="foraging_nwb_bonsai_processed", bucket_name="aind-behavior-data", 
+):
+    nwb_suffix = "" if np.isnan(nwb_suffix) or int(nwb_suffix) == 0 else f"_{int(nwb_suffix)}"
+    return (
+        f"https://{bucket_name}.s3.us-west-2.amazonaws.com/{result_path}/"
+        f"{subject_id}_{session_date}{nwb_suffix}/{subject_id}_{session_date}{nwb_suffix}_{figure_suffix}"
+    )
