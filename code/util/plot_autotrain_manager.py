@@ -162,10 +162,10 @@ def plot_manager_all_progress_bokeh(
 
     # Add hover tool
     TOOLTIPS = """
-    <div style="width: 600px;">
+    <div style="width: 800px;">
         <div>
             <img
-                src="@imgs" height="300" alt="@imgs" width="800"
+                src="@imgs" height="250" alt="@imgs" width="800"
                 style="display: block; margin: 0 auto 15px auto;"
                 border="2"
             ></img>
@@ -179,8 +179,19 @@ def plot_manager_all_progress_bokeh(
     </div>
     """
 
+    # Create Bokeh figure
+    p = figure(
+        title="AutoTrain Progress",
+        x_axis_label=x_axis,
+        y_axis_label="Subjects",
+        height=20*len(subject_ids),
+        width=1200,
+        # tools=[hover, "lasso_select", "reset", "tap", "pan", "wheel_zoom"],
+        tooltips=TOOLTIPS,
+    )
+
     hover = HoverTool(
-        tooltips= [
+        tooltips=[
             ("Subject", "@subject_id"),
             ("Session", "@session"),
             ("Stage Actual", "@stage_actual"),
@@ -189,27 +200,34 @@ def plot_manager_all_progress_bokeh(
         attachment="right",
         anchor="top_right",
         point_policy="snap_to_data",
-    )
+        callback=CustomJS(
+            args=dict(plot=p),
+            code="""
+                    const tooltip = document.querySelector('.bk-tooltip');
+                    const canvasBounds = plot.frame.canvas_view.el.getBoundingClientRect();
+                    const hoverX = cb_data.geometry.x;  // Hover X position
+                    const tooltipWidth = tooltip.offsetWidth;
 
-    # Create Bokeh figure
-    p = figure(
-        title="AutoTrain Progress",
-        x_axis_label=x_axis,
-        y_axis_label="Subjects",
-        height=20*len(subject_ids),
-        width=1300,
-        tools=[hover, "lasso_select", "reset", "tap", "pan", "wheel_zoom"],
-        tooltips=TOOLTIPS,
+                    if ((hoverX - canvasBounds.left) < tooltipWidth / 2) {
+                        tooltip.style.left = `${hoverX + 10}px`; // Align tooltip to the right
+                    } else if ((canvasBounds.right - hoverX) < tooltipWidth / 2) {
+                        tooltip.style.left = `${hoverX - tooltipWidth - 10}px`; // Align tooltip to the left
+                    } else {
+                        tooltip.style.left = `${hoverX - tooltipWidth / 2}px`; // Center align
+                    }
+                """,
+        ),
+        # renderers=p.renderers,
     )
 
     p.scatter(x="x", y="y", size=marker_size, color="color", source=source)
-    
-    # Cusomize the plot
+
+    # Customize the plot
     p.yaxis.ticker = np.arange(1, len(subject_ids)+1)  # Tick positions corresponding to y values
     p.yaxis.major_label_overrides = {len(subject_ids) - i: subject_ids[i] for i in range(len(subject_ids))}  # Map numeric ticks to string labels
     p.y_range.start = 0
     p.y_range.end = len(subject_ids) + 1
-    
+
     top_axis = LinearAxis(axis_label=x_axis)
     p.add_layout(top_axis, "above")  # Add the new axis to the "above" location
     if x_axis == "date":
@@ -218,13 +236,14 @@ def plot_manager_all_progress_bokeh(
             months="%b %Y",    # Format for months
             years="%Y",        # Format for years
         )
-    
+
+    # Font sizes
     p.title.text_font_size = "16pt"  # Title font size
     p.xaxis.axis_label_text_font_size = "14pt"  # X-axis label font size
     p.yaxis.axis_label_text_font_size = "14pt"  # Y-axis label font size
     p.xaxis.major_label_text_font_size = "12pt"  # X-axis tick font size
     p.yaxis.major_label_text_font_size = "12pt"  # Y-axis tick font size
-    
+
     # # Highlight subjects
     # for subject_id in highlight_subjects:
     #     rect = Rect(
