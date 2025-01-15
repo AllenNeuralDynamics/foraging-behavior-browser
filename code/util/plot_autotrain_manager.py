@@ -210,6 +210,11 @@ def plot_manager_all_progress_bokeh(
             years="%Y",        # Format for years
         )
     
+    p.title.text_font_size = "16pt"  # Title font size
+    p.xaxis.axis_label_text_font_size = "14pt"  # X-axis label font size
+    p.yaxis.axis_label_text_font_size = "14pt"  # Y-axis label font size
+    p.xaxis.major_label_text_font_size = "12pt"  # X-axis tick font size
+    p.yaxis.major_label_text_font_size = "12pt"  # Y-axis tick font size
     
     # # Highlight subjects
     # for subject_id in highlight_subjects:
