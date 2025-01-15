@@ -16,6 +16,8 @@ from bokeh.plotting import figure, show
 from bokeh.models import ColumnDataSource, HoverTool, Rect, CustomJS, LinearAxis, DatetimeTickFormatter
 from bokeh.layouts import column
 
+stage_color_mapper = get_stage_color_mapper(stage_list=list(TrainingStage.__members__))
+
 @st.cache_data(ttl=3600 * 12)
 def plot_manager_all_progress_bokeh_source(
     x_axis="session",
@@ -27,6 +29,7 @@ def plot_manager_all_progress_bokeh_source(
     highlight_subjects=[],
     if_show_fig=False,
 ):
+    # --- Prepare data ---
     manager = st.session_state.auto_train_manager
     df_manager = manager.df_manager.sort_values(
         by=["subject_id", "session"],
@@ -36,14 +39,63 @@ def plot_manager_all_progress_bokeh_source(
     if not len(df_manager):
         return None
 
-    # Metadata merge
+    # Metadata merge from df_master
     df_tmp_rig_user_name = st.session_state.df["sessions_bonsai"][
-        ["subject_id", "session_date", "rig", "user_name", "nwb_suffix", "finished_rate"]
+        ["subject_id", "session_date", "session", "rig", "user_name", "nwb_suffix", 
+         "foraging_eff_random_seed", "finished_trials", "finished_rate", 
+         "task", "curriculum_name", "curriculum_version", "current_stage_actual"]
     ]
     df_tmp_rig_user_name["session_date"] = df_tmp_rig_user_name["session_date"].astype(str)
 
-    # Filter recent days
-    df_to_draw = df_manager.copy()
+    df_to_draw = (
+        df_manager.drop_duplicates(
+            subset=["subject_id", "session_date"], keep="last"
+        )  # Duplicte sessions in the autotrain due to pipeline issues
+        .drop(
+            columns=[
+                "session",
+                "task",
+                "foraging_efficiency", 
+                "finished_trials", 
+            ]
+        )  # df_master has higher priority in session numbers
+        .merge(
+            df_tmp_rig_user_name.query(f"current_stage_actual != 'None'"),
+            on=["subject_id", "session_date"],
+            how="right",
+        )
+    )
+
+    # Correct df_manager missing sessions (df_manager has higher priority in curriculum-related fields)
+    df_to_draw["curriculum_name"] = df_to_draw["curriculum_name_x"].fillna(df_to_draw["curriculum_name_y"])
+    df_to_draw["curriculum_version"] = df_to_draw["curriculum_version_x"].fillna(df_to_draw["curriculum_version_y"])
+    df_to_draw["current_stage_actual"] = df_to_draw["current_stage_actual_x"].fillna(df_to_draw["current_stage_actual_y"])
+
+    df_to_draw["color"] = df_to_draw["current_stage_actual"].map(stage_color_mapper)
+    df_to_draw["edge_color"] = (  # Use grey edge to indicate stage without suggestion 
+        df_to_draw["current_stage_suggested"].map(stage_color_mapper).fillna("#d3d3d3")
+    )
+    df_to_draw["imgs_1"] = df_to_draw.apply(
+        lambda x: get_s3_public_url(
+            subject_id=x["subject_id"],
+            session_date=x["session_date"],
+            nwb_suffix=x["nwb_suffix"],
+            figure_suffix="choice_history.png",
+        ),
+        axis=1,
+    )
+    df_to_draw["imgs_2"] = df_to_draw.apply(
+        lambda x: get_s3_public_url(
+            subject_id=x["subject_id"],
+            session_date=x["session_date"],
+            nwb_suffix=x["nwb_suffix"],
+            figure_suffix="logistic_regression_Su2022.png",
+        ),
+        axis=1,
+    )
+    df_to_draw.round(3)
+
+    # --- Filter recent days ---
     df_to_draw['session_date'] = pd.to_datetime(df_to_draw['session_date'])
     if x_axis == 'date' and recent_days is not None:
         date_start = datetime.today() - pd.Timedelta(days=recent_days)
@@ -59,7 +111,7 @@ def plot_manager_all_progress_bokeh_source(
     elif sort_by == "progress_to_graduated":
         manager.compute_stats()
         df_stats = manager.df_manager_stats
-        
+
         # Sort by 'first_entry' of GRADUATED
         subject_ids = df_stats.reset_index().set_index(
             'subject_id'
@@ -88,60 +140,15 @@ def plot_manager_all_progress_bokeh_source(
 
     df_to_draw["session_date"] = df_to_draw["session_date"].dt.strftime('%Y-%m-%d')
 
-    # Set up data source
-    source_data = []
-    stage_color_mapper = get_stage_color_mapper(stage_list=list(TrainingStage.__members__))
+    # --- Reorder subjects ---
+    df_subjects = []
 
     for n, subject_id in enumerate(subject_ids):
-        df_subject = df_to_draw[df_to_draw["subject_id"] == subject_id].merge(
-            df_tmp_rig_user_name, on=["subject_id", "session_date"], how="left"
-        )
+        df_subject = df_to_draw[df_to_draw['subject_id'] == subject_id]
+        df_subject["y"] = len(subject_ids) - n
+        df_subjects.append(df_subject)
 
-        source_data.append(
-            pd.DataFrame(
-                dict(
-                    x=df_subject.x,
-                    y=[len(subject_ids) - n] * len(df_subject),
-                    subject_id=subject_id,
-                    session=df_subject["session"],
-                    session_date=df_subject["session_date"],
-                    curriculum_name=df_subject["curriculum_name"],
-                    curriculum_version=df_subject["curriculum_version"],
-                    current_stage_actual=df_subject["current_stage_actual"],
-                    current_stage_suggested=df_subject["current_stage_suggested"],
-                    task=df_subject["task"],
-                    foraging_efficiency=np.round(df_subject["foraging_efficiency"], 3),
-                    finished_trials=df_subject["finished_trials"],
-                    finished_rate=df_subject["finished_rate"],
-                    decision=df_subject["decision"],
-                    next_stage_suggested=df_subject["next_stage_suggested"],
-                    rig=df_subject["rig"],
-                    user_name=df_subject["user_name"],
-                    color=df_subject["current_stage_actual"].map(stage_color_mapper),
-                    edge_color=df_subject["current_stage_suggested"].map(stage_color_mapper),
-                    imgs_1=df_subject.apply(
-                        lambda x: get_s3_public_url(
-                            subject_id=x["subject_id"],
-                            session_date=x["session_date"],
-                            nwb_suffix=x["nwb_suffix"],
-                            figure_suffix="choice_history.png",
-                        ),
-                        axis=1,
-                    ),
-                    imgs_2=df_subject.apply(
-                        lambda x: get_s3_public_url(
-                            subject_id=x["subject_id"],
-                            session_date=x["session_date"],
-                            nwb_suffix=x["nwb_suffix"],
-                            figure_suffix="logistic_regression_Su2022.png",
-                        ),
-                        axis=1,
-                    ),
-                )
-            )
-        )
-
-    data_df = pd.concat(source_data, ignore_index=True)
+    data_df = pd.concat(df_subjects, ignore_index=True)
 
     return data_df, subject_ids
 
@@ -183,7 +190,7 @@ def plot_manager_all_progress_bokeh(
                                 Actual: <b>@current_stage_actual</b><br>
                                 <hr style="margin: 5px 0;">
                                 Session Task: <b>@task</b><br>
-                                Foraging Efficiency: <b>@foraging_efficiency</b><br>
+                                Foraging Efficiency: <b>@foraging_eff_random_seed</b><br>
                                 Finished Trials: <b>@finished_trials</b><br>
                                 Finished Ratio: <b>@finished_rate</b><br>
                                 <hr style="margin: 5px 0;">
