@@ -158,19 +158,6 @@ def plot_manager_all_progress_bokeh(
     )
     source = ColumnDataSource(data_df)
 
-    # Add callback
-    source.selected.js_on_change(
-        "indices",
-        CustomJS(
-            args=dict(source=source),
-            code="""
-            document.dispatchEvent(
-                new CustomEvent("TestSelectEvent", {detail: {indices: cb_obj.indices}})
-            )
-        """,
-        ),
-    )
-
     # Add hover tool
     TOOLTIPS = """
                 <div style="max-width: 1200px; border: 5px solid @color; display: flex; flex-direction: row; align-items: center; padding: 10px;">
@@ -205,42 +192,12 @@ def plot_manager_all_progress_bokeh(
         x_axis_label=x_axis,
         y_axis_label="Subjects",
         height=20*len(subject_ids),
-        width=1200,
+        width=1000,
         # tools=[hover, "lasso_select", "reset", "tap", "pan", "wheel_zoom"],
-        tooltips=TOOLTIPS,
+        # tooltips=TOOLTIPS,
     )
 
-    hover = HoverTool(
-        tooltips=[
-            ("Subject", "@subject_id"),
-            ("Session", "@session"),
-            ("Stage Actual", "@stage_actual"),
-            ("Stage Suggested", "@stage_suggested"),
-        ],
-        # attachment="right",
-        # anchor="top_right",
-        point_policy="snap_to_data",
-        callback=CustomJS(
-            args=dict(plot=p),
-            code="""
-                    const tooltip = document.querySelector('.bk-tooltip');
-                    const canvasBounds = plot.frame.canvas_view.el.getBoundingClientRect();
-                    const hoverX = cb_data.geometry.x;  // Hover X position
-                    const tooltipWidth = tooltip.offsetWidth;
-
-                    if ((hoverX - canvasBounds.left) < tooltipWidth / 2) {
-                        tooltip.style.left = `${hoverX + 10}px`; // Align tooltip to the right
-                    } else if ((canvasBounds.right - hoverX) < tooltipWidth / 2) {
-                        tooltip.style.left = `${hoverX - tooltipWidth - 10}px`; // Align tooltip to the left
-                    } else {
-                        tooltip.style.left = `${hoverX - tooltipWidth / 2}px`; // Center align
-                    }
-                """,
-        ),
-        # renderers=p.renderers,
-    )
-
-    p.scatter(
+    scatter_renderer = p.scatter(
         x="x",
         y="y",
         size=marker_size,
@@ -249,12 +206,61 @@ def plot_manager_all_progress_bokeh(
         line_width=marker_edge_width,
         source=source,
     )
+    
+    hover = HoverTool(
+        tooltips=TOOLTIPS,
+        # attachment="right",
+        # anchor="top_right",
+        point_policy="snap_to_data",
+        # callback=CustomJS(
+        #     args=dict(plot=p),
+        #     code="""
+        #             const tooltip = document.querySelector('.bk-tooltip');
+        #             const canvasBounds = plot.frame.canvas_view.el.getBoundingClientRect();
+        #             const hoverX = cb_data.geometry.x;  // Hover X position
+        #             const tooltipWidth = tooltip.offsetWidth;
 
-    # Customize the plot
-    p.yaxis.ticker = np.arange(1, len(subject_ids)+1)  # Tick positions corresponding to y values
-    p.yaxis.major_label_overrides = {len(subject_ids) - i: subject_ids[i] for i in range(len(subject_ids))}  # Map numeric ticks to string labels
+        #             if ((hoverX - canvasBounds.left) < tooltipWidth / 2) {
+        #                 tooltip.style.left = `${hoverX + 10}px`; // Align tooltip to the right
+        #             } else if ((canvasBounds.right - hoverX) < tooltipWidth / 2) {
+        #                 tooltip.style.left = `${hoverX - tooltipWidth - 10}px`; // Align tooltip to the left
+        #             } else {
+        #                 tooltip.style.left = `${hoverX - tooltipWidth / 2}px`; // Center align
+        #             }
+        #         """,
+        # ),
+        renderers=[scatter_renderer],
+    )
+    
+    p.add_tools(hover, "tap")
+
+    p.x_range.start = data_df.x.min() - (1 if x_axis != "date" else pd.Timedelta(days=1))
+    p.x_range.end = data_df.x.max() + (1 if x_axis != "date" else pd.Timedelta(days=1))
     p.y_range.start = 0
     p.y_range.end = len(subject_ids) + 1
+    
+    # Highlight subjects
+    y_subjec_id_mapper = {len(subject_ids) - i: subject_ids[i] for i in range(len(subject_ids))}
+
+    for subject_id in highlight_subjects:
+        y = {v: k for k, v in y_subjec_id_mapper.items()}.get(subject_id)
+        rect = Rect(
+            x=(
+                (p.x_range.end + p.x_range.start) / 2
+                if x_axis != "date"
+                else pd.Timestamp((p.x_range.end.value + p.x_range.start.value) // 2)
+            ),
+            width=p.x_range.end - p.x_range.start,
+            y=y,
+            height=1,
+            fill_color="gray",
+            fill_alpha=0.2,
+        )
+        p.add_glyph(rect)
+        
+    # Customize the plot
+    p.yaxis.ticker = np.arange(1, len(subject_ids)+1)  # Tick positions corresponding to y values
+    p.yaxis.major_label_overrides = y_subjec_id_mapper  # Map numeric ticks to string labels
 
     top_axis = LinearAxis(axis_label=x_axis)
     p.add_layout(top_axis, "above")  # Add the new axis to the "above" location
@@ -272,18 +278,19 @@ def plot_manager_all_progress_bokeh(
     p.xaxis.major_label_text_font_size = "12pt"  # X-axis tick font size
     p.yaxis.major_label_text_font_size = "12pt"  # Y-axis tick font size
 
-    # # Highlight subjects
-    # for subject_id in highlight_subjects:
-    #     rect = Rect(
-    #         x0=xrange_min,
-    #         x1=xrange_max,
-    #         y0=subject_id - 0.5,
-    #         y1=subject_id + 0.5,
-    #         fill_color="gray",
-    #         fill_alpha=0.3,
-    #     )
-    #     p.add_glyph(source, rect)
-
+    # Add callback for selection
+    source.selected.js_on_change(
+        "indices",
+        CustomJS(
+            args=dict(source=source),
+            code="""
+            document.dispatchEvent(
+                new CustomEvent("TestSelectEvent", {detail: {indices: cb_obj.indices}})
+            )
+        """,
+        ),
+    )
+    
     if if_show_fig:
         show(p)
 
