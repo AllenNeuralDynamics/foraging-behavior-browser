@@ -13,7 +13,7 @@ from aind_auto_train.schema.curriculum import TrainingStage
 from .aws_s3 import get_s3_public_url
 
 from bokeh.plotting import figure, show
-from bokeh.models import ColumnDataSource, HoverTool, Rect
+from bokeh.models import ColumnDataSource, HoverTool, Rect, CustomJS
 from bokeh.layouts import column
 
 @st.cache_data(ttl=3600 * 12)
@@ -100,7 +100,7 @@ def plot_manager_all_progress_bokeh_source(
                             nwb_suffix=x["nwb_suffix"],
                         ),
                         axis=1,
-                    )
+                    ),
                 )
             )
         )
@@ -118,16 +118,29 @@ def plot_manager_all_progress_bokeh(
     highlight_subjects=[],
     if_show_fig=False,
 ):
-    source = ColumnDataSource(
-        plot_manager_all_progress_bokeh_source(
-            x_axis=x_axis,
-            sort_by=sort_by,
-            sort_order=sort_order,
-            recent_days=recent_days,
-            marker_size=marker_size,
-            marker_edge_width=marker_edge_width,
-            highlight_subjects=highlight_subjects,
-        )
+
+    data_df = plot_manager_all_progress_bokeh_source(
+        x_axis=x_axis,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        recent_days=recent_days,
+        marker_size=marker_size,
+        marker_edge_width=marker_edge_width,
+        highlight_subjects=highlight_subjects,
+    )
+    source = ColumnDataSource(data_df)
+
+    # Add callback
+    source.selected.js_on_change(
+        "indices",
+        CustomJS(
+            args=dict(source=source),
+            code="""
+            document.dispatchEvent(
+                new CustomEvent("TestSelectEvent", {detail: {indices: cb_obj.indices}})
+            )
+        """,
+        ),
     )
 
     # Add hover tool
@@ -189,7 +202,7 @@ def plot_manager_all_progress_bokeh(
     if if_show_fig:
         show(p)
 
-    return p
+    return p, data_df
 
 
 @st.cache_data(ttl=3600 * 24)

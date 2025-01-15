@@ -828,7 +828,7 @@ def add_auto_train_manager():
         highlight_subjects = []
         
     # --- Bokeh ---
-    fig_auto_train = plot_manager_all_progress_bokeh(
+    fig_auto_train, data_df = plot_manager_all_progress_bokeh(
         x_axis=x_axis,
         recent_days=recent_weeks*7,
         sort_by=sort_by,
@@ -849,12 +849,11 @@ def add_auto_train_manager():
     )
 
     # some event was thrown
-    # if event_result is not None:
-    #     # TestSelectEvent was thrown
-    #     if "TestSelectEvent" in event_result:
-    #         st.subheader("Selected Points' Pandas Stat summary")
-    #         indices = event_result["TestSelectEvent"].get("indices", [])
-    #         st.table(indices)
+    if event_result is not None:
+        # TestSelectEvent was thrown
+        if "TestSelectEvent" in event_result:
+            indices = event_result["TestSelectEvent"].get("indices", [])
+            st.write(data_df.iloc[indices])
 
     # --- Plotly ---
     # fig_auto_train = plot_manager_all_progress(
