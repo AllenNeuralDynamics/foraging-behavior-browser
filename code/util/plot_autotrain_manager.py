@@ -38,7 +38,7 @@ def plot_manager_all_progress_bokeh_source(
 
     # Metadata merge
     df_tmp_rig_user_name = st.session_state.df["sessions_bonsai"][
-        ["subject_id", "session_date", "rig", "user_name", "nwb_suffix"]
+        ["subject_id", "session_date", "rig", "user_name", "nwb_suffix", "finished_rate"]
     ]
     df_tmp_rig_user_name["session_date"] = df_tmp_rig_user_name["session_date"].astype(str)
 
@@ -112,6 +112,7 @@ def plot_manager_all_progress_bokeh_source(
                     task=df_subject["task"],
                     foraging_efficiency=np.round(df_subject["foraging_efficiency"], 3),
                     finished_trials=df_subject["finished_trials"],
+                    finished_rate=df_subject["finished_rate"],
                     decision=df_subject["decision"],
                     next_stage_suggested=df_subject["next_stage_suggested"],
                     rig=df_subject["rig"],
@@ -173,7 +174,7 @@ def plot_manager_all_progress_bokeh(
                 <div style="max-width: 1200px; border: 5px solid @color; align-items: top; padding: 10px;">                        
                     <div style="display: flex; flex-direction: row; align-items: top; padding: 10px;">
                         <div style="text-align: left; flex: auto; white-space: nowrap; margin: 0 10px">
-                            <span style="font-size: 15px;">
+                            <span style="font-size: 17px;">
                                 <b>Subject: @subject_id</b><br>
                                 <b>@session_date, Session @session</b><br>
                                 <b>@user_name</b> @ <b>@rig</b><br>
@@ -184,12 +185,13 @@ def plot_manager_all_progress_bokeh(
                                 Session Task: <b>@task</b><br>
                                 Foraging Efficiency: <b>@foraging_efficiency</b><br>
                                 Finished Trials: <b>@finished_trials</b><br>
+                                Finished Ratio: <b>@finished_rate</b><br>
                                 <hr style="margin: 5px 0;">
                                 Decision: <b>@decision</b><br>
                                 Next Suggested: <b>@next_stage_suggested</b>
                             </span>
                         </div>
-                        <div style="flex: auto;">
+                        <div style="text-align: right">
                             <img
                                 src="@imgs_2" height="300" alt="@imgs_2" width="350"
                                 style="display: block; margin: 10px 10px; border: 1px solid black; border-radius: 5px;">
