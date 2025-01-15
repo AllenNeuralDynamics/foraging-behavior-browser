@@ -104,8 +104,18 @@ def plot_manager_all_progress_bokeh_source(
                     y=[len(subject_ids) - n] * len(df_subject),
                     subject_id=subject_id,
                     session=df_subject["session"],
-                    stage_actual=df_subject["current_stage_actual"],
-                    stage_suggested=df_subject["current_stage_suggested"],
+                    session_date=df_subject["session_date"],
+                    curriculum_name=df_subject["curriculum_name"],
+                    curriculum_version=df_subject["curriculum_version"],
+                    current_stage_actual=df_subject["current_stage_actual"],
+                    current_stage_suggested=df_subject["current_stage_suggested"],
+                    task=df_subject["task"],
+                    foraging_efficiency=np.round(df_subject["foraging_efficiency"], 3),
+                    finished_trials=df_subject["finished_trials"],
+                    decision=df_subject["decision"],
+                    next_stage_suggested=df_subject["next_stage_suggested"],
+                    rig=df_subject["rig"],
+                    user_name=df_subject["user_name"],
                     color=df_subject["current_stage_actual"].map(stage_color_mapper),
                     imgs=df_subject.apply(
                         lambda x: get_s3_public_url(
@@ -160,24 +170,35 @@ def plot_manager_all_progress_bokeh(
         ),
     )
 
-    # Add hover tool
+    # Add hover tool 
     TOOLTIPS = """
-    <div style="width: 800px;">
-        <div>
-            <img
-                src="@imgs" height="250" alt="@imgs" width="800"
-                style="display: block; margin: 0 auto 15px auto;"
-                border="2"
-            ></img>
-        </div>
-        <div style="text-align: left;">
-            <span style="font-size: 17px; font-weight: bold;">Subject: @subject_id</span>
-        </div>
-        <div style="margin-top: 5px;">
-            <span>@fonts{safe}</span>
-        </div>
-    </div>
-    """
+                <div style="width: 1200px; border: 5px solid @color; display: flex; flex-direction: row; align-items: center; padding: 5px">
+                    <div style="text-align: left; flex: auto">
+                        <span style="font-size: 15px;">
+                            <b>Subject: @subject_id</b><br>
+                            <b>@session_date, Session @session</b><br>
+                            <b>@user_name</b> @ <b>@rig</b><br>
+                            <b>@curriculum_name</b><b>_v</b><b>@curriculum_version</b><br>
+                            Suggested Stage: <b>@current_stage_suggested</b><br>
+                            Actual Stage: <b>@current_stage_actual</b><br>
+                            <hr style="margin: 5px 0;">
+                            Session Task: <b>@task</b><br>
+                            Foraging Efficiency: <b>@foraging_efficiency</b><br>
+                            Finished Trials: <b>@finished_trials</b><br>
+                            <hr style="margin: 5px 0;">
+                            Decision: <b>@decision</b><br>
+                            Next Suggested: <b>@next_stage_suggested</b>
+                        </span>
+                    </div>
+                    <div style="flex: auto;">
+                        <img
+                            src="@imgs" height="250" alt="@imgs" width="800"
+                            style="display: block; margin: 0 auto auto auto;"
+                            border="1"
+                        ></img>
+                    </div>
+                </div>
+                """
 
     # Create Bokeh figure
     p = figure(
@@ -197,8 +218,8 @@ def plot_manager_all_progress_bokeh(
             ("Stage Actual", "@stage_actual"),
             ("Stage Suggested", "@stage_suggested"),
         ],
-        attachment="right",
-        anchor="top_right",
+        # attachment="right",
+        # anchor="top_right",
         point_policy="snap_to_data",
         callback=CustomJS(
             args=dict(plot=p),
