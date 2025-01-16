@@ -256,7 +256,10 @@ def plot_manager_all_progress_bokeh(
         renderers=[scatter_renderer],
     )
 
-    p.add_tools(hover, "tap")
+    p.add_tools(
+        hover, 
+        #"tap" # temporarily disable tap tool
+        )
 
     p.x_range.start = data_df.x.min() - (1 if x_axis != "date" else pd.Timedelta(days=1))
     p.x_range.end = data_df.x.max() + (1 if x_axis != "date" else pd.Timedelta(days=1))
@@ -305,17 +308,17 @@ def plot_manager_all_progress_bokeh(
     p.yaxis.major_label_text_font_size = "12pt"  # Y-axis tick font size
 
     # Add callback for selection
-    source.selected.js_on_change(
-        "indices",
-        CustomJS(
-            args=dict(source=source),
-            code="""
-            document.dispatchEvent(
-                new CustomEvent("TestSelectEvent", {detail: {indices: cb_obj.indices}})
-            )
-        """,
-        ),
-    )
+    # source.selected.js_on_change(
+    #     "indices",
+    #     CustomJS(
+    #         args=dict(source=source),
+    #         code="""
+    #         document.dispatchEvent(
+    #             new CustomEvent("TestSelectEvent", {detail: {indices: cb_obj.indices}})
+    #         )
+    #     """,
+    #     ),
+    # )
 
     if if_show_fig:
         show(p)
