@@ -1,9 +1,13 @@
 import json
-
+import os
+import numpy as np
 import pandas as pd
 import s3fs
 import streamlit as st
 from PIL import Image
+
+from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
+from aind_auto_train.curriculum_manager import CurriculumManager
 
 from .settings import (draw_type_layout_definition,
                        draw_type_mapper_session_level,
@@ -43,6 +47,33 @@ def load_raw_sessions_on_VAST():
     with fs.open(file_name) as f:
         raw_sessions_on_VAST = json.load(f)
     return raw_sessions_on_VAST
+
+@st.cache_data(ttl=12*3600)
+def load_auto_train():
+    # Init auto training database
+    curriculum_manager = CurriculumManager(
+        saved_curriculums_on_s3=dict(
+            bucket='aind-behavior-data',
+            root='foraging_auto_training/saved_curriculums/'
+        ),
+        saved_curriculums_local=os.path.expanduser('~/curriculum_manager/'),
+    )
+    auto_train_manager = DynamicForagingAutoTrainManager(
+        manager_name='447_demo',
+        df_behavior_on_s3=dict(bucket='aind-behavior-data',
+                                root='foraging_nwb_bonsai_processed/',
+                                file_name='df_sessions.pkl'),
+        df_manager_root_on_s3=dict(bucket='aind-behavior-data',
+                                root='foraging_auto_training/')
+    )
+    
+    _df = auto_train_manager.df_manager.copy()
+    # Remove invalid subject_id
+    _df = _df[(999999 > _df["subject_id"].astype(int)) 
+              & (_df["subject_id"].astype(int) > 300000)]
+    auto_train_manager.df_manager = _df
+    
+    return auto_train_manager, curriculum_manager
 
 def draw_session_plots_quick_preview(df_to_draw_session):
 
@@ -139,3 +170,14 @@ def show_debug_info():
         with fs.open(s3_nwb_folder['bonsai'] + 'bonsai_pipeline.log') as file:
             log_content = file.read().decode('utf-8')
         st.text(log_content)
+        
+        
+def get_s3_public_url(
+    subject_id, session_date, nwb_suffix, figure_suffix="choice_history.png",
+    result_path="foraging_nwb_bonsai_processed", bucket_name="aind-behavior-data", 
+):
+    nwb_suffix = "" if np.isnan(nwb_suffix) or int(nwb_suffix) == 0 else f"_{int(nwb_suffix)}"
+    return (
+        f"https://{bucket_name}.s3.us-west-2.amazonaws.com/{result_path}/"
+        f"{subject_id}_{session_date}{nwb_suffix}/{subject_id}_{session_date}{nwb_suffix}_{figure_suffix}"
+    )

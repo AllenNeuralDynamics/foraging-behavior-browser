@@ -20,10 +20,10 @@ import pandas as pd
 import streamlit as st
 import streamlit_nested_layout
 from aind_auto_train import __version__ as auto_train_version
-from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
-from aind_auto_train.curriculum_manager import CurriculumManager
 from pygwalker.api.streamlit import StreamlitRenderer, init_streamlit_comm
-from util.aws_s3 import (draw_session_plots_quick_preview, load_data,
+from util.aws_s3 import (draw_session_plots_quick_preview, 
+                         load_data,
+                         load_auto_train,
                          show_debug_info,
                          show_session_level_img_by_key_and_prefix)
 from util.fetch_data_docDB import load_data_from_docDB
@@ -287,6 +287,8 @@ def plot_x_y_session():
 def show_curriculums():
     pass
 
+    
+
 # ------- Layout starts here -------- #
 def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     
@@ -323,23 +325,10 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     for source in ["dataframe", "plotly"]:
         st.session_state[f'df_selected_from_{source}'] = pd.DataFrame(columns=['h2o', 'session'])
             
-    # Init auto training database
-    st.session_state.curriculum_manager = CurriculumManager(
-        saved_curriculums_on_s3=dict(
-            bucket='aind-behavior-data',
-            root='foraging_auto_training/saved_curriculums/'
-        ),
-        saved_curriculums_local=os.path.expanduser('~/curriculum_manager/'),
-    )
-    st.session_state.auto_train_manager = DynamicForagingAutoTrainManager(
-        manager_name='447_demo',
-        df_behavior_on_s3=dict(bucket='aind-behavior-data',
-                                root='foraging_nwb_bonsai_processed/',
-                                file_name='df_sessions.pkl'),
-        df_manager_root_on_s3=dict(bucket='aind-behavior-data',
-                                root='foraging_auto_training/')
-    )
-  
+    # Load autotrain
+    auto_train_manager, curriculum_manager = load_auto_train()
+    st.session_state.auto_train_manager = auto_train_manager
+    st.session_state.curriculum_manager = curriculum_manager
    
     # Some ad-hoc modifications on df_sessions
     _df = st.session_state.df['sessions_bonsai']  # temporary df alias
@@ -544,7 +533,7 @@ def app():
         # with col1:
         # -- 1. unit dataframe --
         
-        cols = st.columns([2, 4, 1])
+        cols = st.columns([4, 4, 4, 1])
         cols[0].markdown(f'### Filter the sessions on the sidebar\n'
                          f'#####  {len(st.session_state.df_session_filtered)} sessions, '
                          f'{len(st.session_state.df_session_filtered.h2o.unique())} mice filtered')
@@ -570,7 +559,7 @@ def app():
                     init()
                     st.rerun()  # Reload the page to apply the changes
               
-        table_height = slider_wrapper_for_url_query(st_prefix=cols[2],
+        table_height = slider_wrapper_for_url_query(st_prefix=cols[-1],
                                                     label='Table height',
                                                     min_value=0,
                                                     max_value=2000,
@@ -583,7 +572,8 @@ def app():
 
         
     if len(st.session_state.df_session_filtered) == 0:
-        st.markdown('## No filtered results!')
+        st.markdown('## No filtered results! :thinking_face:')
+        st.markdown('### :bulb: Try clicking "Reset filters" and add your filters again!')
         return
 
     aggrid_outputs = aggrid_interactive_table_session(
@@ -702,7 +692,7 @@ def add_main_tabs():
             st.markdown("#### Select auto training curriculums")
 
             # Curriculum drop down selector
-            cols = st.columns([0.8, 0.5, 0.8, 4])
+            cols = st.columns([0.8, 0.8, 0.8, 3])
             cols[3].markdown(f"(aind_auto_train lib version = {auto_train_version})")
 
             options = list(df_curriculums['curriculum_name'].unique())
