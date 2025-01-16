@@ -3,6 +3,9 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.io as pio
+pio.json.config.default_engine = "orjson"
+
 import streamlit as st
 from aind_auto_train.plot.curriculum import get_stage_color_mapper
 from aind_auto_train.schema.curriculum import TrainingStage

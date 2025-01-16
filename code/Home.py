@@ -23,7 +23,6 @@ from aind_auto_train import __version__ as auto_train_version
 from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
 from aind_auto_train.curriculum_manager import CurriculumManager
 from pygwalker.api.streamlit import StreamlitRenderer, init_streamlit_comm
-from streamlit_plotly_events import plotly_events
 from util.aws_s3 import (draw_session_plots_quick_preview, load_data,
                          show_debug_info,
                          show_session_level_img_by_key_and_prefix)
@@ -38,6 +37,7 @@ from util.streamlit import (_plot_population_x_y, add_auto_train_manager,
                             add_footnote)
 from util.url_query_helper import (checkbox_wrapper_for_url_query,
                                    multiselect_wrapper_for_url_query,
+                                   selectbox_wrapper_for_url_query,
                                    number_input_wrapper_for_url_query,
                                    slider_wrapper_for_url_query,
                                    sync_session_state_to_URL,
@@ -71,7 +71,7 @@ def _user_name_mapper(user_name):
                 return name
     else:
         return user_name
-    
+
 
 @st.cache_resource(ttl=24*3600)
 def get_pyg_renderer(df, spec="./gw_config.json", **kwargs) -> "StreamlitRenderer":
@@ -127,26 +127,24 @@ def draw_session_plots(df_to_draw_session):
                 my_bar.progress(int((i + 1) / len(df_to_draw_session) * 100))
 
 
-def session_plot_settings(need_click=True):
+def session_plot_settings(df_selected, need_click=True):
     with st.form(key='session_plot_settings'):
         st.markdown('##### Show plots for individual sessions ')
         cols = st.columns([2, 6, 1])
-        
+
         session_plot_modes = [f'sessions selected from table or plot', f'all sessions filtered from sidebar']
-        st.session_state.selected_draw_sessions = cols[0].selectbox(f'Which session(s) to draw?', 
-                                                                    session_plot_modes,
-                                                                    index=session_plot_modes.index(st.session_state['session_plot_mode'])
-                                                                        if 'session_plot_mode' in st.session_state else 
-                                                                        session_plot_modes.index(st.query_params['session_plot_mode'])
-                                                                        if 'session_plot_mode' in st.query_params 
-                                                                        else 0, 
-                                                                    key='session_plot_mode',
-                                                                )
-        
-        n_session_to_draw = len(st.session_state.df_selected_from_plotly) \
+        st.session_state.selected_draw_sessions = selectbox_wrapper_for_url_query(
+            cols[0],
+            label='Which session(s) to draw?',
+            options=session_plot_modes,
+            default=session_plot_modes[0],
+            key='session_plot_mode',
+        )
+
+        n_session_to_draw = len(df_selected) \
             if 'selected from table or plot' in st.session_state.selected_draw_sessions \
             else len(st.session_state.df_session_filtered) 
-                
+
         _ = number_input_wrapper_for_url_query(
             st_prefix=cols[2],
             label='number of columns',
@@ -155,7 +153,7 @@ def session_plot_settings(need_click=True):
             default=3,
             key='session_plot_number_cols',
         )
-        
+
         st.markdown(
         """
         <style>
@@ -172,18 +170,19 @@ def session_plot_settings(need_click=True):
             default=draw_type_mapper_session_level.keys(),
             key='session_plot_selected_draw_types',
         )
-                
+
         cols[0].markdown(f'{n_session_to_draw} sessions to draw')
         draw_it_now_override = cols[2].checkbox('Auto show', value=not need_click, disabled=not need_click)
-        submitted = cols[0].form_submit_button("Update settings", type='primary')
-        
-        
+        submitted = cols[0].form_submit_button(
+            "Update settings", type="primary"
+        )
+
     if not need_click:
         return True
-        
+
     if draw_it_now_override:
         return True
-    
+
     draw_it = st.button(f'Show {n_session_to_draw} sessions!', use_container_width=False, type="primary")
     return draw_it
 
@@ -192,7 +191,7 @@ def plot_x_y_session():
     with st.expander("X-Y plot settings", expanded=True):            
         with st.form(key='x_y_plot_settings', border=False):
             cols = st.columns([1, 1, 1])
-            
+
             with cols[0]:
                 x_name, y_name, group_by = add_xy_selector(if_bonsai=True)
 
@@ -201,28 +200,27 @@ def plot_x_y_session():
                 if_aggr_all, aggr_method_all, if_use_x_quantile_all, q_quantiles_all, smooth_factor, if_show_diagonal,
                 dot_size, dot_opacity, line_width, x_y_plot_figure_width, x_y_plot_figure_height, 
                 font_size_scale, color_map) = add_xy_setting()
-            
+
             if st.session_state.x_y_plot_if_show_dots:
                 with cols[2]:
                     size_mapper, size_mapper_range, size_mapper_gamma = add_dot_property_mapper()
             else:
                 size_mapper = 'None'
                 size_mapper_range, size_mapper_gamma = None, None
-            
+
             submitted = st.form_submit_button("👉 Update X-Y settings 👈", type='primary')
-    
+
     # If no sessions are selected, use all filtered entries
-    # df_x_y_session = st.session_state.df_selected_from_dataframe if if_plot_only_selected_from_dataframe else st.session_state.df_session_filtered
     df_x_y_session = st.session_state.df_session_filtered
-    
+
     names = {('session', 'foraging_eff'): 'Foraging efficiency',
              ('session', 'finished'):   'Finished trials', 
              }
 
     df_selected_from_plotly = pd.DataFrame()
     # for i, (title, (x_name, y_name)) in enumerate(names.items()):
-        # with cols[i]:
-    
+    # with cols[i]:
+
     if hasattr(st.session_state, 'x_y_plot_figure_width'):
         _x_y_plot_scale = st.session_state.x_y_plot_figure_width / 1300
         cols = st.columns([1 * _x_y_plot_scale, 0.7])
@@ -243,7 +241,6 @@ def plot_x_y_session():
                                     if_use_x_quantile_all=if_use_x_quantile_all,
                                     q_quantiles_all=q_quantiles_all,
                                     title=names[(x_name, y_name)] if (x_name, y_name) in names else y_name,
-                                    states = st.session_state.df_selected_from_plotly,
                                     if_show_diagonal=if_show_diagonal,
                                     dot_size_base=dot_size,
                                     dot_size_mapping_name=size_mapper,
@@ -256,22 +253,33 @@ def plot_x_y_session():
                                     font_size_scale=font_size_scale,
                                     color_map=color_map,
                                     )
-        
-        # st.plotly_chart(fig)
-        selected = plotly_events(fig, click_event=True, hover_event=False, select_event=True, 
-                                 override_height=fig.layout.height * 1.1, override_width=fig.layout.width)
-    
+
+        selected = st.plotly_chart(fig, 
+                                   key='x_y_plot',
+                                   on_select="rerun",
+                                   use_container_width=False,
+                                   theme=None,  # full controlled by plotly chart itself
+                        )
+
     with cols[1]:
         st.markdown('#### 👀 Quick preview')
         st.markdown('###### Click on one session to preview here, or Box/Lasso select multiple sessions to draw them in the section below')
         st.markdown('(sometimes you have to click twice...)')
-      
-    if len(selected):
-        df_selected_from_plotly = df_x_y_session.merge(pd.DataFrame(selected).rename({'x': x_name, 'y': y_name}, axis=1), 
-                                                    on=[x_name, y_name], how='inner')
-    if len(st.session_state.df_selected_from_plotly) == 1:
+
+    if len(selected.selection.points):  # Selected this time
+        df_key_selected = pd.DataFrame(
+            [data["customdata"][:2] for data in selected.selection.points],
+            columns=["subject_id", "session_date"],
+        )
+        df_key_selected["session_date"] = pd.to_datetime(df_key_selected["session_date"])
+        df_selected_from_plotly = df_x_y_session.merge(df_key_selected, on=["subject_id", "session_date"], how='inner')
+        
+        # Update session state
+        st.session_state.df_selected_from_plotly = df_selected_from_plotly
+        
+    if len(df_selected_from_plotly) == 1:
         with cols[1]:
-            draw_session_plots_quick_preview(st.session_state.df_selected_from_plotly)
+            draw_session_plots_quick_preview(df_selected_from_plotly)
 
     return df_selected_from_plotly, cols
 
@@ -312,8 +320,8 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
         df['sessions_bonsai'] = pd.concat([df['sessions_bonsai'], df_bpod['sessions_bonsai']], axis=0)
         
     st.session_state.df = df
-    st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
-    st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
+    for source in ["dataframe", "plotly"]:
+        st.session_state[f'df_selected_from_{source}'] = pd.DataFrame(columns=['h2o', 'session'])
             
     # Init auto training database
     st.session_state.curriculum_manager = CurriculumManager(
@@ -530,11 +538,6 @@ def app():
         data_selector()
         add_footnote()
         
-        with st.expander('Debug', expanded=False):
-            if st.button('Clear session state and reload data'):
-                st.cache_data.clear()
-                init()
-                st.rerun()
         
     with st.container():
         # col1, col2 = st.columns([1.5, 1], gap='small')
@@ -575,9 +578,6 @@ def app():
                                                     step=50,
                                                     key='table_height',
         )
-            
-        # aggrid_outputs = aggrid_interactive_table_units(df=df['ephys_units'])
-        # st.session_state.df_session_filtered = aggrid_outputs['data']
         
         container_filtered_frame = st.container()
 
@@ -585,21 +585,29 @@ def app():
     if len(st.session_state.df_session_filtered) == 0:
         st.markdown('## No filtered results!')
         return
-    
-    aggrid_outputs = aggrid_interactive_table_session(df=st.session_state.df_session_filtered, table_height=table_height)
-    
-    if len(aggrid_outputs['selected_rows']) and not set(pd.DataFrame(aggrid_outputs['selected_rows']
-                                                                 ).set_index(['h2o', 'session']).index
-                                                        ) == set(st.session_state.df_selected_from_dataframe.set_index(['h2o', 'session']).index):
-        st.session_state.df_selected_from_dataframe = pd.DataFrame(aggrid_outputs['selected_rows'])
-        st.session_state.df_selected_from_plotly = st.session_state.df_selected_from_dataframe  # Sync selected on plotly
-        # if st.session_state.tab_id == "tab_session_x_y":
-        st.rerun()
 
+    aggrid_outputs = aggrid_interactive_table_session(
+        df=st.session_state.df_session_filtered,
+        table_height=table_height,
+    )
+
+    if len(aggrid_outputs['selected_rows']) \
+        and not set(pd.DataFrame(aggrid_outputs['selected_rows']).set_index(['h2o', 'session']).index
+            ) == set(st.session_state.df_selected_from_dataframe.set_index(['h2o', 'session']).index) \
+        and not st.session_state.get("df_selected_from_dataframe_just_overriden", False):  # so that if the user just overriden the df_selected_from_dataframe by pressing sidebar button, it won't sync selected rows in the table to session state
+        st.session_state.df_selected_from_dataframe = pd.DataFrame(aggrid_outputs['selected_rows'])  # Use selected in dataframe to update "selected"
+        st.rerun()
+        
+    st.session_state["df_selected_from_dataframe_just_overriden"] = False  # Reset the flag anyway
+
+    add_main_tabs()
+
+@st.fragment
+def add_main_tabs():
     chosen_id = stx.tab_bar(data=[
         stx.TabBarItemData(id="tab_auto_train_history", title="🎓 Automatic Training History", description="Track progress"),
-        stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector", description="Select sessions from the table and show plots"),
-        stx.TabBarItemData(id="tab_session_x_y", title="📈 Session X-Y plot", description="Interactive session-wise scatter plot"),
+        stx.TabBarItemData(id="tab_session_inspector", title="👀 Session Inspector (table)", description="Select sessions from the table and show figures"),
+        stx.TabBarItemData(id="tab_session_x_y", title="📈 Session X-Y plot", description="Select sessions from x-y plot and show figures"),
         stx.TabBarItemData(id="tab_pygwalker", title="📊 PyGWalker (Tableau)", description="Interactive dataframe explorer"),
         stx.TabBarItemData(id="tab_auto_train_curriculum", title="📚 Automatic Training Curriculums", description="Collection of curriculums"),
         # stx.TabBarItemData(id="tab_mouse_inspector", title="🐭 Mouse Inspector", description="Mouse-level summary"),
@@ -612,23 +620,21 @@ def app():
     if chosen_id == "tab_session_x_y":
         with placeholder:
             df_selected_from_plotly, x_y_cols = plot_x_y_session()
-            
-            # Add session_plot_setting
-            with st.columns([1, 0.5])[0]:
-                st.markdown("***")
-                if_draw_all_sessions = session_plot_settings()
 
-            df_to_draw_sessions = st.session_state.df_selected_from_plotly if 'selected' in st.session_state.selected_draw_sessions else st.session_state.df_session_filtered
+            # Add session_plot_setting
+            with st.columns([1])[0]:
+                st.markdown("***")
+                if_draw_all_sessions = session_plot_settings(df_selected_from_plotly)
+
+            df_to_draw_sessions = (
+                df_selected_from_plotly
+                if "selected" in st.session_state.get("selected_draw_sessions", "sessions selected from table or plot")
+                else st.session_state.df_session_filtered
+            )
 
             if if_draw_all_sessions and len(df_to_draw_sessions):
                 draw_session_plots(df_to_draw_sessions)
-                
-            if len(df_selected_from_plotly) and not set(df_selected_from_plotly.set_index(['h2o', 'session']).index) == set(
-                                                st.session_state.df_selected_from_plotly.set_index(['h2o', 'session']).index):
-                st.session_state.df_selected_from_plotly = df_selected_from_plotly
-                st.session_state.df_selected_from_dataframe = df_selected_from_plotly  # Sync selected on dataframe
-                st.rerun()
-                
+
     elif chosen_id == "tab_pygwalker":
         with placeholder:
             cols = st.columns([1, 4])
@@ -639,7 +645,7 @@ def app():
                     pyg_user_json = st.text_area("Export your plot settings to json by clicking `export_code` "
                                                  "button below and then paste your json here to reproduce your plots", 
                                                 key='pyg_walker', height=100)
-            
+
             # If pyg_user_json is not empty, use it; otherwise, use the default gw_config.json
             if pyg_user_json:
                 try:
@@ -657,31 +663,40 @@ def app():
                     df=st.session_state.df_session_filtered,
                     spec="./gw_config.json",
                     )
-                            
-            pygwalker_renderer.render_explore(height=1010, scrolling=False)
-        
+
+            pygwalker_renderer.render_explore()
+
     elif chosen_id == "tab_session_inspector":
         with placeholder:
-            cols = st.columns([1, 0.5])
+            cols = st.columns([1])
             with cols[0]:
-                if_draw_all_sessions = session_plot_settings(need_click=False)
-                df_to_draw_sessions = st.session_state.df_selected_from_plotly if 'selected' in st.session_state.selected_draw_sessions else st.session_state.df_session_filtered
+                df_to_draw_sessions = (
+                    st.session_state.df_selected_from_dataframe
+                    if "selected" in st.session_state.get("selected_draw_sessions", "sessions selected from table or plot")
+                    else st.session_state.df_session_filtered
+                )
+                if_draw_all_sessions = session_plot_settings(
+                    df_to_draw_sessions, need_click=False
+                )
 
             if if_draw_all_sessions and len(df_to_draw_sessions):
                 draw_session_plots(df_to_draw_sessions)
-                
+
     elif chosen_id == "tab_mouse_inspector":
         with placeholder:
             selected_subject_id = st.columns([1, 3])[0].selectbox('Select a mouse', options=st.session_state.df_session_filtered['subject_id'].unique())
             st.markdown(f"### [Go to WaterLog](http://eng-tools:8004/water_weight_log/?external_donor_name={selected_subject_id})")
-            
+
     elif chosen_id == "tab_auto_train_history":  # Automatic training history
         with placeholder:
             add_auto_train_manager()
 
     elif chosen_id == "tab_auto_train_curriculum":  # Automatic training curriculums
         df_curriculums = st.session_state.curriculum_manager.df_curriculums().sort_values(
-            by=['curriculum_schema_version', 'curriculum_name', 'curriculum_version']).reset_index().drop(columns='index')
+            by=['curriculum_version', 'curriculum_schema_version', 'curriculum_name'],
+            ascending=[False, True, False], 
+            ).reset_index().drop(columns='index').query("curriculum_name != 'Dummy task'")
+
         with placeholder:
             # Show curriculum manager dataframe
             st.markdown("#### Select auto training curriculums")
@@ -689,75 +704,66 @@ def app():
             # Curriculum drop down selector
             cols = st.columns([0.8, 0.5, 0.8, 4])
             cols[3].markdown(f"(aind_auto_train lib version = {auto_train_version})")
+
             options = list(df_curriculums['curriculum_name'].unique())
-            selected_curriculum_name = cols[0].selectbox(
-                'Curriculum name', 
+            selected_curriculum_name = selectbox_wrapper_for_url_query(
+                st_prefix=cols[0],
+                label='Curriculum name',
                 options=options,
-                index=options.index(st.session_state['auto_training_curriculum_name'])
-                    if ('auto_training_curriculum_name' in st.session_state) and (st.session_state['auto_training_curriculum_name'] != '') else 
-                    options.index(st.query_params['auto_training_curriculum_name'])
-                    if 'auto_training_curriculum_name' in st.query_params and st.query_params['auto_training_curriculum_name'] != ''
-                    else 0, 
-                key='auto_training_curriculum_name'
-                )
-            
+                default=options[0],
+                default_override=True,
+                key='auto_training_curriculum_name',
+            )
+
             options = list(df_curriculums[
                 df_curriculums['curriculum_name'] == selected_curriculum_name
                 ]['curriculum_version'].unique())
-            if ('auto_training_curriculum_version' in st.session_state) and (st.session_state['auto_training_curriculum_version'] in options):
-                default = options.index(st.session_state['auto_training_curriculum_version'])
-            elif 'auto_training_curriculum_version' in st.query_params and st.query_params['auto_training_curriculum_version'] in options:
-                default = options.index(st.query_params['auto_training_curriculum_version'])
-            else:
-                default = 0
-            selected_curriculum_version = cols[1].selectbox(
-                'Curriculum version', 
-                options=options, 
-                index=default, 
-                key='auto_training_curriculum_version'
+            selected_curriculum_version = selectbox_wrapper_for_url_query(
+                st_prefix=cols[1],
+                label='Curriculum version',
+                options=options,
+                default=options[0],
+                default_override=True,
+                key='auto_training_curriculum_version',
             )
-            
+
             options = list(df_curriculums[
                 (df_curriculums['curriculum_name'] == selected_curriculum_name) 
                 & (df_curriculums['curriculum_version'] == selected_curriculum_version)
                 ]['curriculum_schema_version'].unique())
-            if ('auto_training_curriculum_schema_version' in st.session_state) and (st.session_state['auto_training_curriculum_schema_version'] in options):
-                default = options.index(st.session_state['auto_training_curriculum_schema_version'])
-            elif 'auto_training_curriculum_schema_version' in st.query_params and st.query_params['auto_training_curriculum_schema_version'] in options:
-                default = options.index(st.query_params['auto_training_curriculum_schema_version'])
-            else:
-                default = 0
-            selected_curriculum_schema_version = cols[2].selectbox(
-                'Curriculum schema version', 
+
+            selected_curriculum_schema_version = selectbox_wrapper_for_url_query(
+                st_prefix=cols[2],
+                label='Curriculum schema version',
                 options=options,
-                index=default,
-                key='auto_training_curriculum_schema_version'
-                )
-                        
+                default=options[0],
+                default_override=True,
+                key='auto_training_curriculum_schema_version',
+            )
+
             selected_curriculum = st.session_state.curriculum_manager.get_curriculum(
                 curriculum_name=selected_curriculum_name,
                 curriculum_schema_version=selected_curriculum_schema_version,
                 curriculum_version=selected_curriculum_version,
                 )
-            
+
             # Get selected curriculum from previous selected or the URL
             if 'auto_training_curriculum_name' in st.session_state:
                 selected_row = {'curriculum_name': st.session_state['auto_training_curriculum_name'],
                                 'curriculum_schema_version': st.session_state['auto_training_curriculum_schema_version'],
                                 'curriculum_version': st.session_state['auto_training_curriculum_version']}
                 matched_curriculum = df_curriculums[(df_curriculums[list(selected_row)] == pd.Series(selected_row)).all(axis=1)]
-                
+
                 if len(matched_curriculum):
                     pre_selected_rows = matched_curriculum.index.to_list() 
                 else:
                     selected_row = None # Clear selected row if not found
                     pre_selected_rows = None
-            
-            # Show df_curriculum       
+
+            # Show df_curriculum
             aggrid_interactive_table_basic(df=df_curriculums,
                                                 pre_selected_rows=pre_selected_rows)        
 
-            
             if selected_curriculum is not None:
                 curriculum = selected_curriculum['curriculum']
                 # Show diagrams
@@ -777,10 +783,9 @@ def app():
         st.markdown('---\n##### Debug zone')
         show_debug_info()
 
-    
     # Update back to URL
     sync_session_state_to_URL()
-    
+
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
 
 if __name__ == "__main__":
@@ -790,3 +795,4 @@ if __name__ == "__main__":
 
     if ok:
         app()
+        pass

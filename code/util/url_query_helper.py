@@ -95,17 +95,21 @@ def checkbox_wrapper_for_url_query(st_prefix, label, key, default, **kwargs):
         **kwargs,
     )
 
-def selectbox_wrapper_for_url_query(st_prefix, label, options, key, default, **kwargs):
+def selectbox_wrapper_for_url_query(st_prefix, label, options, key, default, default_override=False, **kwargs):
+    # If default_override, use default. Otherwise, session_state or query_params has higher priority
+    if not default_override:
+        default = (
+            st.session_state[key]
+            if key in st.session_state and st.session_state[key] in options
+            else st.query_params[key]
+            if key in st.query_params and st.query_params[key] in options
+            else default
+        )
+    
     return st_prefix.selectbox(
         label,
         options=options,
-        index=(
-            options.index(st.session_state[key])
-            if key in st.session_state
-            else options.index(st.query_params[key]) 
-            if key in st.query_params 
-            else options.index(default)
-        ),
+        index=options.index(default),
         key=key,
         **kwargs,
     )

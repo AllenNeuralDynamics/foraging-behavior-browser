@@ -10,6 +10,8 @@ import pandas as pd
 import plotly
 import plotly.express as px
 import plotly.graph_objects as go
+import plotly.io as pio
+pio.json.config.default_engine = "orjson"
 import statsmodels.api as sm
 import streamlit as st
 import streamlit.components.v1 as components
@@ -27,6 +29,7 @@ from .url_query_helper import (checkbox_wrapper_for_url_query, get_filter_type,
                                multiselect_wrapper_for_url_query,
                                selectbox_wrapper_for_url_query,
                                slider_wrapper_for_url_query)
+from.settings import override_plotly_theme
 
 custom_css = {
 ".ag-root.ag-unselectable.ag-layout-normal": {"font-size": "15px !important",
@@ -67,8 +70,8 @@ def aggrid_interactive_table_session(df: pd.DataFrame, table_height: int = 400):
         df = df.sort_values('session_date', ascending=False)
     
     # preselect
-    if (('df_selected_from_dataframe' in st.session_state and len(st.session_state.df_selected_from_dataframe)) 
-       and ('tab_id' in st.session_state and st.session_state.tab_id == "tab_session_x_y")):
+    if len(st.session_state.get("df_selected_from_dataframe", [])) \
+       and ('tab_id' in st.session_state) and (st.session_state.tab_id == "tab_session_x_y"):
         try:
             indexer = st.session_state.df_selected_from_dataframe.set_index(['h2o', 'session']
                                                                 ).index.get_indexer(df.set_index(['h2o', 'session']).index)
@@ -692,7 +695,7 @@ def add_dot_property_mapper():
         
     return size_mapper, size_mapper_range, size_mapper_gamma
 
-
+@st.fragment(run_every=5)
 def data_selector():
             
     with st.expander(f'Session selector', expanded=True):        
@@ -712,18 +715,30 @@ def data_selector():
         #     st.session_state.df_selected_from_dataframe = pd.DataFrame()
         #     st.rerun()
 
-        cols = st.columns([5, 1, 1])
-        with cols[0].expander(f"Selected: {len(st.session_state.df_selected_from_plotly)} sessions, "
-                              f"{len(st.session_state.df_selected_from_plotly.h2o.unique())} mice", expanded=False):
-            st.dataframe(st.session_state.df_selected_from_plotly)
-        if cols[1].button('all'):
-            st.session_state.df_selected_from_plotly = st.session_state.df_session_filtered
-            st.rerun()
+        # Separate selection from table or streamlit
+        def _show_selected(source="dataframe"):
+            df_this = st.session_state['df_selected_from_' + source]
+            with st.expander(f"Selected from {source}: {len(df_this)} sessions, "
+                                f"{len(df_this.h2o.unique())} mice", expanded=False):
+                st.dataframe(df_this)
+            cols = st.columns([1, 1, 1])
+            
+            if source == "plotly": 
+                return  # Don't allow select all or clear all for plotly
+            
+            if cols[1].button('select all', key=f'select_all_from_{source}'):
+                st.session_state['df_selected_from_' + source] = st.session_state.df_session_filtered
+                st.session_state['df_selected_from_' + source + '_just_overriden'] = True
+                st.rerun()
+            
+            if cols[2].button('clear all', key=f'clear_all_from_{source}'):
+                st.session_state['df_selected_from_' + source] = pd.DataFrame(columns=['h2o', 'session'])
+                st.session_state['df_selected_from_' + source + '_just_overriden'] = True
+                st.rerun()
+
+        for source in ['dataframe', 'plotly']:
+            _show_selected(source)
         
-        if cols[2].button('❌ '):
-            st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
-            st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
-            st.rerun()
 
 def _add_download_filtered_session():
     """Download the master table of the filtered session"""
@@ -1062,14 +1077,14 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
         col = col_map[i%len(col_map)]
 
         if if_show_dots:
-            if not len(st.session_state.df_selected_from_plotly):   
-                this_session['colors'] = col  # all use normal colors
-            else:
-                merged = pd.merge(this_session, st.session_state.df_selected_from_plotly, on=['h2o', 'session'], how='left')
-                merged['colors'] = 'lightgrey'  # default, grey
-                merged.loc[merged.subject_id_y.notna(), 'colors'] = col   # only use normal colors for the selected dots 
-                this_session['colors'] = merged.colors.values
-                this_session = pd.concat([this_session.query('colors != "lightgrey"'), this_session.query('colors == "lightgrey"')])  # make sure the real color goes first
+            # if not len(st.session_state.df_selected_from_plotly):   
+            this_session['colors'] = col  # all use normal colors
+            # else:
+            #     merged = pd.merge(this_session, st.session_state.df_selected_from_plotly, on=['h2o', 'session'], how='left')
+            #     merged['colors'] = 'lightgrey'  # default, grey
+            #     merged.loc[merged.subject_id_y.notna(), 'colors'] = col   # only use normal colors for the selected dots 
+            #     this_session['colors'] = merged.colors.values
+            #     this_session = pd.concat([this_session.query('colors != "lightgrey"'), this_session.query('colors == "lightgrey"')])  # make sure the real color goes first
 
             fig.add_trace(go.Scattergl(
                             x=this_session[x_name], 
@@ -1125,31 +1140,18 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
     n_mice = len(df['h2o'].unique())
     n_sessions = len(df.groupby(['h2o', 'session']).count())
 
+    override_plotly_theme(fig, theme="simple_white", font_size_scale=font_size_scale)
+
     fig.update_layout(
         width=x_y_plot_figure_width,
         height=x_y_plot_figure_height,
-        xaxis_title=x_name,
-        yaxis_title=y_name,
-        font=dict(size=24 * font_size_scale),
+        xaxis_title_text=x_name,
+        yaxis_title_text=y_name,
         hovermode="closest",
-        hoverlabel=dict(font_size=17 * font_size_scale),
         legend={"traceorder": "reversed"},
-        legend_font_size=20 * font_size_scale,
         title=f"{title}, {n_mice} mice, {n_sessions} sessions",
         dragmode="zoom",  # 'select',
-        margin=dict(l=130 * font_size_scale, 
-                    r=50 * font_size_scale, 
-                    b=130 * font_size_scale, 
-                    t=100 * font_size_scale,
-                    ),
-    )
-    fig.update_xaxes(showline=True, linewidth=2, linecolor='black', 
-                    #  range=[1, min(100, df[x_name].max())],
-                     ticks = "outside", tickcolor='black', ticklen=10, tickwidth=2, ticksuffix=' ')
-
-    fig.update_yaxes(showline=True, linewidth=2, linecolor='black',
-                     title_standoff=40,
-                     ticks = "outside", tickcolor='black', ticklen=10, tickwidth=2, ticksuffix=' ')
+    ) 
     return fig
 
 

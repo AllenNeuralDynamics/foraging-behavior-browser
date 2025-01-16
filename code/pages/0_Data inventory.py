@@ -10,7 +10,8 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from streamlit_plotly_events import plotly_events
+import plotly.io as pio
+pio.json.config.default_engine = "orjson"
 
 import time
 import streamlit_nested_layout
@@ -22,6 +23,7 @@ from util.fetch_data_docDB import (
 )
 from util.reformat import formatting_metadata_df
 from util.aws_s3 import load_raw_sessions_on_VAST
+from util.settings import override_plotly_theme
 from Home import init
 
 
@@ -48,14 +50,30 @@ unsafe_allow_html=True,
 )
 
 # Load QUERY_PRESET from json
-with open("data_inventory_QUERY_PRESET.json", "r") as f:
-    QUERY_PRESET = json.load(f)
+@st.cache_data()
+def load_presets():
+    with open("data_inventory_QUERY_PRESET.json", "r") as f:
+        QUERY_PRESET = json.load(f)
+
+    with open("data_inventory_VENN_PRESET.json", "r") as f:
+        VENN_PRESET = json.load(f)
+    return QUERY_PRESET, VENN_PRESET
+
+QUERY_PRESET, VENN_PRESET = load_presets()
 
 META_COLUMNS = [
     "Han_temp_pipeline (bpod)",
     "Han_temp_pipeline (bonsai)",
     "VAST_raw_data_on_VAST",
 ] + [query["alias"] for query in QUERY_PRESET]
+
+X_BIN_SIZE_MAPPER = {  # For plotly histogram xbins
+    "Daily": 1000*3600*24,  # Milliseconds
+    "Weekly": 1000*3600*24*7, # Milliseconds
+    "Monthly": "M1",
+    "Quarterly": "M4",
+}
+
 
 @st.cache_data(ttl=3600*12)
 def merge_queried_dfs(dfs, queries_to_merge):
@@ -235,7 +253,7 @@ def plot_histogram_over_time(df, venn_preset, time_period="Daily", if_sync_y_lim
             rows=len(columns),
             cols=1,
             shared_xaxes=True,
-            vertical_spacing=0.05,
+            vertical_spacing=0.1,
             subplot_titles=columns,
         )
 
@@ -261,7 +279,7 @@ def plot_histogram_over_time(df, venn_preset, time_period="Daily", if_sync_y_lim
 
         # Updating layout
         fig.update_layout(
-            height=200 * len(columns),
+            height=250 * len(columns),
             showlegend=False,
             title=f"{time_period} counts",
         )
@@ -270,7 +288,7 @@ def plot_histogram_over_time(df, venn_preset, time_period="Daily", if_sync_y_lim
         for i, column in enumerate(columns):
             fig.add_trace(go.Histogram( 
                 x=df[df[column]==True]["session_date"],
-                xbins=dict(size="M1"), # Only monthly bins look good
+                xbins=dict(size=X_BIN_SIZE_MAPPER[time_period]), # Only monthly bins look good
                 name=column,
                 marker_color=colors[i],
                 opacity=0.75
@@ -281,18 +299,18 @@ def plot_histogram_over_time(df, venn_preset, time_period="Daily", if_sync_y_lim
             height=500,
             bargap=0.05,  # Gap between bars of adjacent locations
             bargroupgap=0.1,  # Gap between bars of the same location
-            barmode='group',  # Grouped style
+            barmode="group",  # Grouped style
             showlegend=True,
+            title="Monthly counts",
             legend=dict(
                 orientation="h",  # Horizontal legend
                 y=-0.2,  # Position below the plot
                 x=0.5,  # Center the legend
                 xanchor="center",  # Anchor the legend's x position
-                yanchor="top"  # Anchor the legend's y position
+                yanchor="top",  # Anchor the legend's y position
             ),
-            title="Monthly counts"
         )
-        
+
     return fig
 
 def app():
@@ -413,88 +431,82 @@ def app():
     )
 
     # --- Venn diagram from presets ---
-    with open("data_inventory_VENN_PRESET.json", "r") as f:
-        VENN_PRESET = json.load(f)
-
     if VENN_PRESET:
+        add_venn_diagrms(df_merged)
 
-        cols = st.columns([2, 1])
-        cols[0].markdown("## Venn diagrams from presets")
-        with cols[1].expander("Time view settings", expanded=True):
-            cols_1 = st.columns([1, 1])                    
-            if_separate_plots = cols_1[0].checkbox("Separate in subplots", value=True)
-            if_sync_y_limits = cols_1[0].checkbox(
-                "Sync Y limits", value=True, disabled=not if_separate_plots
+@st.fragment
+def add_venn_diagrms(df_merged):
+
+    cols = st.columns([2, 1])
+    cols[0].markdown("## Venn diagrams from presets")
+    with cols[1].expander("Time view settings", expanded=True):
+        cols_1 = st.columns([1, 1])                    
+        if_separate_plots = cols_1[0].checkbox("Separate in subplots", value=True)
+        if_sync_y_limits = cols_1[0].checkbox(
+            "Sync Y limits", value=True, disabled=not if_separate_plots
+        )
+        time_period = cols_1[1].selectbox(
+            "Bin size",
+            ["Daily", "Weekly", "Monthly", "Quarterly"],
+            index=1,
+        )
+
+    for i_venn, venn_preset in enumerate(VENN_PRESET):
+        # -- Venn diagrams --
+        st.markdown(f"### ({i_venn+1}). {venn_preset['name']}")
+        fig, notes = generate_venn(
+                df_merged,
+                venn_preset
             )
-            time_period = cols_1[1].selectbox(
-                "Bin size",
-                ["Daily", "Weekly", "Monthly", "Quarterly"],
-                index=1,
-                disabled=not if_separate_plots,
+        for note in notes:
+            st.markdown(note)
+
+        cols = st.columns([1, 1])
+        with cols[0]:
+            st.pyplot(fig, use_container_width=True)
+
+        # -- Show and download df for this Venn --
+        circle_columns = [c_s["column"] for c_s in venn_preset["circle_settings"]]
+        # Show histogram over time for the columns and patches in preset
+        df_this_preset = df_merged[circle_columns]
+        # Filter out rows that have at least one True in this Venn
+        df_this_preset = df_this_preset[df_this_preset.any(axis=1)]
+
+        # Create a new column to indicate sessions in patches specified by patch_ids like ["100", "101", "110", "111"]
+        for patch_setting in venn_preset.get("patch_settings", []):
+            idx = _filter_df_by_patch_ids(
+                df_this_preset[circle_columns],
+                patch_setting["patch_ids"]
             )
+            df_this_preset.loc[idx, str(patch_setting["patch_ids"])] = True 
 
-        for i_venn, venn_preset in enumerate(VENN_PRESET):
-            # -- Venn diagrams --
-            st.markdown(f"### ({i_venn+1}). {venn_preset['name']}")
-            fig, notes = generate_venn(
-                    df_merged,
-                    venn_preset
-                )
-            for note in notes:
-                st.markdown(note)
+        # Join in other extra columns
+        df_this_preset = df_this_preset.join(
+            df_merged[[col for col in df_merged.columns if col not in META_COLUMNS]], how="left"
+        )
 
-            cols = st.columns([1, 1])
-            with cols[0]:
-                st.pyplot(fig, use_container_width=True)
-
-            # -- Show and download df for this Venn --
-            circle_columns = [c_s["column"] for c_s in venn_preset["circle_settings"]]
-            # Show histogram over time for the columns and patches in preset
-            df_this_preset = df_merged[circle_columns]
-            # Filter out rows that have at least one True in this Venn
-            df_this_preset = df_this_preset[df_this_preset.any(axis=1)]
-
-            # Create a new column to indicate sessions in patches specified by patch_ids like ["100", "101", "110", "111"]
-            for patch_setting in venn_preset.get("patch_settings", []):
-                idx = _filter_df_by_patch_ids(
-                    df_this_preset[circle_columns],
-                    patch_setting["patch_ids"]
-                )
-                df_this_preset.loc[idx, str(patch_setting["patch_ids"])] = True 
-
-            # Join in other extra columns
-            df_this_preset = df_this_preset.join(
-                df_merged[[col for col in df_merged.columns if col not in META_COLUMNS]], how="left"
+        with cols[0]:
+            download_df(
+                df_this_preset,
+                label="Download as CSV for this Venn diagram",
+                file_name=f"df_{venn_preset['name']}.csv",
             )
+            with st.expander(f"Show dataframe, n = {len(df_this_preset)}"):
+                st.write(df_this_preset)
 
-            with cols[0]:
-                download_df(
-                    df_this_preset,
-                    label="Download as CSV for this Venn diagram",
-                    file_name=f"df_{venn_preset['name']}.csv",
-                )
-                with st.expander(f"Show dataframe, n = {len(df_this_preset)}"):
-                    st.write(df_this_preset)
+        with cols[1]:
+            # -- Show histogram over time --
+            fig = plot_histogram_over_time(
+                df=df_this_preset.reset_index(),
+                venn_preset=venn_preset,
+                time_period=time_period,
+                if_sync_y_limits=if_sync_y_limits,
+                if_separate_plots=if_separate_plots,
+            )
+            override_plotly_theme(fig, font_size_scale=0.9)
+            st.plotly_chart(fig, use_container_width=True)
 
-            with cols[1]:
-                # -- Show histogram over time --
-                fig = plot_histogram_over_time(
-                    df=df_this_preset.reset_index(),
-                    venn_preset=venn_preset,
-                    time_period=time_period,
-                    if_sync_y_limits=if_sync_y_limits,
-                    if_separate_plots=if_separate_plots,
-                )
-                plotly_events(
-                    fig,
-                    click_event=False,
-                    hover_event=False,
-                    select_event=False,
-                    override_height=fig.layout.height * 1.1,
-                    override_width=fig.layout.width,
-                )
-
-            st.markdown("---")
+        st.markdown("---")
 
     # --- User-defined Venn diagram ---
     # Multiselect for selecting queries up to three
