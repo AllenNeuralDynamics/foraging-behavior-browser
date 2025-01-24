@@ -1,6 +1,7 @@
 import logging
 import re
 import json
+import requests
 
 from matplotlib_venn import venn2, venn3, venn2_circles, venn3_circles
 import matplotlib.pyplot as plt
@@ -52,11 +53,15 @@ unsafe_allow_html=True,
 # Load QUERY_PRESET from json
 @st.cache_data()
 def load_presets():
-    with open("data_inventory_QUERY_PRESET.json", "r") as f:
-        QUERY_PRESET = json.load(f)
+    # Get QUERY_PRESET and VENN_PRESET from public S3
+    public_url_root = "https://aind-behavior-data.s3.us-west-2.amazonaws.com/foraging_nwb_bonsai_processed/"
+    
+    response = requests.get(public_url_root + "data_inventory_QUERY_PRESET.json")    
+    QUERY_PRESET = response.json()
 
-    with open("data_inventory_VENN_PRESET.json", "r") as f:
-        VENN_PRESET = json.load(f)
+    response = requests.get(public_url_root + "data_inventory_VENN_PRESET.json")
+    VENN_PRESET = response.json()
+    
     return QUERY_PRESET, VENN_PRESET
 
 QUERY_PRESET, VENN_PRESET = load_presets()
