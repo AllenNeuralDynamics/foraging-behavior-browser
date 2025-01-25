@@ -24,6 +24,7 @@ from pygwalker.api.streamlit import StreamlitRenderer, init_streamlit_comm
 from util.aws_s3 import (draw_session_plots_quick_preview, 
                          load_data,
                          load_auto_train,
+                         load_mouse_PI_mapping,
                          show_debug_info,
                          show_session_level_img_by_key_and_prefix)
 from util.fetch_data_docDB import load_data_from_docDB
@@ -345,6 +346,10 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     else:
         _df['h2o'] = _df['subject_id']
         
+    # Merge in PI name
+    mouse_pi_mapping = load_mouse_PI_mapping()
+    _df = _df.merge(pd.DataFrame(mouse_pi_mapping), how='left', on='subject_id') # Merge in PI name
+    _df.loc[_df['PI'].isnull(), 'PI'] = _df.loc[_df['PI'].isnull(), 'trainer'] # Fill in PI with trainer if PI is missing
         
     def _get_data_source(rig):
         """From rig string, return "{institute}_{rig_type}_{room}_{hardware}"

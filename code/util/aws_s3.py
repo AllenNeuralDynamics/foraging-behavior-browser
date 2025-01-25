@@ -43,6 +43,13 @@ def load_data(tables=['sessions'], data_source = 'bonsai'):
     return df
 
 @st.cache_data(ttl=12*3600)
+def load_mouse_PI_mapping():
+    file_name = s3_nwb_folder['bonsai'] + 'mouse_pi_mapping.json'
+    with fs.open(file_name) as f:
+        mouse_PI_mapping = json.load(f)
+    return mouse_PI_mapping
+
+@st.cache_data(ttl=12*3600)
 def load_raw_sessions_on_VAST():
     file_name = s3_nwb_folder['bonsai'] + 'raw_sessions_on_VAST.json'
     with fs.open(file_name) as f:
