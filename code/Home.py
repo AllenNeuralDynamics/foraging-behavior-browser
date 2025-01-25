@@ -105,7 +105,7 @@ def draw_session_plots(df_to_draw_session):
                     except:
                         date_str = key["session_date"].split("T")[0]
                     
-                    st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["h2o"]}, Session {int(key["session"])}, {date_str} '''
+                    st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["h2o"]} ({key["PI"]}), Session {int(key["session"])}, {date_str} '''
                                 f'''({key["trainer"]}@{key["data_source"]})''',
                                 unsafe_allow_html=True)
                     if len(st.session_state.session_plot_selected_draw_types) > 1:  # more than one types, use the pre-defined layout
@@ -346,6 +346,9 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     else:
         _df['h2o'] = _df['subject_id']
         
+    # map trainer
+    _df['trainer'] = _df['trainer'].apply(_trainer_mapper)
+        
     # Merge in PI name
     mouse_pi_mapping = load_mouse_PI_mapping()
     _df = _df.merge(pd.DataFrame(mouse_pi_mapping), how='left', on='subject_id') # Merge in PI name
@@ -416,10 +419,7 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     # weekday
     _df.session_date = pd.to_datetime(_df.session_date)
     _df['weekday'] = _df.session_date.dt.dayofweek + 1
-    
-    # map trainer
-    _df['trainer'] = _df['trainer'].apply(_trainer_mapper)
-    
+        
     # trial stats
     _df['avg_trial_length_in_seconds'] = _df['session_run_time_in_min'] / _df['total_trials_with_autowater'] * 60
     
@@ -458,7 +458,7 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     
     # Recorder columns so that autotrain info is easier to see
     first_several_cols = ['subject_id', 'session_date', 'nwb_suffix', 'session', 'rig', 
-                          'trainer', 'curriculum_name', 'curriculum_version', 'current_stage_actual', 
+                          'trainer', 'PI', 'curriculum_name', 'curriculum_version', 'current_stage_actual', 
                           'task', 'notes']
     new_order = first_several_cols + [col for col in _df.columns if col not in first_several_cols]
     _df = _df[new_order]

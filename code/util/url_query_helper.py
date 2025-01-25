@@ -12,6 +12,7 @@ to_sync_with_url_query_default = {
     "if_load_bpod_sessions": False,
     "if_load_docDB": False,
     "to_filter_columns": [
+        "PI",
         "subject_id",
         "task",
         "session",
@@ -266,7 +267,7 @@ def get_filter_type(df, column):
     
     if (is_categorical_dtype(df[column]) 
         or df[column].nunique() < 10
-        or column in ('trainer') # pin to multiselect
+        or column in () # pin to multiselect
         ):
         return 'multiselect'
 

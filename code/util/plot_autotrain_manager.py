@@ -41,7 +41,7 @@ def plot_manager_all_progress_bokeh_source(
 
     # Metadata merge from df_master
     df_tmp_rig_trainer = st.session_state.df["sessions_bonsai"][
-        ["subject_id", "session_date", "session", "rig", "trainer", "nwb_suffix", 
+        ["subject_id", "session_date", "session", "rig", "trainer", "PI", "nwb_suffix", 
          "foraging_eff_random_seed", "finished_trials", "finished_rate", 
          "task", "curriculum_name", "curriculum_version", "current_stage_actual"]
     ]
@@ -182,7 +182,7 @@ def plot_manager_all_progress_bokeh(
                     <div style="display: flex; flex-direction: row; align-items: top; padding: 10px;">
                         <div style="text-align: left; flex: auto; white-space: nowrap; margin: 0 10px">
                             <span style="font-size: 17px;">
-                                <b>Subject: @subject_id</b><br>
+                                <b>Subject: @subject_id (@PI)</b><br>
                                 <b>@session_date, Session @session</b><br>
                                 <b>@trainer</b> @ <b>@rig</b><br>
                                 <b>@curriculum_name</b><b>_v</b><b>@curriculum_version</b><br>

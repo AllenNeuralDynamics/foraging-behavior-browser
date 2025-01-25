@@ -88,6 +88,7 @@ def _get_metadata_col():
                 "time",
                 "rig",
                 "trainer",
+                "PI",
                 "experiment",
                 "task",
                 "notes",

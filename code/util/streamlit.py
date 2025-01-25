@@ -427,7 +427,7 @@ def add_session_filter(if_bonsai=False, url_query={}):
 @st.cache_data(ttl=3600 * 24)
 def _get_grouped_by_fields(if_bonsai):
     if if_bonsai:
-        options = ["h2o", "task", "trainer", "rig", "data_source", "weekday"]
+        options = ["h2o", "task", "trainer", "PI", "rig", "data_source", "weekday"]
 
         for col in st.session_state.df_session_filtered.columns:
             if any(
@@ -463,6 +463,7 @@ def _get_grouped_by_fields(if_bonsai):
             "weekday",
             "headbar",
             "trainer",
+            "PI",
             "sex",
             "rig",
         ]
@@ -1080,7 +1081,8 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                             marker_size=this_session['dot_size'],
                             marker_color=this_session['colors'],
                             opacity=dot_opacity,
-                            hovertemplate =  '<b>%{customdata[0]}, %{customdata[1]}, Session %{customdata[2]}'
+                            hovertemplate =  '<b>%{customdata[0]} (%{customdata[10]})'
+                                             '<br>%{customdata[1]}, Session %{customdata[2]}'
                                              '<br>%{customdata[4]} @ %{customdata[9]}'
                                              '<br>Rig: %{customdata[3]}'
                                              '<br>Task: %{customdata[5]}'
@@ -1107,6 +1109,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                                                     if dot_size_mapping_name !='None' 
                                                     else [np.nan] * len(this_session.h2o), # 8
                                                  this_session.data_source if 'data_source' in this_session else [''] * len(this_session.h2o), # 9
+                                                 this_session.PI, # 10
                                                  ), axis=-1),
                             unselected=dict(marker_color='lightgrey')
                             ))
