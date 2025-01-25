@@ -465,6 +465,7 @@ def add_venn_diagrms(df_merged):
         for i_venn, venn_preset in enumerate(section_contents):
             # -- Venn diagrams --
             st.markdown(f"#### ({i_venn+1}). {venn_preset['name']}")
+            st.markdown(venn_preset.get("comments", ""))
             fig, notes = generate_venn(
                     df_merged,
                     venn_preset
