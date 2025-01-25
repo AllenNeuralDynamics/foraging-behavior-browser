@@ -266,7 +266,7 @@ def get_filter_type(df, column):
     
     if (is_categorical_dtype(df[column]) 
         or df[column].nunique() < 10
-        or column in ('user_name') # pin to multiselect
+        or column in ('trainer') # pin to multiselect
         ):
         return 'multiselect'
 

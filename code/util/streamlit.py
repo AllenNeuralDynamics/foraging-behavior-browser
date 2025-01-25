@@ -427,7 +427,7 @@ def add_session_filter(if_bonsai=False, url_query={}):
 @st.cache_data(ttl=3600 * 24)
 def _get_grouped_by_fields(if_bonsai):
     if if_bonsai:
-        options = ["h2o", "task", "user_name", "rig", "data_source", "weekday"]
+        options = ["h2o", "task", "trainer", "rig", "data_source", "weekday"]
 
         for col in st.session_state.df_session_filtered.columns:
             if any(
@@ -462,7 +462,7 @@ def _get_grouped_by_fields(if_bonsai):
             "photostim_location",
             "weekday",
             "headbar",
-            "user_name",
+            "trainer",
             "sex",
             "rig",
         ]
@@ -1095,7 +1095,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                                                  this_session.session_date.dt.strftime('%Y-%m-%d'), # 1
                                                  this_session.session, # 2
                                                  this_session.rig, # 3
-                                                 this_session.user_name, # 4
+                                                 this_session.trainer, # 4
                                                  this_session.task, # 5
                                                  this_session.curriculum_name
                                                     if 'curriculum_name' in this_session.columns

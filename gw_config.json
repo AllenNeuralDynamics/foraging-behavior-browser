@@ -40,9 +40,9 @@
         },
         {
           "dragId": "gw_U_P7",
-          "fid": "user_name",
-          "name": "user_name",
-          "basename": "user_name",
+          "fid": "trainer",
+          "name": "trainer",
+          "basename": "trainer",
           "semanticType": "nominal",
           "analyticType": "dimension",
           "offset": 0
@@ -1925,9 +1925,9 @@
         },
         {
           "dragId": "gw_rzi9",
-          "fid": "user_name",
-          "name": "user_name",
-          "basename": "user_name",
+          "fid": "trainer",
+          "name": "trainer",
+          "basename": "trainer",
           "semanticType": "nominal",
           "analyticType": "dimension",
           "offset": 0
@@ -3737,9 +3737,9 @@
         },
         {
           "dragId": "gw_vVM7",
-          "fid": "user_name",
-          "name": "user_name",
-          "basename": "user_name",
+          "fid": "trainer",
+          "name": "trainer",
+          "basename": "trainer",
           "semanticType": "nominal",
           "analyticType": "dimension",
           "offset": 0
@@ -5356,9 +5356,9 @@
         },
         {
           "dragId": "gw_23In",
-          "fid": "user_name",
-          "name": "user_name",
-          "basename": "user_name",
+          "fid": "trainer",
+          "name": "trainer",
+          "basename": "trainer",
           "semanticType": "nominal",
           "analyticType": "dimension",
           "offset": 0
@@ -7001,9 +7001,9 @@
         },
         {
           "dragId": "gw_PRsd",
-          "fid": "user_name",
-          "name": "user_name",
-          "basename": "user_name",
+          "fid": "trainer",
+          "name": "trainer",
+          "basename": "trainer",
           "semanticType": "nominal",
           "analyticType": "dimension",
           "offset": 0
@@ -8627,9 +8627,9 @@
         },
         {
           "dragId": "gw_vra5",
-          "fid": "user_name",
-          "name": "user_name",
-          "basename": "user_name",
+          "fid": "trainer",
+          "name": "trainer",
+          "basename": "trainer",
           "semanticType": "nominal",
           "analyticType": "dimension",
           "offset": 0
@@ -10160,9 +10160,9 @@
       "color": [
         {
           "dragId": "gw_OQDa",
-          "fid": "user_name",
-          "name": "user_name",
-          "basename": "user_name",
+          "fid": "trainer",
+          "name": "trainer",
+          "basename": "trainer",
           "semanticType": "nominal",
           "analyticType": "dimension",
           "offset": 0
@@ -10210,7 +10210,7 @@
       }
     },
     "visId": "gw_9Q9L",
-    "name": "Throughputs by user_name"
+    "name": "Throughputs by trainer"
   },
   {
     "config": {
@@ -10253,9 +10253,9 @@
         },
         {
           "dragId": "gw_tU7P",
-          "fid": "user_name",
-          "name": "user_name",
-          "basename": "user_name",
+          "fid": "trainer",
+          "name": "trainer",
+          "basename": "trainer",
           "semanticType": "nominal",
           "analyticType": "dimension",
           "offset": 0
@@ -11890,9 +11890,9 @@
         },
         {
           "dragId": "gw_PyDA",
-          "fid": "user_name",
-          "name": "user_name",
-          "basename": "user_name",
+          "fid": "trainer",
+          "name": "trainer",
+          "basename": "trainer",
           "semanticType": "nominal",
           "analyticType": "dimension",
           "offset": 0
@@ -13499,9 +13499,9 @@
         },
         {
           "dragId": "gw__Egt",
-          "fid": "user_name",
-          "name": "user_name",
-          "basename": "user_name",
+          "fid": "trainer",
+          "name": "trainer",
+          "basename": "trainer",
           "semanticType": "nominal",
           "analyticType": "dimension",
           "offset": 0

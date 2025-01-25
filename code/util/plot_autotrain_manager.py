@@ -40,12 +40,12 @@ def plot_manager_all_progress_bokeh_source(
         return None
 
     # Metadata merge from df_master
-    df_tmp_rig_user_name = st.session_state.df["sessions_bonsai"][
-        ["subject_id", "session_date", "session", "rig", "user_name", "nwb_suffix", 
+    df_tmp_rig_trainer = st.session_state.df["sessions_bonsai"][
+        ["subject_id", "session_date", "session", "rig", "trainer", "nwb_suffix", 
          "foraging_eff_random_seed", "finished_trials", "finished_rate", 
          "task", "curriculum_name", "curriculum_version", "current_stage_actual"]
     ]
-    df_tmp_rig_user_name["session_date"] = df_tmp_rig_user_name["session_date"].astype(str)
+    df_tmp_rig_trainer["session_date"] = df_tmp_rig_trainer["session_date"].astype(str)
 
     df_to_draw = (
         df_manager.drop_duplicates(
@@ -60,7 +60,7 @@ def plot_manager_all_progress_bokeh_source(
             ]
         )  # df_master has higher priority in session numbers
         .merge(
-            df_tmp_rig_user_name.query(f"current_stage_actual != 'None'"),
+            df_tmp_rig_trainer.query(f"current_stage_actual != 'None'"),
             on=["subject_id", "session_date"],
             how="right",
         )
@@ -184,7 +184,7 @@ def plot_manager_all_progress_bokeh(
                             <span style="font-size: 17px;">
                                 <b>Subject: @subject_id</b><br>
                                 <b>@session_date, Session @session</b><br>
-                                <b>@user_name</b> @ <b>@rig</b><br>
+                                <b>@trainer</b> @ <b>@rig</b><br>
                                 <b>@curriculum_name</b><b>_v</b><b>@curriculum_version</b><br>
                                 Suggested: <b>@current_stage_suggested</b><br>
                                 Actual: <span style="color: @color"><b>@current_stage_actual</b></span><br>
@@ -354,8 +354,8 @@ def plot_manager_all_progress(
         return None
 
     # Get some additional metadata from the master table
-    df_tmp_rig_user_name = st.session_state.df['sessions_bonsai'].loc[:, ['subject_id', 'session_date', 'rig', 'user_name']]
-    df_tmp_rig_user_name.session_date = df_tmp_rig_user_name.session_date.astype(str)
+    df_tmp_rig_trainer = st.session_state.df['sessions_bonsai'].loc[:, ['subject_id', 'session_date', 'rig', 'trainer']]
+    df_tmp_rig_trainer.session_date = df_tmp_rig_trainer.session_date.astype(str)
 
     # Sort mice
     if sort_by == 'subject_id':
@@ -405,7 +405,7 @@ def plot_manager_all_progress(
             h2o = None
 
         df_subject = df_subject.merge(
-            df_tmp_rig_user_name,
+            df_tmp_rig_trainer,
             on=['subject_id', 'session_date'], how='left')
 
         # Handle open loop sessions
@@ -476,7 +476,7 @@ def plot_manager_all_progress(
                  df_subject.decision,
                  df_subject.next_stage_suggested, # 10
                  df_subject.rig, # 11
-                 df_subject.user_name, # 12
+                 df_subject.trainer, # 12
                  ), axis=-1),
             showlegend=False
         )

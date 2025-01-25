@@ -87,7 +87,7 @@ def _get_metadata_col():
                 "water",
                 "time",
                 "rig",
-                "user_name",
+                "trainer",
                 "experiment",
                 "task",
                 "notes",

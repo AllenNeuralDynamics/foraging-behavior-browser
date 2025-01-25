@@ -56,7 +56,7 @@ except:
     pass
 
 
-def _user_name_mapper(user_name):
+def _trainer_mapper(trainer):
     user_mapper = {  # tuple of key words --> user name
         ('Avalon',): 'Avalon Amaya',
         ('Ella',): 'Ella Hilton',
@@ -67,10 +67,10 @@ def _user_name_mapper(user_name):
         }
     for key_words, name in user_mapper.items():
         for key_word in key_words:
-            if key_word in user_name:
+            if key_word in trainer:
                 return name
     else:
-        return user_name
+        return trainer
 
 
 @st.cache_resource(ttl=24*3600)
@@ -105,7 +105,7 @@ def draw_session_plots(df_to_draw_session):
                         date_str = key["session_date"].split("T")[0]
                     
                     st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["h2o"]}, Session {int(key["session"])}, {date_str} '''
-                                f'''({key["user_name"]}@{key["data_source"]})''',
+                                f'''({key["trainer"]}@{key["data_source"]})''',
                                 unsafe_allow_html=True)
                     if len(st.session_state.session_plot_selected_draw_types) > 1:  # more than one types, use the pre-defined layout
                         for row, column_setting in enumerate(draw_type_layout_definition):
@@ -341,7 +341,7 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     # Handle mouse and user name
     if 'bpod_backup_h2o' in _df.columns:
         _df['h2o'] = np.where(_df['bpod_backup_h2o'].notnull(), _df['bpod_backup_h2o'], _df['subject_id'])
-        _df['user_name'] = np.where(_df['bpod_backup_user_name'].notnull(), _df['bpod_backup_user_name'], _df['user_name'])
+        _df['trainer'] = np.where(_df['bpod_backup_user_name'].notnull(), _df['bpod_backup_user_name'], _df['trainer'])
     else:
         _df['h2o'] = _df['subject_id']
         
@@ -412,8 +412,8 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     _df.session_date = pd.to_datetime(_df.session_date)
     _df['weekday'] = _df.session_date.dt.dayofweek + 1
     
-    # map user_name
-    _df['user_name'] = _df['user_name'].apply(_user_name_mapper)
+    # map trainer
+    _df['trainer'] = _df['trainer'].apply(_trainer_mapper)
     
     # trial stats
     _df['avg_trial_length_in_seconds'] = _df['session_run_time_in_min'] / _df['total_trials_with_autowater'] * 60
@@ -453,7 +453,7 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     
     # Recorder columns so that autotrain info is easier to see
     first_several_cols = ['subject_id', 'session_date', 'nwb_suffix', 'session', 'rig', 
-                          'user_name', 'curriculum_name', 'curriculum_version', 'current_stage_actual', 
+                          'trainer', 'curriculum_name', 'curriculum_version', 'current_stage_actual', 
                           'task', 'notes']
     new_order = first_several_cols + [col for col in _df.columns if col not in first_several_cols]
     _df = _df[new_order]

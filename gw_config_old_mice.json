@@ -94,9 +94,9 @@
           },
           {
             "dragId": "gw_6ptm",
-            "fid": "user_name",
-            "name": "user_name",
-            "basename": "user_name",
+            "fid": "trainer",
+            "name": "trainer",
+            "basename": "trainer",
             "semanticType": "nominal",
             "analyticType": "dimension",
             "offset": 0
