@@ -162,7 +162,7 @@ def generate_venn(df, venn_preset):
             if v.get_patch_by_id(patch_id):
                 v.get_patch_by_id(patch_id).set_color(patch_setting["color"])
         # Add notes
-        notes.append(f"#### :{patch_setting['emoji']}: :{patch_setting['color']}[{patch_setting['notes']}]")
+        notes.append(f"##### :{patch_setting['emoji']}: :{patch_setting['color']}[{patch_setting['notes']}]")
 
     return fig, notes
 
@@ -460,11 +460,11 @@ def add_venn_diagrms(df_merged):
     st.markdown("---")
     for section in VENN_PRESET:
         section_name, section_contents = section["section_name"], section["section_contents"]
-        st.markdown(f"## {section_name}")
+        st.markdown(f"### {section_name}")
         st.markdown("---")
         for i_venn, venn_preset in enumerate(section_contents):
             # -- Venn diagrams --
-            st.markdown(f"### ({i_venn+1}). {venn_preset['name']}")
+            st.markdown(f"#### ({i_venn+1}). {venn_preset['name']}")
             fig, notes = generate_venn(
                     df_merged,
                     venn_preset
