@@ -13,6 +13,7 @@ to_sync_with_url_query_default = {
     "if_load_docDB": False,
     "to_filter_columns": [
         "PI",
+        "trainer",
         "subject_id",
         "task",
         "session",
@@ -262,6 +263,9 @@ def sync_session_state_to_URL():
 
 
 def get_filter_type(df, column):
+    if column in ('subject_id', 'PI', 'trainer'):
+        return 'reg_ex'
+    
     if is_numeric_dtype(df[column]):
         return 'slider_range_float'
     
