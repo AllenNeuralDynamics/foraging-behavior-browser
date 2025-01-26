@@ -58,18 +58,22 @@ except:
 
 
 def _trainer_mapper(trainer):
-    user_mapper = {  # tuple of key words --> user name
-        ('Avalon',): 'Avalon Amaya',
-        ('Ella',): 'Ella Hilton',
-        ('Katrina',): 'Katrina Nguyen',
-        ('Lucas',): 'Lucas Kinsey',
-        ('Travis',): 'Travis Ramirez',
-        ('Xinxin', 'the ghost'): 'Xinxin Yin',
-        }
-    for key_words, name in user_mapper.items():
-        for key_word in key_words:
+    user_mapper = {
+        'Avalon Amaya': ['Avalon'],
+        'Ella Hilton': ['Ella'],
+        'Katrina Nguyen': ['Katrina'],
+        'Lucas Kinsey': ['Lucas'],
+        'Travis Ramirez': ['Travis'],
+        'Xinxin Yin': ['Xinxin', 'the ghost'],
+        'Bowen Tan': ['Bowen'],
+        'Henry Loeffler': ['Henry Loeffer'],
+        'Margaret Lee': ['margaret lee'],
+        'Madeline Tom': ['Madseline Tom'],
+    }
+    for canonical_name, alias in user_mapper.items():
+        for key_word in alias:
             if key_word in trainer:
-                return name
+                return canonical_name
     else:
         return trainer
 
