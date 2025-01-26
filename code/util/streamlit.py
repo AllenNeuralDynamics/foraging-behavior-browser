@@ -739,7 +739,7 @@ def data_selector():
 
         for source in ['dataframe', 'plotly']:
             _show_selected(source)
-        
+
 
 def _add_download_filtered_session():
     """Download the master table of the filtered session"""
@@ -775,7 +775,7 @@ def add_auto_train_manager():
     df_training_manager = st.session_state.auto_train_manager.df_manager
 
     # -- Show plotly chart --
-    cols = st.columns([1, 1, 1, 0.7, 0.7, 1, 2])
+    cols = st.columns([1, 1, 1, 0.7, 0.7, 1.5, 1.5, 2])
     options = ["date", "session", "relative_date"]
     x_axis = selectbox_wrapper_for_url_query(
         st_prefix=cols[0],
@@ -805,15 +805,19 @@ def add_auto_train_manager():
 
     marker_size = cols[3].number_input('Marker size', value=12, step=1)
     marker_edge_width = cols[4].number_input('Marker edge width', value=3, step=1)
-    
-    recent_months = slider_wrapper_for_url_query(cols[5],
+
+    only_filtered = checkbox_wrapper_for_url_query(cols[5],
+                                                   label="only sessions filtered on sidebar",
+                                                   key='auto_training_history_only_filtered',
+                                                   default=True)
+    recent_months = slider_wrapper_for_url_query(cols[6],
                                                 label="only recent months",
                                                 min_value=1,
                                                 max_value=12*3,
                                                 step=1,
                                                 key='auto_training_history_recent_months',
                                                 default=8,
-                                                disabled=x_axis != 'date',
+                                                disabled=(x_axis != 'date') or only_filtered,
                                                 )
 
     # Get highlighted subjects
@@ -824,21 +828,25 @@ def add_auto_train_manager():
         highlight_subjects = [str(x) for x in highlight_subjects]
     else:
         highlight_subjects = []
-        
+
     # --- Bokeh ---
     fig_auto_train, data_df = plot_manager_all_progress_bokeh(
         x_axis=x_axis,
-        recent_days=recent_months*30.437,  # Turn months into days
+        recent_days=recent_months * 30.437,  # Turn months into days
         sort_by=sort_by,
         sort_order=sort_order,
         marker_size=marker_size,
         marker_edge_width=marker_edge_width,
         highlight_subjects=highlight_subjects,
         if_show_fig=False,
-        if_use_filtered_data=True,
-        filtered_session_ids=st.session_state.df_session_filtered[['subject_id', 'session']],
+        if_use_filtered_data=only_filtered,
+        filtered_session_ids=(
+            st.session_state.df_session_filtered[["subject_id", "session"]]
+            if only_filtered
+            else None
+        ),
     )
-    
+
     event_result = streamlit_bokeh3_events(
         events="TestSelectEvent",
         bokeh_plot=fig_auto_train,
@@ -854,7 +862,6 @@ def add_auto_train_manager():
         if "TestSelectEvent" in event_result:
             indices = event_result["TestSelectEvent"].get("indices", [])
             st.write(data_df.iloc[indices])
-
 
     # -- Show dataframe --
     # only show filtered subject

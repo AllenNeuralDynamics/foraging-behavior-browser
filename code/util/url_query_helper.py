@@ -61,6 +61,7 @@ to_sync_with_url_query_default = {
     "auto_training_curriculum_version": "2.3rwdDelay159",
     "auto_training_curriculum_schema_version": "1.0",
     "auto_training_history_recent_months": 2,
+    "auto_training_history_only_filtered": True,
     
     "tab_id_learning_trajectory": "tab_stage",
     "stage_distribution_selected_perf_columns": [
