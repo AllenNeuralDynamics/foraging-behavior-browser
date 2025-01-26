@@ -43,6 +43,7 @@ from util.url_query_helper import (checkbox_wrapper_for_url_query,
                                    slider_wrapper_for_url_query,
                                    sync_session_state_to_URL,
                                    sync_URL_to_session_state)
+from util.reformat import get_data_source
 
 try:
     st.set_page_config(layout="wide", 
@@ -292,21 +293,20 @@ def plot_x_y_session():
 def show_curriculums():
     pass
 
-    
 
 # ------- Layout starts here -------- #
 def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
-    
+
     # Clear specific session state and all filters
     for key in st.session_state:
         if key in ['selected_draw_types'] or '_changed' in key:
             del st.session_state[key]
-            
+
     df = load_data(['sessions'], data_source='bonsai')
-    
+
     if not len(df):
         return False
-    
+
     # --- Perform any data source-dependent preprocessing here ---
     # Because sync_URL_to_session_state() needs df to be loaded (for dynamic column filtering),
     # 'if_load_bpod_sessions' has not been synced from URL to session state yet.
@@ -317,84 +317,61 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
         else st.session_state.if_load_bpod_sessions 
         if 'if_load_bpod_sessions' in st.session_state
         else False)
-    
+
     st.session_state.bpod_loaded = False
     if _if_load_bpod:
         df_bpod = load_data(['sessions'], data_source='bpod')
         st.session_state.bpod_loaded = True
-        
+
         # For historial reason, the suffix of df['sessions_bonsai'] just mean the data of the Home.py page
         df['sessions_bonsai'] = pd.concat([df['sessions_bonsai'], df_bpod['sessions_bonsai']], axis=0)
-        
+
     st.session_state.df = df
     for source in ["dataframe", "plotly"]:
         st.session_state[f'df_selected_from_{source}'] = pd.DataFrame(columns=['h2o', 'session'])
-            
+
     # Load autotrain
     auto_train_manager, curriculum_manager = load_auto_train()
     st.session_state.auto_train_manager = auto_train_manager
     st.session_state.curriculum_manager = curriculum_manager
-   
+
     # Some ad-hoc modifications on df_sessions
     _df = st.session_state.df['sessions_bonsai']  # temporary df alias
-    
+
     _df.columns = _df.columns.get_level_values(1)
     _df.sort_values(['session_start_time'], ascending=False, inplace=True)
     _df['session_start_time'] = _df['session_start_time'].astype(str)  # Turn to string
     _df = _df.reset_index().query('subject_id != "0"')
- 
+
     # Handle mouse and user name
     if 'bpod_backup_h2o' in _df.columns:
         _df['h2o'] = np.where(_df['bpod_backup_h2o'].notnull(), _df['bpod_backup_h2o'], _df['subject_id'])
         _df['trainer'] = np.where(_df['bpod_backup_user_name'].notnull(), _df['bpod_backup_user_name'], _df['trainer'])
     else:
         _df['h2o'] = _df['subject_id']
-        
+
     # map trainer
     _df['trainer'] = _df['trainer'].apply(_trainer_mapper)
-        
+
     # Merge in PI name
-    mouse_pi_mapping = load_mouse_PI_mapping()
-    _df = _df.merge(pd.DataFrame(mouse_pi_mapping), how='left', on='subject_id') # Merge in PI name
-    _df.loc[_df['PI'].isnull(), 'PI'] = _df.loc[_df['PI'].isnull(), 'trainer'] # Fill in PI with trainer if PI is missing
-        
-    def _get_data_source(rig):
-        """From rig string, return "{institute}_{rig_type}_{room}_{hardware}"
-        """
-        institute = 'Janelia' if ('bpod' in rig) and not ('AIND' in rig) else 'AIND'
-        hardware = 'bpod' if ('bpod' in rig) else 'bonsai'
-        rig_type = 'ephys' if ('ephys' in rig.lower()) else 'training'
-        
-        # This is a mess...
-        if institute == 'Janelia':
-            room = 'NA'
-        elif 'Ephys-Han' in rig:
-            room = '321'
-        elif hardware == 'bpod':
-            room = '347'
-        elif '447' in rig:
-            room = '447'
-        elif '446' in rig:
-            room = '446'
-        elif '323' in rig:
-            room = '323'
-        elif rig_type == 'ephys':
-            room = '323'
-        else:
-            room = '447'
-        return institute, rig_type, room, hardware, '_'.join([institute, rig_type, room, hardware])
-        
-    # Add data source (Room + Hardware etc)
-    _df[['institute', 'rig_type', 'room', 'hardware', 'data_source']] = _df['rig'].apply(lambda x: pd.Series(_get_data_source(x)))
+    df_mouse_pi_mapping = load_mouse_PI_mapping()
+    _df = _df.merge(df_mouse_pi_mapping, how='left', on='subject_id') # Merge in PI name
+    _df.loc[_df["PI"].isnull(), "PI"] = _df.loc[
+        _df["PI"].isnull() & _df["trainer"].isin(_df["PI"]), "trainer"
+    ]  # Fill in PI with trainer if PI is missing and the trainer was ever a PI
     
+
+    # Add data source (Room + Hardware etc)
+    _df[['institute', 'rig_type', 'room', 'hardware', 'data_source']] = _df['rig'].apply(lambda x: pd.Series(get_data_source(x)))
+
     # Handle session number
     _df.dropna(subset=['session'], inplace=True) # Remove rows with no session number (only leave the nwb file with the largest finished_trials for now)
     _df.drop(_df.query('session < 1').index, inplace=True)
-    
+
     # Remove invalid subject_id
     _df = _df[(999999 > _df["subject_id"].astype(int)) 
               & (_df["subject_id"].astype(int) > 300000)]
-    
+
     # Remove abnormal values
     _df.loc[_df['weight_after'] > 100, 
             ['weight_after', 'weight_after_ratio', 'water_in_session_total', 'water_after_session', 'water_day_total']
@@ -405,32 +382,32 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
 
     _df.loc[(_df['duration_iti_median'] < 0) | (_df['duration_iti_mean'] < 0),
             ['duration_iti_median', 'duration_iti_mean', 'duration_iti_std', 'duration_iti_min', 'duration_iti_max']] = np.nan
-    
+
     _df.loc[_df['invalid_lick_ratio'] < 0, 
             ['invalid_lick_ratio']]= np.nan
-    
+
     # # add something else
     # add abs(bais) to all terms that have 'bias' in name
     for col in _df.columns:
         if 'bias' in col:
             _df[f'abs({col})'] = np.abs(_df[col])
-        
+
     # # delta weight
     # diff_relative_weight_next_day = _df.set_index(
     #     ['session']).sort_values('session', ascending=True).groupby('h2o').apply(
     #         lambda x: - x.relative_weight.diff(periods=-1)).rename("diff_relative_weight_next_day")
-        
+
     # weekday
     _df.session_date = pd.to_datetime(_df.session_date)
     _df['weekday'] = _df.session_date.dt.dayofweek + 1
-        
+
     # trial stats
     _df['avg_trial_length_in_seconds'] = _df['session_run_time_in_min'] / _df['total_trials_with_autowater'] * 60
-    
+
     # last day's total water
     _df['water_day_total_last_session'] = _df.groupby('h2o')['water_day_total'].shift(1)
     _df['water_after_session_last_session'] = _df.groupby('h2o')['water_after_session'].shift(1)    
-    
+
     # fill nan for autotrain fields
     filled_values = {'curriculum_name': 'None', 
                      'curriculum_version': 'None',
@@ -441,7 +418,7 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
                      'if_overriden_by_trainer': False,
                      }
     _df.fillna(filled_values, inplace=True)
-        
+
     # foraging performance = foraing_eff * finished_rate
     if 'foraging_performance' not in _df.columns:
         _df['foraging_performance'] = \
@@ -453,20 +430,19 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
 
     # drop 'bpod_backup_' columns
     _df.drop([col for col in _df.columns if 'bpod_backup_' in col], axis=1, inplace=True)
-    
+
     # fix if_overriden_by_trainer
     _df['if_overriden_by_trainer'] = _df['if_overriden_by_trainer'].astype(bool)
-    
+
     # _df = _df.merge(
     #     diff_relative_weight_next_day, how='left', on=['h2o', 'session'])
-    
+
     # Recorder columns so that autotrain info is easier to see
     first_several_cols = ['subject_id', 'session_date', 'nwb_suffix', 'session', 'rig', 
                           'trainer', 'PI', 'curriculum_name', 'curriculum_version', 'current_stage_actual', 
                           'task', 'notes']
     new_order = first_several_cols + [col for col in _df.columns if col not in first_several_cols]
     _df = _df[new_order]
-    
 
     # --- Load data from docDB ---
     if_load_docDb = if_load_docDB_override if if_load_docDB_override is not None else (
@@ -475,10 +451,10 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
         else st.session_state.if_load_docDB 
         if 'if_load_docDB' in st.session_state
         else False)
-           
+
     if if_load_docDb:
         _df = merge_in_df_docDB(_df)
-        
+
         # add docDB_status column
         _df["docDB_status"] = _df.apply(
             lambda row: (
@@ -498,10 +474,10 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
 
     # Set session state from URL
     sync_URL_to_session_state()
-       
+
     # Establish communication between pygwalker and streamlit
     init_streamlit_comm()
-    
+
     return True
 
 def merge_in_df_docDB(_df):

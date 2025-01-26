@@ -47,7 +47,7 @@ def load_mouse_PI_mapping():
     file_name = s3_nwb_folder['bonsai'] + 'mouse_pi_mapping.json'
     with fs.open(file_name) as f:
         mouse_PI_mapping = json.load(f)
-    return mouse_PI_mapping
+    return pd.DataFrame(mouse_PI_mapping)
 
 @st.cache_data(ttl=12*3600)
 def load_raw_sessions_on_VAST():
@@ -178,8 +178,8 @@ def show_debug_info():
         with fs.open(s3_nwb_folder['bonsai'] + 'bonsai_pipeline.log') as file:
             log_content = file.read().decode('utf-8')
         st.text(log_content)
-        
-        
+
+
 def get_s3_public_url(
     subject_id, session_date, nwb_suffix, figure_suffix="choice_history.png",
     result_path="foraging_nwb_bonsai_processed", bucket_name="aind-behavior-data", 
