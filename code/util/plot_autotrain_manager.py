@@ -28,6 +28,8 @@ def plot_manager_all_progress_bokeh_source(
     marker_edge_width=2,
     highlight_subjects=[],
     if_show_fig=False,
+    if_use_filtered_data=True,  # Use data filtered from the sidebar
+    filtered_session_ids=None,
 ):
     # --- Prepare data ---
     manager = st.session_state.auto_train_manager
@@ -65,6 +67,14 @@ def plot_manager_all_progress_bokeh_source(
             how="right",
         )
     )
+
+    # If use_filtered_data, filter the data
+    if if_use_filtered_data:
+        df_to_draw = df_to_draw.merge(
+            filtered_session_ids,
+            on=["subject_id", "session"],
+            how="inner",
+        )
 
     # Correct df_manager missing sessions (df_manager has higher priority in curriculum-related fields)
     df_to_draw["curriculum_name"] = df_to_draw["curriculum_name_x"].fillna(df_to_draw["curriculum_name_y"])
@@ -162,6 +172,8 @@ def plot_manager_all_progress_bokeh(
     marker_edge_width=2,
     highlight_subjects=[],
     if_show_fig=False,
+    if_use_filtered_data=True,  # Use data filtered from the sidebar
+    filtered_session_ids=None,
 ):
 
     data_df, subject_ids = plot_manager_all_progress_bokeh_source(
@@ -173,6 +185,8 @@ def plot_manager_all_progress_bokeh(
         marker_edge_width=marker_edge_width,
         highlight_subjects=highlight_subjects,
         if_show_fig=if_show_fig,
+        if_use_filtered_data=if_use_filtered_data,
+        filtered_session_ids=filtered_session_ids,
     )
     source = ColumnDataSource(data_df)
 
@@ -215,7 +229,7 @@ def plot_manager_all_progress_bokeh(
         title="AutoTrain Progress",
         x_axis_label=x_axis,
         y_axis_label="Subjects",
-        height=20*len(subject_ids),
+        height=770 + 20*len(subject_ids),
         width=1400,
         # tools=[hover, "lasso_select", "reset", "tap", "pan", "wheel_zoom"],
         # tooltips=TOOLTIPS,

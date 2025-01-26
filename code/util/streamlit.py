@@ -834,7 +834,9 @@ def add_auto_train_manager():
         marker_size=marker_size,
         marker_edge_width=marker_edge_width,
         highlight_subjects=highlight_subjects,
-        if_show_fig=False
+        if_show_fig=False,
+        if_use_filtered_data=True,
+        filtered_session_ids=st.session_state.df_session_filtered[['subject_id', 'session']],
     )
     
     event_result = streamlit_bokeh3_events(
