@@ -80,7 +80,7 @@ def _draw_variable_trial_back(df, beta_name, trials_back, ax=None):
     axes[1].set(#ylim=plot_range, title=var_name, 
                 xlabel='', ylabel='Session mean $\pm$ CI')
     axes[1].spines[['right', 'top']].set_visible(False)
-    axes[1].set_title(f"{len(df_beta['h2o'].unique())} mice, {len(df_beta['session'].unique())} sessions")
+    axes[1].set_title(f"{len(df_beta['subject_alias'].unique())} mice, {len(df_beta['session'].unique())} sessions")
         
     ax.remove()
     
@@ -143,7 +143,7 @@ def _draw_variable_trial_back_linear_reg(df, beta_name, ax=None):
     ax.set(#ylim=plot_range, 
            xlabel='', ylabel='Session mean $\pm$ CI')
     ax.spines[['right', 'top']].set_visible(False)
-    ax.set_title(f"{beta_name}, {len(df_beta['h2o'].unique())} mice, {len(df_beta['session'].unique())} sessions")
+    ax.set_title(f"{beta_name}, {len(df_beta['subject_alias'].unique())} mice, {len(df_beta['session'].unique())} sessions")
     ax.axhline(y=0, c='k', ls='--', lw=1)
     
     if 'reward' in beta_name: ax.invert_yaxis()

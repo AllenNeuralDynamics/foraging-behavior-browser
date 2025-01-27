@@ -32,7 +32,7 @@ def load_data(tables=['sessions'], data_source = 'bonsai'):
         file_name = s3_processed_nwb_folder[data_source] + f'df_{table}.pkl'
         try:
             with fs.open(file_name) as f:
-                df[table + '_bonsai'] = pd.read_pickle(f).rename(columns={'user_name': 'trainer'})
+                df[table + '_bonsai'] = pd.read_pickle(f).rename(columns={'user_name': 'trainer', 'h2o': 'subject_alias'})
         except FileNotFoundError as e:
             st.markdown(f'''### df_{table}.pkl is missing on S3. \n'''
                         f'''## It is very likely that Han is [rerunning the whole pipeline](https://github.com/AllenNeuralDynamics/aind-foraging-behavior-bonsai-trigger-pipeline?tab=readme-ov-file#notes-on-manually-re-process-all-nwbs-and-overwrite-s3-database-and-thus-the-streamlit-app). Please come back after an hour.''')
@@ -95,7 +95,7 @@ def draw_session_plots_quick_preview(df_to_draw_session):
         except:
             date_str = key["session_date"].split("T")[0]
 
-        st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["h2o"]} ({key["PI"]}), Session {int(key["session"])}, {date_str} '''
+        st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["subject_alias"]} ({key["PI"]}), Session {int(key["session"])}, {date_str} '''
                     f'''({key["trainer"]}@{key["data_source"]})''',
                     unsafe_allow_html=True)
 

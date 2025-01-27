@@ -22,9 +22,9 @@
           },
           {
             "dragId": "gw_Ue21",
-            "fid": "h2o",
-            "name": "h2o",
-            "basename": "h2o",
+            "fid": "subject_alias",
+            "name": "subject_alias",
+            "basename": "subject_alias",
             "semanticType": "nominal",
             "analyticType": "dimension",
             "offset": 0

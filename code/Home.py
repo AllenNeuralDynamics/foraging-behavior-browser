@@ -110,7 +110,7 @@ def draw_session_plots(df_to_draw_session):
                     except:
                         date_str = key["session_date"].split("T")[0]
                     
-                    st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["h2o"]} ({key["PI"]}), Session {int(key["session"])}, {date_str} '''
+                    st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["subject_alias"]} ({key["PI"]}), Session {int(key["session"])}, {date_str} '''
                                 f'''({key["trainer"]}@{key["data_source"]})''',
                                 unsafe_allow_html=True)
                     if len(st.session_state.session_plot_selected_draw_types) > 1:  # more than one types, use the pre-defined layout
@@ -286,7 +286,6 @@ def plot_x_y_session():
     if len(df_selected_from_plotly) == 1:
         with cols[1]:
             draw_session_plots_quick_preview(df_selected_from_plotly)
-
     return df_selected_from_plotly, cols
 
 
@@ -328,7 +327,7 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
 
     st.session_state.df = df
     for source in ["dataframe", "plotly"]:
-        st.session_state[f'df_selected_from_{source}'] = pd.DataFrame(columns=['h2o', 'session'])
+        st.session_state[f'df_selected_from_{source}'] = pd.DataFrame(columns=['subject_alias', 'session'])
 
     # Load autotrain
     auto_train_manager, curriculum_manager = load_auto_train()
@@ -345,10 +344,10 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
 
     # Handle mouse and user name
     if 'bpod_backup_h2o' in _df.columns:
-        _df['h2o'] = np.where(_df['bpod_backup_h2o'].notnull(), _df['bpod_backup_h2o'], _df['subject_id'])
+        _df['subject_alias'] = np.where(_df['bpod_backup_h2o'].notnull(), _df['bpod_backup_h2o'], _df['subject_id'])
         _df['trainer'] = np.where(_df['bpod_backup_user_name'].notnull(), _df['bpod_backup_user_name'], _df['trainer'])
     else:
-        _df['h2o'] = _df['subject_id']
+        _df['subject_alias'] = _df['subject_id']
 
     # map trainer
     _df['trainer'] = _df['trainer'].apply(_trainer_mapper)
@@ -357,7 +356,9 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     df_mouse_pi_mapping = load_mouse_PI_mapping()
     _df = _df.merge(df_mouse_pi_mapping, how='left', on='subject_id') # Merge in PI name
     _df.loc[_df["PI"].isnull(), "PI"] = _df.loc[
-        _df["PI"].isnull() & _df["trainer"].isin(_df["PI"]), "trainer"
+        _df["PI"].isnull() & 
+        (_df["trainer"].isin(_df["PI"]) | _df["trainer"].isin(["Han Hou", "Marton Rozsa"])), 
+        "trainer"
     ]  # Fill in PI with trainer if PI is missing and the trainer was ever a PI
     
 
@@ -394,7 +395,7 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
 
     # # delta weight
     # diff_relative_weight_next_day = _df.set_index(
-    #     ['session']).sort_values('session', ascending=True).groupby('h2o').apply(
+    #     ['session']).sort_values('session', ascending=True).groupby('subject_alias').apply(
     #         lambda x: - x.relative_weight.diff(periods=-1)).rename("diff_relative_weight_next_day")
 
     # weekday
@@ -405,8 +406,8 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     _df['avg_trial_length_in_seconds'] = _df['session_run_time_in_min'] / _df['total_trials_with_autowater'] * 60
 
     # last day's total water
-    _df['water_day_total_last_session'] = _df.groupby('h2o')['water_day_total'].shift(1)
-    _df['water_after_session_last_session'] = _df.groupby('h2o')['water_after_session'].shift(1)    
+    _df['water_day_total_last_session'] = _df.groupby('subject_alias')['water_day_total'].shift(1)
+    _df['water_after_session_last_session'] = _df.groupby('subject_alias')['water_after_session'].shift(1)    
 
     # fill nan for autotrain fields
     filled_values = {'curriculum_name': 'None', 
@@ -435,7 +436,7 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     _df['if_overriden_by_trainer'] = _df['if_overriden_by_trainer'].astype(bool)
 
     # _df = _df.merge(
-    #     diff_relative_weight_next_day, how='left', on=['h2o', 'session'])
+    #     diff_relative_weight_next_day, how='left', on=['subject_alias', 'session'])
 
     # Recorder columns so that autotrain info is easier to see
     first_several_cols = ['subject_id', 'session_date', 'nwb_suffix', 'session', 'rig', 
@@ -521,7 +522,7 @@ def app():
         cols = st.columns([4, 4, 4, 1])
         cols[0].markdown(f'### Filter the sessions on the sidebar\n'
                          f'#####  {len(st.session_state.df_session_filtered)} sessions, '
-                         f'{len(st.session_state.df_session_filtered.h2o.unique())} mice filtered')
+                         f'{len(st.session_state.df_session_filtered.subject_alias.unique())} mice filtered')
         with cols[1]:
             with st.form(key='load_settings', clear_on_submit=False):
                 if_load_bpod_sessions = checkbox_wrapper_for_url_query(
@@ -567,8 +568,8 @@ def app():
     )
 
     if len(aggrid_outputs['selected_rows']) \
-        and not set(pd.DataFrame(aggrid_outputs['selected_rows']).set_index(['h2o', 'session']).index
-            ) == set(st.session_state.df_selected_from_dataframe.set_index(['h2o', 'session']).index) \
+        and not set(pd.DataFrame(aggrid_outputs['selected_rows']).set_index(['subject_alias', 'session']).index
+            ) == set(st.session_state.df_selected_from_dataframe.set_index(['subject_alias', 'session']).index) \
         and not st.session_state.get("df_selected_from_dataframe_just_overriden", False):  # so that if the user just overriden the df_selected_from_dataframe by pressing sidebar button, it won't sync selected rows in the table to session state
         st.session_state.df_selected_from_dataframe = pd.DataFrame(aggrid_outputs['selected_rows'])  # Use selected in dataframe to update "selected"
         st.rerun()
