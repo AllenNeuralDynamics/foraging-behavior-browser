@@ -132,6 +132,8 @@ def plot_manager_all_progress_bokeh_source(
 
         # Append subjects that have not graduated
         subject_ids = subject_ids + [s for s in df_manager.subject_id.unique() if s not in subject_ids]
+        # Only subjects in df_to_draw
+        subject_ids = [s for s in subject_ids if s in df_to_draw.subject_id.unique()]
     else:
         raise ValueError("Invalid sort_by value.")
 
@@ -241,7 +243,7 @@ def plot_manager_all_progress_bokeh(
         ),
         x_axis_label=x_axis,
         y_axis_label="Subjects",
-        height=770 + 20 * len(subject_ids),
+        height=max(770, 30 * len(subject_ids)),
         width=1400,
         # tools=[hover, "lasso_select", "reset", "tap", "pan", "wheel_zoom"],
         # tooltips=TOOLTIPS,
