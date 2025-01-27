@@ -167,6 +167,7 @@ def app():
         )
     elif chosen_id == "tab_stage":
         st.markdown("### Distributions of metrics and/or parameters grouped by training stages")
+        st.markdown(f"#### {len(ss.df_session_filtered.subject_id.unique())} mice, {len(ss.df_session_filtered)} sessions filtered")
         metrics_grouped_by_stages(df=ss.df_session_filtered)
 
     # Update back to URL
@@ -219,7 +220,7 @@ def do_pca(df, name):
         height=1000,
         font_size=15,
     )
-    st.plotly_chart(fig)
+    st.plotly_chart(fig, key=f"pca_{name}")
 
     # -- variance explained --
     var_explained = pca.explained_variance_ratio_
@@ -237,7 +238,7 @@ def do_pca(df, name):
         height=400,
         font_size=15,
     )
-    st.plotly_chart(fig)
+    st.plotly_chart(fig, key=f"pca_var_{name}")
 
     # -- pca components --
     pca_components = pd.DataFrame(pca.components_, columns=df_to_pca.columns)
@@ -264,7 +265,7 @@ def do_pca(df, name):
         height=800,
         font_size=20,
     )
-    st.plotly_chart(fig)
+    st.plotly_chart(fig, key=f"pca_components_{name}")
 
 
 def metrics_grouped_by_stages(df):
@@ -274,33 +275,34 @@ def metrics_grouped_by_stages(df):
     )
     df = df.sort_values("current_stage_actual")
 
-    # Multiselect for choosing numeric columns
-    selected_perf_columns = multiselect_wrapper_for_url_query(
-        st,
-        label= "Animal performance metrics to plot",
-        options=COL_PERF,
-        default=to_sync_with_url_query_default["stage_distribution_selected_perf_columns"],
-        key='stage_distribution_selected_perf_columns',
-    )
-    selected_task_columns = multiselect_wrapper_for_url_query(
-        st,
-        label= "Task parameters to plot",
-        options=COL_TASK,
-        default=to_sync_with_url_query_default["stage_distribution_selected_task_columns"],
-        key='stage_distribution_selected_task_columns',
-    )            
-    selected_columns = selected_perf_columns + selected_task_columns
+    with st.expander('Plot settings', expanded=True):
+        # Multiselect for choosing numeric columns
+        selected_perf_columns = multiselect_wrapper_for_url_query(
+            st,
+            label= "Animal performance metrics to plot",
+            options=COL_PERF,
+            default=to_sync_with_url_query_default["stage_distribution_selected_perf_columns"],
+            key='stage_distribution_selected_perf_columns',
+        )
+        selected_task_columns = multiselect_wrapper_for_url_query(
+            st,
+            label= "Task parameters to plot",
+            options=COL_TASK,
+            default=to_sync_with_url_query_default["stage_distribution_selected_task_columns"],
+            key='stage_distribution_selected_task_columns',
+        )            
+        selected_columns = selected_perf_columns + selected_task_columns
 
-    # Checkbox to use density or not
-    use_kernel_smooth = st.checkbox("Use Kernel Smoothing", value=True)
-    if use_kernel_smooth:
-        use_density = False
-        bins = 100
-    else:
-        bins = st.columns([1, 5])[0].slider("Number of bins", 10, 100, 20, 5)
-        use_density = st.checkbox("Use Density", value=False)
+        # Checkbox to use density or not
+        use_kernel_smooth = st.checkbox("Use Kernel Smoothing", value=True)
+        if use_kernel_smooth:
+            use_density = False
+            bins = 100
+        else:
+            bins = st.columns([1, 5])[0].slider("Number of bins", 10, 100, 20, 5)
+            use_density = st.checkbox("Use Density", value=False)
 
-    num_plot_cols = st.columns([1, 7])[0].slider("Number of plotting columns", 1, 5, 4)
+        num_plot_cols = st.columns([1, 7])[0].slider("Number of plotting columns", 1, 5, 4)
     st.markdown("---")
 
     # Create a density plot for each selected column grouped by 'current_stage_actual'
@@ -323,7 +325,7 @@ def metrics_grouped_by_stages(df):
                     use_kernel_smooth,
                     use_density,
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, use_container_width=True, key=f"{column}_{curriculum_name}")
                 
         st.markdown("---")
 
