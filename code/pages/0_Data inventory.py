@@ -459,7 +459,7 @@ def add_venn_diagrms(df_merged):
             ["Daily", "Weekly", "Monthly", "Quarterly"],
             index=0,
         )
-        
+
     st.markdown("---")
     for section in VENN_PRESET:
         section_name, section_contents = section["section_name"], section["section_contents"]
@@ -507,7 +507,17 @@ def add_venn_diagrms(df_merged):
                     file_name=f"df_{venn_preset['name']}.csv",
                 )
                 with st.expander(f"Show dataframe, n = {len(df_this_preset)}"):
-                    st.write(df_this_preset)
+                    aggrid_interactive_table_basic(
+                        df_this_preset.reset_index(),
+                        height=400,
+                        configure_columns=[
+                            dict(
+                                field="session_date",
+                                type=["customDateTimeFormat"],
+                                custom_format_string="yyyy-MM-dd",
+                            )
+                        ],
+                    )
 
             with cols[1]:
                 # -- Show histogram over time --
