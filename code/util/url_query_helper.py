@@ -15,7 +15,7 @@ to_sync_with_url_query_default = {
         "PI",
         "trainer",
         "subject_id",
-        "task",
+        "curriculum_name",
         "session",
         "finished_trials",
         "foraging_eff",
@@ -272,7 +272,7 @@ def get_filter_type(df, column):
     
     if (is_categorical_dtype(df[column]) 
         or df[column].nunique() < 10
-        or column in () # pin to multiselect
+        or column in ('curriculum_version') # pin to multiselect
         ):
         return 'multiselect'
 
