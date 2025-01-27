@@ -29,7 +29,7 @@ to_sync_with_url_query_default = {
     "tab_id": "tab_auto_train_history",
     "x_y_plot_xname": "session",
     "x_y_plot_yname": "foraging_performance_random_seed",
-    "x_y_plot_group_by": "subject_alias",
+    "x_y_plot_group_by": "subject_id",
     "x_y_plot_if_show_dots": True,
     "x_y_plot_if_aggr_each_group": True,
     "x_y_plot_aggr_method_group": "lowess",
