@@ -158,6 +158,9 @@ def plot_manager_all_progress_bokeh_source(
         df_subject["y"] = len(subject_ids) - n
         df_subjects.append(df_subject)
 
+    if not df_subjects:
+        return None, None
+    
     data_df = pd.concat(df_subjects, ignore_index=True)
 
     return data_df, subject_ids
@@ -188,6 +191,10 @@ def plot_manager_all_progress_bokeh(
         if_use_filtered_data=if_use_filtered_data,
         filtered_session_ids=filtered_session_ids,
     )
+    
+    if data_df is None:
+        return None, None
+    
     source = ColumnDataSource(data_df)
 
     # Add hover tool

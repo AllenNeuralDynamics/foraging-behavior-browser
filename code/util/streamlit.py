@@ -839,7 +839,6 @@ def add_auto_train_manager():
         highlight_subjects = []
 
     # --- Bokeh ---
-
     fig_auto_train, data_df = plot_manager_all_progress_bokeh(
         x_axis=x_axis,
         recent_days=recent_months * 30.437,  # Turn months into days
@@ -856,6 +855,10 @@ def add_auto_train_manager():
             else None
         ),
     )
+    
+    if fig_auto_train is None:
+        st.markdown("### In the filtered sessions, no AutoTrain history to show!")
+        return
 
     event_result = streamlit_bokeh3_events(
         events="TestSelectEvent",
