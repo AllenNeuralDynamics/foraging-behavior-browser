@@ -95,6 +95,10 @@ def merge_queried_dfs(dfs, queries_to_merge):
         ]
         + query_cols
     )
+    # Merged in PI name
+    df_merged.reset_index().merge(
+        st.session_state.df_mouse_pi_mapping, on="subject_id"
+    ).set_index(["subject_id", "session_date", "PI"])
     return df_merged
 
 
