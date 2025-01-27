@@ -322,8 +322,8 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
         df_bpod = load_data(['sessions'], data_source='bpod')
         st.session_state.bpod_loaded = True
 
-        # For historial reason, the suffix of df['sessions_bonsai'] just mean the data of the Home.py page
-        df['sessions_bonsai'] = pd.concat([df['sessions_bonsai'], df_bpod['sessions_bonsai']], axis=0)
+        # For historial reason, the suffix of df['sessions_main'] just mean the data of the Home.py page
+        df['sessions_main'] = pd.concat([df['sessions_main'], df_bpod['sessions_main']], axis=0)
 
     st.session_state.df = df
     for source in ["dataframe", "plotly"]:
@@ -335,7 +335,7 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     st.session_state.curriculum_manager = curriculum_manager
 
     # Some ad-hoc modifications on df_sessions
-    _df = st.session_state.df['sessions_bonsai']  # temporary df alias
+    _df = st.session_state.df['sessions_main']  # temporary df alias
 
     _df.columns = _df.columns.get_level_values(1)
     _df.sort_values(['session_start_time'], ascending=False, inplace=True)
@@ -470,7 +470,7 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
             axis=1,
         )
 
-    st.session_state.df['sessions_bonsai'] = _df  # Somehow _df loses the reference to the original dataframe
+    st.session_state.df['sessions_main'] = _df  # Somehow _df loses the reference to the original dataframe
     st.session_state.session_stats_names = [keys for keys in _df.keys()]
 
     # Set session state from URL
@@ -766,7 +766,7 @@ def add_main_tabs():
 
 if __name__ == "__main__":
     ok = True
-    if 'df' not in st.session_state or 'sessions_bonsai' not in st.session_state.df.keys(): 
+    if 'df' not in st.session_state or 'sessions_main' not in st.session_state.df.keys(): 
         ok = init()
 
     if ok:

@@ -42,7 +42,7 @@ def plot_manager_all_progress_bokeh_source(
         return None
 
     # Metadata merge from df_master
-    df_tmp_rig_trainer = st.session_state.df["sessions_bonsai"][
+    df_tmp_rig_trainer = st.session_state.df["sessions_main"][
         ["subject_id", "session_date", "session", "rig", "trainer", "PI", "nwb_suffix", 
          "foraging_eff_random_seed", "finished_trials", "finished_rate", 
          "task", "curriculum_name", "curriculum_version", "current_stage_actual"]

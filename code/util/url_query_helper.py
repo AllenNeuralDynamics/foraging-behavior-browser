@@ -195,7 +195,7 @@ def sync_URL_to_session_state():
             # Also, in this case, the key must be from st.query_params, 
             # so the only purpose of getting default is to get the correct type,
             # not its value per se.
-            filter_type = get_filter_type(st.session_state.df['sessions_bonsai'],
+            filter_type = get_filter_type(st.session_state.df['sessions_main'],
                                           key.replace('filter_', ''))
             if filter_type == 'slider_range_float':
                 default = [0.0, 1.0]

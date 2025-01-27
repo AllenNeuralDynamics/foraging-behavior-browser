@@ -73,7 +73,7 @@ STAGE_COLOR_MAPPER = get_stage_color_mapper(STAGE_ORDER)
 
 @st.cache_data()
 def _get_metadata_col():
-    df = load_data()["sessions_bonsai"]
+    df = load_data()["sessions_main"]
 
     # -- get cols --
     col_task = [
@@ -378,7 +378,7 @@ def _plot_histograms(df, column, bins, use_kernel_smooth, use_density):
     )
     return fig
 
-if "df" not in st.session_state or "sessions_bonsai" not in st.session_state.df.keys():
+if "df" not in st.session_state or "sessions_main" not in st.session_state.df.keys():
     init(if_load_docDB_override=False)
 
 app()

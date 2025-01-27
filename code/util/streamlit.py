@@ -412,7 +412,7 @@ def add_session_filter(if_bonsai=False, url_query={}):
                                                                     url_query=url_query)
         else:
             st.session_state.df_session_filtered = filter_dataframe(
-                df=st.session_state.df["sessions_bonsai"],
+                df=st.session_state.df["sessions_main"],
                 default_filters=[
                     "subject_id",
                     "task",
@@ -831,6 +831,8 @@ def add_auto_train_manager():
         highlight_subjects = []
 
     # --- Bokeh ---
+    only_filtered_effective = only_filtered and len(st.session_state.df_session_filtered) < len(st.session_state.df['sessions_main'])
+    
     fig_auto_train, data_df = plot_manager_all_progress_bokeh(
         x_axis=x_axis,
         recent_days=recent_months * 30.437,  # Turn months into days
