@@ -427,7 +427,7 @@ def add_session_filter(if_bonsai=False, url_query={}):
 @st.cache_data(ttl=3600 * 24)
 def _get_grouped_by_fields(if_bonsai):
     if if_bonsai:
-        options = ["subject_alias", "task", "trainer", "PI", "rig", "data_source", "weekday"]
+        options = ["subject_id", "task", "trainer", "PI", "rig", "data_source", "weekday", "subject_alias"]
 
         for col in st.session_state.df_session_filtered.columns:
             if any(
@@ -457,7 +457,7 @@ def _get_grouped_by_fields(if_bonsai):
         options = list(list(OrderedDict.fromkeys(options)))  # Remove duplicates
     else:
         options = [
-            "subject_alias",
+            "subject_id",
             "task",
             "photostim_location",
             "weekday",
@@ -466,6 +466,7 @@ def _get_grouped_by_fields(if_bonsai):
             "PI",
             "sex",
             "rig",
+            "subject_alias",
         ]
     return options
 
