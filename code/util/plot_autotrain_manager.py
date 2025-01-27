@@ -107,7 +107,7 @@ def plot_manager_all_progress_bokeh_source(
 
     # --- Filter recent days ---
     df_to_draw['session_date'] = pd.to_datetime(df_to_draw['session_date'])
-    if x_axis == 'date' and recent_days is not None:
+    if not if_use_filtered_data and x_axis == 'date' and recent_days is not None:
         date_start = datetime.today() - pd.Timedelta(days=recent_days)
         df_to_draw = df_to_draw.query('session_date >= @date_start')
 
@@ -226,10 +226,15 @@ def plot_manager_all_progress_bokeh(
 
     # Create Bokeh figure
     p = figure(
-        title="AutoTrain Progress",
+        title="AutoTrain Progress"
+        + (
+            " (all on-curriculum sessions)"
+            if not if_use_filtered_data
+            else " (sessions filtered on the side bar)"
+        ),
         x_axis_label=x_axis,
         y_axis_label="Subjects",
-        height=770 + 20*len(subject_ids),
+        height=770 + 20 * len(subject_ids),
         width=1400,
         # tools=[hover, "lasso_select", "reset", "tap", "pan", "wheel_zoom"],
         # tooltips=TOOLTIPS,
