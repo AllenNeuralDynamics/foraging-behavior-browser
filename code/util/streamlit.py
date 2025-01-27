@@ -807,10 +807,18 @@ def add_auto_train_manager():
     marker_size = cols[3].number_input('Marker size', value=12, step=1)
     marker_edge_width = cols[4].number_input('Marker edge width', value=3, step=1)
 
-    only_filtered = checkbox_wrapper_for_url_query(cols[5],
-                                                   label="only sessions filtered on sidebar",
-                                                   key='auto_training_history_only_filtered',
-                                                   default=True)
+    only_filtered = checkbox_wrapper_for_url_query(
+        cols[5],
+        label="only sessions filtered on sidebar",
+        key="auto_training_history_only_filtered",
+        disabled=(
+            len(st.session_state.df_session_filtered)
+            == len(st.session_state.df["sessions_main"])  # Filter not applied
+        ),
+        default=True,
+    )
+    only_filtered_effective = only_filtered and len(st.session_state.df_session_filtered) < len(st.session_state.df["sessions_main"])
+
     recent_months = slider_wrapper_for_url_query(cols[6],
                                                 label="only recent months",
                                                 min_value=1,
@@ -818,7 +826,7 @@ def add_auto_train_manager():
                                                 step=1,
                                                 key='auto_training_history_recent_months',
                                                 default=8,
-                                                disabled=(x_axis != 'date') or only_filtered,
+                                                disabled=(x_axis != 'date') or only_filtered_effective,
                                                 )
 
     # Get highlighted subjects
@@ -831,8 +839,7 @@ def add_auto_train_manager():
         highlight_subjects = []
 
     # --- Bokeh ---
-    only_filtered_effective = only_filtered and len(st.session_state.df_session_filtered) < len(st.session_state.df['sessions_main'])
-    
+
     fig_auto_train, data_df = plot_manager_all_progress_bokeh(
         x_axis=x_axis,
         recent_days=recent_months * 30.437,  # Turn months into days
@@ -842,10 +849,10 @@ def add_auto_train_manager():
         marker_edge_width=marker_edge_width,
         highlight_subjects=highlight_subjects,
         if_show_fig=False,
-        if_use_filtered_data=only_filtered,
+        if_use_filtered_data=only_filtered_effective,
         filtered_session_ids=(
             st.session_state.df_session_filtered[["subject_id", "session"]]
-            if only_filtered
+            if only_filtered_effective
             else None
         ),
     )

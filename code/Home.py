@@ -372,7 +372,10 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     # Remove invalid subject_id
     _df = _df[(999999 > _df["subject_id"].astype(int)) 
               & (_df["subject_id"].astype(int) > 300000)]
-
+    
+    # Remove zero finished trials
+    _df = _df[_df['finished_trials'] > 0]
+    
     # Remove abnormal values
     _df.loc[_df['weight_after'] > 100, 
             ['weight_after', 'weight_after_ratio', 'water_in_session_total', 'water_after_session', 'water_day_total']
