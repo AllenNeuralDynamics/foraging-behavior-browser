@@ -356,7 +356,7 @@ def app():
 
     # --- 2. Merge in the master df in the Home page (Han's temporary pipeline) ---
     # Data from Home.init (all sessions from Janelia bpod + AIND bpod + AIND bonsai)
-    df_from_Home = st.session_state.df["sessions_bonsai"]
+    df_from_Home = st.session_state.df["sessions_main"]
     # Only keep AIND sessions
     df_from_Home = df_from_Home.query("institute == 'AIND'")
     df_from_Home.loc[df_from_Home.hardware == "bpod", "Han_temp_pipeline (bpod)"] = True
@@ -539,7 +539,7 @@ def add_venn_diagrms(df_merged):
 if __name__ == "__main__":
     
     # Share the same master df as the Home page
-    if "df" not in st.session_state or "sessions_bonsai" not in st.session_state.df.keys() or not st.session_state.bpod_loaded:
+    if "df" not in st.session_state or "sessions_main" not in st.session_state.df.keys() or not st.session_state.bpod_loaded:
         st.spinner("Loading data from Han temp pipeline...")
         init(if_load_docDB_override=False, if_load_bpod_data_override=True)
 

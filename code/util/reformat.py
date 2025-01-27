@@ -42,6 +42,32 @@ def split_nwb_name(nwb_name):
 
     return subject_id, session_date, nwb_suffix
 
+def get_data_source(rig):
+    """From rig string, return "{institute}_{rig_type}_{room}_{hardware}"
+    """
+    institute = 'Janelia' if ('bpod' in rig) and not ('AIND' in rig) else 'AIND'
+    hardware = 'bpod' if ('bpod' in rig) else 'bonsai'
+    rig_type = 'ephys' if ('ephys' in rig.lower()) else 'training'
+    
+    # This is a mess...
+    if institute == 'Janelia':
+        room = 'NA'
+    elif 'Ephys-Han' in rig:
+        room = '321'
+    elif hardware == 'bpod':
+        room = '347'
+    elif '447' in rig:
+        room = '447'
+    elif '446' in rig:
+        room = '446'
+    elif '323' in rig:
+        room = '323'
+    elif rig_type == 'ephys':
+        room = '323'
+    else:
+        room = '447'
+    return institute, rig_type, room, hardware, '_'.join([institute, rig_type, room, hardware])
+
 
 def formatting_metadata_df(df, source_prefix="docDB"):
     """Formatting metadata dataframe

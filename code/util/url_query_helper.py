@@ -12,8 +12,10 @@ to_sync_with_url_query_default = {
     "if_load_bpod_sessions": False,
     "if_load_docDB": False,
     "to_filter_columns": [
+        "PI",
+        "trainer",
         "subject_id",
-        "task",
+        "curriculum_name",
         "session",
         "finished_trials",
         "foraging_eff",
@@ -27,7 +29,7 @@ to_sync_with_url_query_default = {
     "tab_id": "tab_auto_train_history",
     "x_y_plot_xname": "session",
     "x_y_plot_yname": "foraging_performance_random_seed",
-    "x_y_plot_group_by": "h2o",
+    "x_y_plot_group_by": "subject_id",
     "x_y_plot_if_show_dots": True,
     "x_y_plot_if_aggr_each_group": True,
     "x_y_plot_aggr_method_group": "lowess",
@@ -59,6 +61,7 @@ to_sync_with_url_query_default = {
     "auto_training_curriculum_version": "2.3rwdDelay159",
     "auto_training_curriculum_schema_version": "1.0",
     "auto_training_history_recent_months": 2,
+    "auto_training_history_only_filtered": True,
     
     "tab_id_learning_trajectory": "tab_stage",
     "stage_distribution_selected_perf_columns": [
@@ -192,7 +195,7 @@ def sync_URL_to_session_state():
             # Also, in this case, the key must be from st.query_params, 
             # so the only purpose of getting default is to get the correct type,
             # not its value per se.
-            filter_type = get_filter_type(st.session_state.df['sessions_bonsai'],
+            filter_type = get_filter_type(st.session_state.df['sessions_main'],
                                           key.replace('filter_', ''))
             if filter_type == 'slider_range_float':
                 default = [0.0, 1.0]
@@ -261,12 +264,15 @@ def sync_session_state_to_URL():
 
 
 def get_filter_type(df, column):
+    if column in ('subject_id', 'PI', 'trainer'):
+        return 'reg_ex'
+    
     if is_numeric_dtype(df[column]):
         return 'slider_range_float'
     
     if (is_categorical_dtype(df[column]) 
         or df[column].nunique() < 10
-        or column in ('user_name') # pin to multiselect
+        or column in ('curriculum_version') # pin to multiselect
         ):
         return 'multiselect'
 

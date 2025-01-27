@@ -32,14 +32,22 @@ def load_data(tables=['sessions'], data_source = 'bonsai'):
         file_name = s3_processed_nwb_folder[data_source] + f'df_{table}.pkl'
         try:
             with fs.open(file_name) as f:
-                df[table + '_bonsai'] = pd.read_pickle(f)
+                df[table + '_main'] = pd.read_pickle(f).rename(columns={'user_name': 'trainer', 'h2o': 'subject_alias'})
         except FileNotFoundError as e:
             st.markdown(f'''### df_{table}.pkl is missing on S3. \n'''
                         f'''## It is very likely that Han is [rerunning the whole pipeline](https://github.com/AllenNeuralDynamics/aind-foraging-behavior-bonsai-trigger-pipeline?tab=readme-ov-file#notes-on-manually-re-process-all-nwbs-and-overwrite-s3-database-and-thus-the-streamlit-app). Please come back after an hour.''')
             st.markdown('')
             st.image("https://github.com/user-attachments/assets/bea2c7a9-c561-4c5f-afa5-92d63c040be6",
                      width=500)
+        
     return df
+
+@st.cache_data(ttl=12*3600)
+def load_mouse_PI_mapping():
+    file_name = s3_nwb_folder['bonsai'] + 'mouse_pi_mapping.json'
+    with fs.open(file_name) as f:
+        mouse_PI_mapping = json.load(f)
+    return pd.DataFrame(mouse_PI_mapping)
 
 @st.cache_data(ttl=12*3600)
 def load_raw_sessions_on_VAST():
@@ -87,8 +95,8 @@ def draw_session_plots_quick_preview(df_to_draw_session):
         except:
             date_str = key["session_date"].split("T")[0]
 
-        st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["h2o"]}, Session {int(key["session"])}, {date_str} '''
-                    f'''({key["user_name"]}@{key["data_source"]})''',
+        st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["subject_id"]} ({key["PI"]}), Session {int(key["session"])}, {date_str} '''
+                    f'''({key["trainer"]}@{key["data_source"]})''',
                     unsafe_allow_html=True)
 
         rows = []
@@ -170,8 +178,8 @@ def show_debug_info():
         with fs.open(s3_nwb_folder['bonsai'] + 'bonsai_pipeline.log') as file:
             log_content = file.read().decode('utf-8')
         st.text(log_content)
-        
-        
+
+
 def get_s3_public_url(
     subject_id, session_date, nwb_suffix, figure_suffix="choice_history.png",
     result_path="foraging_nwb_bonsai_processed", bucket_name="aind-behavior-data", 
