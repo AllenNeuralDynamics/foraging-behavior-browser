@@ -445,6 +445,9 @@ def add_venn_diagrms(df_merged):
     cols = st.columns([2, 1])
     cols[0].markdown("## Issues in dynamic foraging data inventory")
     cols[0].markdown("#### [Github discussion](https://github.com/AllenNeuralDynamics/aind-behavior-blog/discussions/851)")
+    with cols[0].columns([1, 1])[0].expander('Venn diagram presets'):
+        st.json(VENN_PRESET)
+
     with cols[1].expander("Time view settings", expanded=True):
         cols_1 = st.columns([1, 1])                    
         if_separate_plots = cols_1[0].checkbox("Separate in subplots", value=True)
