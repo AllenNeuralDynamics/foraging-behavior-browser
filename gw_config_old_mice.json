@@ -22,9 +22,9 @@
           },
           {
             "dragId": "gw_Ue21",
-            "fid": "subject_alias",
-            "name": "subject_alias",
-            "basename": "subject_alias",
+            "fid": "subject_id",
+            "name": "subject_id",
+            "basename": "subject_id",
             "semanticType": "nominal",
             "analyticType": "dimension",
             "offset": 0

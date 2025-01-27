@@ -73,8 +73,8 @@ def aggrid_interactive_table_session(df: pd.DataFrame, table_height: int = 400):
     if len(st.session_state.get("df_selected_from_dataframe", [])) \
        and ('tab_id' in st.session_state) and (st.session_state.tab_id == "tab_session_x_y"):
         try:
-            indexer = st.session_state.df_selected_from_dataframe.set_index(['subject_alias', 'session']
-                                                                ).index.get_indexer(df.set_index(['subject_alias', 'session']).index)
+            indexer = st.session_state.df_selected_from_dataframe.set_index(['subject_id', 'session']
+                                                                ).index.get_indexer(df.set_index(['subject_id', 'session']).index)
             pre_selected_rows = np.where(indexer != -1)[0].tolist()
         except:
             pre_selected_rows = []
@@ -86,7 +86,7 @@ def aggrid_interactive_table_session(df: pd.DataFrame, table_height: int = 400):
     
     # options.configure_column(field="session_date", sort="desc")
     
-    # options.configure_column(field="subject_alias", hide=True, rowGroup=True)
+    # options.configure_column(field="subject_id", hide=True, rowGroup=True)
     # options.configure_column(field='subject_id', hide=True)
     options.configure_column(field="session_date", type=["customDateTimeFormat"], custom_format_string='yyyy-MM-dd')
     options.configure_column(field="ephys_ins", dateType="DateType")
@@ -195,7 +195,7 @@ def cache_widget(field, clear=None):
 
 
 def filter_dataframe(df: pd.DataFrame, 
-                     default_filters=['subject_alias', 'task', 'finished_trials', 'photostim_location'],
+                     default_filters=['subject_id', 'task', 'finished_trials', 'photostim_location'],
                      url_query={}) -> pd.DataFrame:
     """
     Adds a UI on top of a dataframe to let viewers filter columns
@@ -408,7 +408,7 @@ def add_session_filter(if_bonsai=False, url_query={}):
     with st.expander("Behavioral session filter", expanded=True):   
         if not if_bonsai:
             st.session_state.df_session_filtered = filter_dataframe(df=st.session_state.df['sessions'],
-                                                                    default_filters=['subject_alias', 'task', 'session', 'finished_trials', 'foraging_eff', 'photostim_location'],
+                                                                    default_filters=['subject_id', 'task', 'session', 'finished_trials', 'foraging_eff', 'photostim_location'],
                                                                     url_query=url_query)
         else:
             st.session_state.df_session_filtered = filter_dataframe(
@@ -702,7 +702,7 @@ def data_selector():
             
     with st.expander(f'Session selector', expanded=True):        
         with st.expander(f"Filtered: {len(st.session_state.df_session_filtered)} sessions, "
-                         f"{len(st.session_state.df_session_filtered.subject_alias.unique())} mice", expanded=False):
+                         f"{len(st.session_state.df_session_filtered.subject_id.unique())} mice", expanded=False):
             st.dataframe(st.session_state.df_session_filtered)
             
         # --- add a download button ---
@@ -721,7 +721,7 @@ def data_selector():
         def _show_selected(source="dataframe"):
             df_this = st.session_state['df_selected_from_' + source]
             with st.expander(f"Selected from {source}: {len(df_this)} sessions, "
-                                f"{len(df_this.subject_alias.unique())} mice", expanded=False):
+                                f"{len(df_this.subject_id.unique())} mice", expanded=False):
                 st.dataframe(df_this)
             cols = st.columns([1, 1, 1])
             
@@ -734,7 +734,7 @@ def data_selector():
                 st.rerun()
             
             if cols[2].button('clear all', key=f'clear_all_from_{source}'):
-                st.session_state['df_selected_from_' + source] = pd.DataFrame(columns=['subject_alias', 'session'])
+                st.session_state['df_selected_from_' + source] = pd.DataFrame(columns=['subject_id', 'session'])
                 st.session_state['df_selected_from_' + source + '_just_overriden'] = True
                 st.rerun()
 
@@ -883,7 +883,7 @@ def add_auto_train_manager():
         st.dataframe(df_training_manager, height=3000)
 
 @st.cache_data(ttl=3600*24)                
-def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='subject_alias',
+def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='subject_id',
                          smooth_factor=5, 
                          if_show_dots=True, 
                          if_aggr_each_group=True,
@@ -912,9 +912,9 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
         x = df_this.sort_values(x_name)[x_name].astype(float)
         y = df_this.sort_values(x_name)[y_name].astype(float)
 
-        n_mice = len(df_this['subject_alias'].unique())
-        n_sessions = len(df_this.groupby(['subject_alias', 'session']).count())
-        n_str = f' ({n_mice} mice, {n_sessions} sessions)' if group_by !='subject_alias' else f' ({n_sessions} sessions)' 
+        n_mice = len(df_this['subject_id'].unique())
+        n_sessions = len(df_this.groupby(['subject_id', 'session']).count())
+        n_str = f' ({n_mice} mice, {n_sessions} sessions)' if group_by not in ['subject_id', 'subject_alias'] else f' ({n_sessions} sessions)' 
 
         if aggr_method == 'running average':
             fig.add_trace(go.Scatter(    
@@ -1074,7 +1074,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
             # if not len(st.session_state.df_selected_from_plotly):   
             this_session['colors'] = col  # all use normal colors
             # else:
-            #     merged = pd.merge(this_session, st.session_state.df_selected_from_plotly, on=['subject_alias', 'session'], how='left')
+            #     merged = pd.merge(this_session, st.session_state.df_selected_from_plotly, on=['subject_id', 'session'], how='left')
             #     merged['colors'] = 'lightgrey'  # default, grey
             #     merged.loc[merged.subject_id_y.notna(), 'colors'] = col   # only use normal colors for the selected dots 
             #     this_session['colors'] = merged.colors.values
@@ -1103,7 +1103,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                                                    if dot_size_mapping_name !='None' 
                                                    else '') 
                                              + '<extra></extra>',
-                            customdata=np.stack((this_session.subject_alias, # 0
+                            customdata=np.stack((this_session.subject_id, # 0
                                                  this_session.session_date.dt.strftime('%Y-%m-%d'), # 1
                                                  this_session.session, # 2
                                                  this_session.rig, # 3
@@ -1111,14 +1111,14 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                                                  this_session.task, # 5
                                                  this_session.curriculum_name
                                                     if 'curriculum_name' in this_session.columns
-                                                    else ['None'] * len(this_session.subject_alias), # 6
+                                                    else ['None'] * len(this_session.subject_id), # 6
                                                  this_session.current_stage_actual
                                                     if 'current_stage_actual' in this_session.columns
-                                                    else ['None'] * len(this_session.subject_alias), # 7
+                                                    else ['None'] * len(this_session.subject_id), # 7
                                                  this_session[dot_size_mapping_name] 
                                                     if dot_size_mapping_name !='None' 
-                                                    else [np.nan] * len(this_session.subject_alias), # 8
-                                                 this_session.data_source if 'data_source' in this_session else [''] * len(this_session.subject_alias), # 9
+                                                    else [np.nan] * len(this_session.subject_id), # 8
+                                                 this_session.data_source if 'data_source' in this_session else [''] * len(this_session.subject_id), # 9
                                                  this_session.PI, # 10
                                                  ), axis=-1),
                             unselected=dict(marker_color='lightgrey')
@@ -1133,8 +1133,8 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
         _add_agg(df, x_name, y_name, 'all', aggr_method_all, if_use_x_quantile_all, q_quantiles_all, 'rgb(0, 0, 0)', line_width=line_width*1.5,
                  hoverinfo='all' if not if_show_dots else 'skip')
 
-    n_mice = len(df['subject_alias'].unique())
-    n_sessions = len(df.groupby(['subject_alias', 'session']).count())
+    n_mice = len(df['subject_id'].unique())
+    n_sessions = len(df.groupby(['subject_id', 'session']).count())
 
     override_plotly_theme(fig, theme="simple_white", font_size_scale=font_size_scale)
 

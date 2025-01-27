@@ -95,7 +95,7 @@ def draw_session_plots_quick_preview(df_to_draw_session):
         except:
             date_str = key["session_date"].split("T")[0]
 
-        st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["subject_alias"]} ({key["PI"]}), Session {int(key["session"])}, {date_str} '''
+        st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["subject_id"]} ({key["PI"]}), Session {int(key["session"])}, {date_str} '''
                     f'''({key["trainer"]}@{key["data_source"]})''',
                     unsafe_allow_html=True)
 
