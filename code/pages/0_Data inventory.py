@@ -66,7 +66,7 @@ def load_presets():
 
 QUERY_PRESET, VENN_PRESET = load_presets()
 
-META_COLUMNS = [
+QUERY_COLUMNS = [
     "Han_temp_pipeline (bpod)",
     "Han_temp_pipeline (bonsai)",
     "VAST_raw_data_on_VAST",
@@ -78,6 +78,8 @@ X_BIN_SIZE_MAPPER = {  # For plotly histogram xbins
     "Monthly": "M1",
     "Quarterly": "M4",
 }
+
+FIRST_SEVERAL_COLS = ["PI"]
 
 
 @st.cache_data(ttl=3600*12)
@@ -368,6 +370,7 @@ def app():
             [
                 "subject_id",
                 "session_date",
+                "PI",  # Add PI name
                 "Han_temp_pipeline (bpod)",
                 "Han_temp_pipeline (bonsai)",
             ]
@@ -414,6 +417,7 @@ def app():
     # Merging with df_merged (using the unique mouse-date dataframe)
     df_merged = df_merged.combine_first(df_raw_sessions_on_VAST_unique_mouse_date)
     df_merged.sort_index(level=["session_date", "subject_id"], ascending=[False, False], inplace=True)
+    df_merged = df_merged[FIRST_SEVERAL_COLS + [col for col in df_merged.columns if col not in FIRST_SEVERAL_COLS]]
 
     # --- Add sidebar ---
     add_sidebar(df_merged, dfs_docDB, df_Han_pipeline, dfs_raw_on_VAST, docDB_retrieve_time)
@@ -445,6 +449,9 @@ def add_venn_diagrms(df_merged):
     cols = st.columns([2, 1])
     cols[0].markdown("## Issues in dynamic foraging data inventory")
     cols[0].markdown("#### [Github discussion](https://github.com/AllenNeuralDynamics/aind-behavior-blog/discussions/851)")
+    with cols[0].columns([1, 1])[0].expander('Venn diagram presets'):
+        st.json(VENN_PRESET)
+
     with cols[1].expander("Time view settings", expanded=True):
         cols_1 = st.columns([1, 1])                    
         if_separate_plots = cols_1[0].checkbox("Separate in subplots", value=True)
@@ -456,7 +463,7 @@ def add_venn_diagrms(df_merged):
             ["Daily", "Weekly", "Monthly", "Quarterly"],
             index=0,
         )
-        
+
     st.markdown("---")
     for section in VENN_PRESET:
         section_name, section_contents = section["section_name"], section["section_contents"]
@@ -494,8 +501,9 @@ def add_venn_diagrms(df_merged):
 
             # Join in other extra columns
             df_this_preset = df_this_preset.join(
-                df_merged[[col for col in df_merged.columns if col not in META_COLUMNS]], how="left"
+                df_merged[[col for col in df_merged.columns if col not in QUERY_COLUMNS]], how="left"
             )
+            df_this_preset = df_this_preset[FIRST_SEVERAL_COLS + [col for col in df_this_preset.columns if col not in FIRST_SEVERAL_COLS]]
 
             with cols[0]:
                 download_df(
@@ -504,7 +512,17 @@ def add_venn_diagrms(df_merged):
                     file_name=f"df_{venn_preset['name']}.csv",
                 )
                 with st.expander(f"Show dataframe, n = {len(df_this_preset)}"):
-                    st.write(df_this_preset)
+                    aggrid_interactive_table_basic(
+                        df_this_preset.reset_index(),
+                        height=400,
+                        configure_columns=[
+                            dict(
+                                field="session_date",
+                                type=["customDateTimeFormat"],
+                                custom_format_string="yyyy-MM-dd",
+                            )
+                        ],
+                    )
 
             with cols[1]:
                 # -- Show histogram over time --

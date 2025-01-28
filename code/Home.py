@@ -354,6 +354,7 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
 
     # Merge in PI name
     df_mouse_pi_mapping = load_mouse_PI_mapping()
+    st.session_state.df_mouse_pi_mapping = df_mouse_pi_mapping  # Save to session state for later use
     _df = _df.merge(df_mouse_pi_mapping, how='left', on='subject_id') # Merge in PI name
     _df.loc[_df["PI"].isnull(), "PI"] = _df.loc[
         _df["PI"].isnull() & 
