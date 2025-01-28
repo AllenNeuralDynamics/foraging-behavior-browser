@@ -67,6 +67,7 @@ def load_presets():
 QUERY_PRESET, VENN_PRESET = load_presets()
 
 META_COLUMNS = [
+    "PI",
     "Han_temp_pipeline (bpod)",
     "Han_temp_pipeline (bonsai)",
     "VAST_raw_data_on_VAST",
@@ -486,7 +487,7 @@ def add_venn_diagrms(df_merged):
             # -- Show and download df for this Venn --
             circle_columns = [c_s["column"] for c_s in venn_preset["circle_settings"]]
             # Show histogram over time for the columns and patches in preset
-            df_this_preset = df_merged[circle_columns]
+            df_this_preset = df_merged[["PI"] + circle_columns]
             # Filter out rows that have at least one True in this Venn
             df_this_preset = df_this_preset[df_this_preset.any(axis=1)]
 
