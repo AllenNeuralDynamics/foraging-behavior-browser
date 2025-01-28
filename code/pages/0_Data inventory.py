@@ -66,8 +66,7 @@ def load_presets():
 
 QUERY_PRESET, VENN_PRESET = load_presets()
 
-META_COLUMNS = [
-    "PI",
+QUERY_COLUMNS = [
     "Han_temp_pipeline (bpod)",
     "Han_temp_pipeline (bonsai)",
     "VAST_raw_data_on_VAST",
@@ -79,6 +78,8 @@ X_BIN_SIZE_MAPPER = {  # For plotly histogram xbins
     "Monthly": "M1",
     "Quarterly": "M4",
 }
+
+FIRST_SEVERAL_COLS = ["PI"]
 
 
 @st.cache_data(ttl=3600*12)
@@ -416,8 +417,7 @@ def app():
     # Merging with df_merged (using the unique mouse-date dataframe)
     df_merged = df_merged.combine_first(df_raw_sessions_on_VAST_unique_mouse_date)
     df_merged.sort_index(level=["session_date", "subject_id"], ascending=[False, False], inplace=True)
-    first_several_cols = ["PI"]
-    df_merged = df_merged[first_several_cols + [col for col in df_merged.columns if col not in first_several_cols]]
+    df_merged = df_merged[FIRST_SEVERAL_COLS + [col for col in df_merged.columns if col not in FIRST_SEVERAL_COLS]]
 
     # --- Add sidebar ---
     add_sidebar(df_merged, dfs_docDB, df_Han_pipeline, dfs_raw_on_VAST, docDB_retrieve_time)
@@ -487,7 +487,7 @@ def add_venn_diagrms(df_merged):
             # -- Show and download df for this Venn --
             circle_columns = [c_s["column"] for c_s in venn_preset["circle_settings"]]
             # Show histogram over time for the columns and patches in preset
-            df_this_preset = df_merged[["PI"] + circle_columns]
+            df_this_preset = df_merged[circle_columns]
             # Filter out rows that have at least one True in this Venn
             df_this_preset = df_this_preset[df_this_preset.any(axis=1)]
 
@@ -501,8 +501,9 @@ def add_venn_diagrms(df_merged):
 
             # Join in other extra columns
             df_this_preset = df_this_preset.join(
-                df_merged[[col for col in df_merged.columns if col not in META_COLUMNS]], how="left"
+                df_merged[[col for col in df_merged.columns if col not in QUERY_COLUMNS]], how="left"
             )
+            df_this_preset = df_this_preset[FIRST_SEVERAL_COLS + [col for col in df_this_preset.columns if col not in FIRST_SEVERAL_COLS]]
 
             with cols[0]:
                 download_df(
