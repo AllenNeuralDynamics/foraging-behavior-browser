@@ -95,10 +95,6 @@ def merge_queried_dfs(dfs, queries_to_merge):
         ]
         + query_cols
     )
-    # Merged in PI name
-    df_merged = df_merged.reset_index().merge(
-        st.session_state.df_mouse_pi_mapping, on="subject_id"
-    ).set_index(["subject_id", "session_date", "PI"])
     return df_merged
 
 
@@ -372,6 +368,7 @@ def app():
             [
                 "subject_id",
                 "session_date",
+                "PI",  # Add PI name
                 "Han_temp_pipeline (bpod)",
                 "Han_temp_pipeline (bonsai)",
             ]
@@ -418,6 +415,8 @@ def app():
     # Merging with df_merged (using the unique mouse-date dataframe)
     df_merged = df_merged.combine_first(df_raw_sessions_on_VAST_unique_mouse_date)
     df_merged.sort_index(level=["session_date", "subject_id"], ascending=[False, False], inplace=True)
+    first_several_cols = ["PI"]
+    df_merged = df_merged[first_several_cols + [col for col in df_merged.columns if col not in first_several_cols]]
 
     # --- Add sidebar ---
     add_sidebar(df_merged, dfs_docDB, df_Han_pipeline, dfs_raw_on_VAST, docDB_retrieve_time)
