@@ -10,23 +10,26 @@ import pandas as pd
 import plotly
 import plotly.express as px
 import plotly.graph_objects as go
+import plotly.io as pio
+pio.json.config.default_engine = "orjson"
 import statsmodels.api as sm
 import streamlit as st
 import streamlit.components.v1 as components
+from streamlit_bokeh3_events import streamlit_bokeh3_events
 from pandas.api.types import (is_categorical_dtype, is_numeric_dtype,
                               is_string_dtype)
 from scipy.stats import linregress
 from st_aggrid import AgGrid, GridOptionsBuilder
 from st_aggrid.shared import (ColumnsAutoSizeMode, DataReturnMode,
                               GridUpdateMode)
-from streamlit_plotly_events import plotly_events
 
 from .aws_s3 import draw_session_plots_quick_preview
-from .plot_autotrain_manager import plot_manager_all_progress
+from .plot_autotrain_manager import plot_manager_all_progress_bokeh
 from .url_query_helper import (checkbox_wrapper_for_url_query, get_filter_type,
                                multiselect_wrapper_for_url_query,
                                selectbox_wrapper_for_url_query,
                                slider_wrapper_for_url_query)
+from.settings import override_plotly_theme
 
 custom_css = {
 ".ag-root.ag-unselectable.ag-layout-normal": {"font-size": "15px !important",
@@ -67,11 +70,11 @@ def aggrid_interactive_table_session(df: pd.DataFrame, table_height: int = 400):
         df = df.sort_values('session_date', ascending=False)
     
     # preselect
-    if (('df_selected_from_dataframe' in st.session_state and len(st.session_state.df_selected_from_dataframe)) 
-       and ('tab_id' in st.session_state and st.session_state.tab_id == "tab_session_x_y")):
+    if len(st.session_state.get("df_selected_from_dataframe", [])) \
+       and ('tab_id' in st.session_state) and (st.session_state.tab_id == "tab_session_x_y"):
         try:
-            indexer = st.session_state.df_selected_from_dataframe.set_index(['h2o', 'session']
-                                                                ).index.get_indexer(df.set_index(['h2o', 'session']).index)
+            indexer = st.session_state.df_selected_from_dataframe.set_index(['subject_id', 'session']
+                                                                ).index.get_indexer(df.set_index(['subject_id', 'session']).index)
             pre_selected_rows = np.where(indexer != -1)[0].tolist()
         except:
             pre_selected_rows = []
@@ -83,7 +86,7 @@ def aggrid_interactive_table_session(df: pd.DataFrame, table_height: int = 400):
     
     # options.configure_column(field="session_date", sort="desc")
     
-    # options.configure_column(field="h2o", hide=True, rowGroup=True)
+    # options.configure_column(field="subject_id", hide=True, rowGroup=True)
     # options.configure_column(field='subject_id', hide=True)
     options.configure_column(field="session_date", type=["customDateTimeFormat"], custom_format_string='yyyy-MM-dd')
     options.configure_column(field="ephys_ins", dateType="DateType")
@@ -106,8 +109,10 @@ def aggrid_interactive_table_session(df: pd.DataFrame, table_height: int = 400):
     
     return selection
 
-def aggrid_interactive_table_curriculum(df: pd.DataFrame,
-                                        pre_selected_rows: list = None):
+def aggrid_interactive_table_basic(df: pd.DataFrame,
+                                   height: int = 200,
+                                   pre_selected_rows: list = None,
+                                   configure_columns: list = None,):
     """Creates an st-aggrid interactive table based on a dataframe.
 
     Args:
@@ -121,10 +126,13 @@ def aggrid_interactive_table_curriculum(df: pd.DataFrame,
     )
 
     options.configure_side_bar()
-    
     options.configure_selection(selection_mode=None,
                                 pre_selected_rows=pre_selected_rows)
-        
+
+    if configure_columns:
+        for col in configure_columns:
+            options.configure_column(**col)
+
     selection = AgGrid(
         df,
         enable_enterprise_modules=True,
@@ -132,11 +140,10 @@ def aggrid_interactive_table_curriculum(df: pd.DataFrame,
         theme="balham",
         update_mode=GridUpdateMode.NO_UPDATE,
         allow_unsafe_jscode=True,
-        height=200,
+        height=height,
         columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
         custom_css=custom_css,
     )
-    
     return selection
 
 def aggrid_interactive_table_units(df: pd.DataFrame):
@@ -188,7 +195,7 @@ def cache_widget(field, clear=None):
 
 
 def filter_dataframe(df: pd.DataFrame, 
-                     default_filters=['h2o', 'task', 'finished_trials', 'photostim_location'],
+                     default_filters=['subject_id', 'task', 'finished_trials', 'photostim_location'],
                      url_query={}) -> pd.DataFrame:
     """
     Adds a UI on top of a dataframe to let viewers filter columns
@@ -401,11 +408,11 @@ def add_session_filter(if_bonsai=False, url_query={}):
     with st.expander("Behavioral session filter", expanded=True):   
         if not if_bonsai:
             st.session_state.df_session_filtered = filter_dataframe(df=st.session_state.df['sessions'],
-                                                                    default_filters=['h2o', 'task', 'session', 'finished_trials', 'foraging_eff', 'photostim_location'],
+                                                                    default_filters=['subject_id', 'task', 'session', 'finished_trials', 'foraging_eff', 'photostim_location'],
                                                                     url_query=url_query)
         else:
             st.session_state.df_session_filtered = filter_dataframe(
-                df=st.session_state.df["sessions_bonsai"],
+                df=st.session_state.df["sessions_main"],
                 default_filters=[
                     "subject_id",
                     "task",
@@ -420,7 +427,7 @@ def add_session_filter(if_bonsai=False, url_query={}):
 @st.cache_data(ttl=3600 * 24)
 def _get_grouped_by_fields(if_bonsai):
     if if_bonsai:
-        options = ["h2o", "task", "user_name", "rig", "data_source", "weekday"]
+        options = ["subject_id", "task", "trainer", "PI", "rig", "data_source", "weekday", "subject_alias"]
 
         for col in st.session_state.df_session_filtered.columns:
             if any(
@@ -450,14 +457,16 @@ def _get_grouped_by_fields(if_bonsai):
         options = list(list(OrderedDict.fromkeys(options)))  # Remove duplicates
     else:
         options = [
-            "h2o",
+            "subject_id",
             "task",
             "photostim_location",
             "weekday",
             "headbar",
-            "user_name",
+            "trainer",
+            "PI",
             "sex",
             "rig",
+            "subject_alias",
         ]
     return options
 
@@ -688,12 +697,12 @@ def add_dot_property_mapper():
         
     return size_mapper, size_mapper_range, size_mapper_gamma
 
-
+@st.fragment(run_every=5)
 def data_selector():
             
     with st.expander(f'Session selector', expanded=True):        
         with st.expander(f"Filtered: {len(st.session_state.df_session_filtered)} sessions, "
-                         f"{len(st.session_state.df_session_filtered.h2o.unique())} mice", expanded=False):
+                         f"{len(st.session_state.df_session_filtered.subject_id.unique())} mice", expanded=False):
             st.dataframe(st.session_state.df_session_filtered)
             
         # --- add a download button ---
@@ -708,18 +717,30 @@ def data_selector():
         #     st.session_state.df_selected_from_dataframe = pd.DataFrame()
         #     st.rerun()
 
-        cols = st.columns([5, 1, 1])
-        with cols[0].expander(f"Selected: {len(st.session_state.df_selected_from_plotly)} sessions, "
-                              f"{len(st.session_state.df_selected_from_plotly.h2o.unique())} mice", expanded=False):
-            st.dataframe(st.session_state.df_selected_from_plotly)
-        if cols[1].button('all'):
-            st.session_state.df_selected_from_plotly = st.session_state.df_session_filtered
-            st.rerun()
-        
-        if cols[2].button('❌ '):
-            st.session_state.df_selected_from_plotly = pd.DataFrame(columns=['h2o', 'session'])
-            st.session_state.df_selected_from_dataframe = pd.DataFrame(columns=['h2o', 'session'])
-            st.rerun()
+        # Separate selection from table or streamlit
+        def _show_selected(source="dataframe"):
+            df_this = st.session_state['df_selected_from_' + source]
+            with st.expander(f"Selected from {source}: {len(df_this)} sessions, "
+                                f"{len(df_this.subject_id.unique())} mice", expanded=False):
+                st.dataframe(df_this)
+            cols = st.columns([1, 1, 1])
+            
+            if source == "plotly": 
+                return  # Don't allow select all or clear all for plotly
+            
+            if cols[1].button('select all', key=f'select_all_from_{source}'):
+                st.session_state['df_selected_from_' + source] = st.session_state.df_session_filtered
+                st.session_state['df_selected_from_' + source + '_just_overriden'] = True
+                st.rerun()
+            
+            if cols[2].button('clear all', key=f'clear_all_from_{source}'):
+                st.session_state['df_selected_from_' + source] = pd.DataFrame(columns=['subject_id', 'session'])
+                st.session_state['df_selected_from_' + source + '_just_overriden'] = True
+                st.rerun()
+
+        for source in ['dataframe', 'plotly']:
+            _show_selected(source)
+
 
 def _add_download_filtered_session():
     """Download the master table of the filtered session"""
@@ -752,12 +773,10 @@ def _add_download_filtered_session():
 
 def add_auto_train_manager():
 
-    st.session_state.auto_train_manager.df_manager = st.session_state.auto_train_manager.df_manager[
-        st.session_state.auto_train_manager.df_manager.subject_id.astype(float) > 0]  # Remove dummy mouse 0
     df_training_manager = st.session_state.auto_train_manager.df_manager
 
     # -- Show plotly chart --
-    cols = st.columns([1, 1, 1, 0.7, 0.7, 1, 2])
+    cols = st.columns([1, 1, 1, 0.7, 0.7, 1.5, 1.5, 2])
     options = ["date", "session", "relative_date"]
     x_axis = selectbox_wrapper_for_url_query(
         st_prefix=cols[0],
@@ -785,72 +804,77 @@ def add_auto_train_manager():
         key="auto_training_history_sort_order",
     )
 
-    marker_size = cols[3].number_input('Marker size', value=15, step=1)
+    marker_size = cols[3].number_input('Marker size', value=12, step=1)
     marker_edge_width = cols[4].number_input('Marker edge width', value=3, step=1)
-    
-    recent_weeks = slider_wrapper_for_url_query(cols[5],
-                                                label="only recent weeks",
+
+    only_filtered = checkbox_wrapper_for_url_query(
+        cols[5],
+        label="only sessions filtered on sidebar",
+        key="auto_training_history_only_filtered",
+        disabled=(
+            len(st.session_state.df_session_filtered)
+            == len(st.session_state.df["sessions_main"])  # Filter not applied
+        ),
+        default=True,
+    )
+    only_filtered_effective = only_filtered and len(st.session_state.df_session_filtered) < len(st.session_state.df["sessions_main"])
+
+    recent_months = slider_wrapper_for_url_query(cols[6],
+                                                label="only recent months",
                                                 min_value=1,
-                                                max_value=26,
+                                                max_value=12*3,
                                                 step=1,
-                                                key='auto_training_history_recent_weeks',
+                                                key='auto_training_history_recent_months',
                                                 default=8,
-                                                disabled=x_axis != 'date',
+                                                disabled=(x_axis != 'date') or only_filtered_effective,
                                                 )
 
     # Get highlighted subjects
     if ('filter_subject_id' in st.session_state and st.session_state['filter_subject_id']) or\
-       ('filter_h2o' in st.session_state and st.session_state['filter_h2o']):   
+       ('filter_subject_alias' in st.session_state and st.session_state['filter_subject_alias']):   
         # If subject_id is manually filtered or through URL query
         highlight_subjects = list(st.session_state.df_session_filtered['subject_id'].unique())
         highlight_subjects = [str(x) for x in highlight_subjects]
     else:
         highlight_subjects = []
 
-    fig_auto_train = plot_manager_all_progress(
-        st.session_state.auto_train_manager,
+    # --- Bokeh ---
+    fig_auto_train, data_df = plot_manager_all_progress_bokeh(
         x_axis=x_axis,
-        recent_days=recent_weeks*7,
+        recent_days=recent_months * 30.437,  # Turn months into days
         sort_by=sort_by,
         sort_order=sort_order,
         marker_size=marker_size,
         marker_edge_width=marker_edge_width,
         highlight_subjects=highlight_subjects,
-        if_show_fig=False
+        if_show_fig=False,
+        if_use_filtered_data=only_filtered_effective,
+        filtered_session_ids=(
+            st.session_state.df_session_filtered[["subject_id", "session"]]
+            if only_filtered_effective
+            else None
+        ),
+    )
+    
+    if fig_auto_train is None:
+        st.markdown("### In the filtered sessions, no AutoTrain history to show!")
+        return
+
+    event_result = streamlit_bokeh3_events(
+        events="TestSelectEvent",
+        bokeh_plot=fig_auto_train,
+        key="autotrain_manager",
+        debounce_time=100,
+        refresh_on_update=True,
+        override_height=fig_auto_train.height,
     )
 
-    fig_auto_train.update_layout(
-        hoverlabel=dict(
-            font_size=20,
-        ),
-        font=dict(size=18),
-        height=30 * len(df_training_manager.subject_id.unique()),
-        xaxis_side='top',
-        title='',
-    )            
-
-    cols = st.columns([2, 1])
-    with cols[0]:
-        selected_ = plotly_events(fig_auto_train,
-                                    override_height=fig_auto_train.layout.height * 1.1, 
-                                    override_width=fig_auto_train.layout.width,
-                                    click_event=True,
-                                    select_event=True,
-                                    )
-    with cols[1]:
-        st.markdown('#### 👀 Quick preview')
-        st.markdown('###### Click on one session to preview here')
-        if selected_:
-            # Some hacks to get back selected data
-            curve_number = selected_[0]['curveNumber']
-            point_number = selected_[0]['pointNumber']
-            this_subject = fig_auto_train['data'][curve_number]
-            session_date = datetime.strptime(this_subject['customdata'][point_number][1], "%Y-%m-%d")
-            subject_id = fig_auto_train['data'][curve_number]['name'].split(' ')[1]
-
-            df_selected = (st.session_state.df['sessions_bonsai'].query(
-                f'''subject_id == "{subject_id}" and session_date == "{session_date}"'''))
-            draw_session_plots_quick_preview(df_selected)
+    # some event was thrown
+    if event_result is not None:
+        # TestSelectEvent was thrown
+        if "TestSelectEvent" in event_result:
+            indices = event_result["TestSelectEvent"].get("indices", [])
+            st.write(data_df.iloc[indices])
 
     # -- Show dataframe --
     # only show filtered subject
@@ -867,11 +891,11 @@ def add_auto_train_manager():
                                                 'decision', 'next_stage_suggested'
                                                 ]]
 
-    # with st.expander('Automatic training manager', expanded=True):
-    #     st.dataframe(df_training_manager, height=3000)
+    with st.expander('Automatic training manager', expanded=False):
+        st.dataframe(df_training_manager, height=3000)
 
 @st.cache_data(ttl=3600*24)                
-def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='h2o',
+def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='subject_id',
                          smooth_factor=5, 
                          if_show_dots=True, 
                          if_aggr_each_group=True,
@@ -900,9 +924,9 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
         x = df_this.sort_values(x_name)[x_name].astype(float)
         y = df_this.sort_values(x_name)[y_name].astype(float)
 
-        n_mice = len(df_this['h2o'].unique())
-        n_sessions = len(df_this.groupby(['h2o', 'session']).count())
-        n_str = f' ({n_mice} mice, {n_sessions} sessions)' if group_by !='h2o' else f' ({n_sessions} sessions)' 
+        n_mice = len(df_this['subject_id'].unique())
+        n_sessions = len(df_this.groupby(['subject_id', 'session']).count())
+        n_str = f' ({n_mice} mice, {n_sessions} sessions)' if group_by not in ['subject_id', 'subject_alias'] else f' ({n_sessions} sessions)' 
 
         if aggr_method == 'running average':
             fig.add_trace(go.Scatter(    
@@ -1059,14 +1083,14 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
         col = col_map[i%len(col_map)]
 
         if if_show_dots:
-            if not len(st.session_state.df_selected_from_plotly):   
-                this_session['colors'] = col  # all use normal colors
-            else:
-                merged = pd.merge(this_session, st.session_state.df_selected_from_plotly, on=['h2o', 'session'], how='left')
-                merged['colors'] = 'lightgrey'  # default, grey
-                merged.loc[merged.subject_id_y.notna(), 'colors'] = col   # only use normal colors for the selected dots 
-                this_session['colors'] = merged.colors.values
-                this_session = pd.concat([this_session.query('colors != "lightgrey"'), this_session.query('colors == "lightgrey"')])  # make sure the real color goes first
+            # if not len(st.session_state.df_selected_from_plotly):   
+            this_session['colors'] = col  # all use normal colors
+            # else:
+            #     merged = pd.merge(this_session, st.session_state.df_selected_from_plotly, on=['subject_id', 'session'], how='left')
+            #     merged['colors'] = 'lightgrey'  # default, grey
+            #     merged.loc[merged.subject_id_y.notna(), 'colors'] = col   # only use normal colors for the selected dots 
+            #     this_session['colors'] = merged.colors.values
+            #     this_session = pd.concat([this_session.query('colors != "lightgrey"'), this_session.query('colors == "lightgrey"')])  # make sure the real color goes first
 
             fig.add_trace(go.Scattergl(
                             x=this_session[x_name], 
@@ -1079,7 +1103,8 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                             marker_size=this_session['dot_size'],
                             marker_color=this_session['colors'],
                             opacity=dot_opacity,
-                            hovertemplate =  '<b>%{customdata[0]}, %{customdata[1]}, Session %{customdata[2]}'
+                            hovertemplate =  '<b>%{customdata[0]} (%{customdata[10]})'
+                                             '<br>%{customdata[1]}, Session %{customdata[2]}'
                                              '<br>%{customdata[4]} @ %{customdata[9]}'
                                              '<br>Rig: %{customdata[3]}'
                                              '<br>Task: %{customdata[5]}'
@@ -1090,22 +1115,23 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
                                                    if dot_size_mapping_name !='None' 
                                                    else '') 
                                              + '<extra></extra>',
-                            customdata=np.stack((this_session.h2o, # 0
+                            customdata=np.stack((this_session.subject_id, # 0
                                                  this_session.session_date.dt.strftime('%Y-%m-%d'), # 1
                                                  this_session.session, # 2
                                                  this_session.rig, # 3
-                                                 this_session.user_name, # 4
+                                                 this_session.trainer, # 4
                                                  this_session.task, # 5
                                                  this_session.curriculum_name
                                                     if 'curriculum_name' in this_session.columns
-                                                    else ['None'] * len(this_session.h2o), # 6
+                                                    else ['None'] * len(this_session.subject_id), # 6
                                                  this_session.current_stage_actual
                                                     if 'current_stage_actual' in this_session.columns
-                                                    else ['None'] * len(this_session.h2o), # 7
+                                                    else ['None'] * len(this_session.subject_id), # 7
                                                  this_session[dot_size_mapping_name] 
                                                     if dot_size_mapping_name !='None' 
-                                                    else [np.nan] * len(this_session.h2o), # 8
-                                                 this_session.data_source if 'data_source' in this_session else [''] * len(this_session.h2o), # 9
+                                                    else [np.nan] * len(this_session.subject_id), # 8
+                                                 this_session.data_source if 'data_source' in this_session else [''] * len(this_session.subject_id), # 9
+                                                 this_session.PI, # 10
                                                  ), axis=-1),
                             unselected=dict(marker_color='lightgrey')
                             ))
@@ -1119,38 +1145,38 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
         _add_agg(df, x_name, y_name, 'all', aggr_method_all, if_use_x_quantile_all, q_quantiles_all, 'rgb(0, 0, 0)', line_width=line_width*1.5,
                  hoverinfo='all' if not if_show_dots else 'skip')
 
-    n_mice = len(df['h2o'].unique())
-    n_sessions = len(df.groupby(['h2o', 'session']).count())
+    n_mice = len(df['subject_id'].unique())
+    n_sessions = len(df.groupby(['subject_id', 'session']).count())
+
+    override_plotly_theme(fig, theme="simple_white", font_size_scale=font_size_scale)
 
     fig.update_layout(
         width=x_y_plot_figure_width,
         height=x_y_plot_figure_height,
-        xaxis_title=x_name,
-        yaxis_title=y_name,
-        font=dict(size=24 * font_size_scale),
+        xaxis_title_text=x_name,
+        yaxis_title_text=y_name,
         hovermode="closest",
-        hoverlabel=dict(font_size=17 * font_size_scale),
         legend={"traceorder": "reversed"},
-        legend_font_size=20 * font_size_scale,
         title=f"{title}, {n_mice} mice, {n_sessions} sessions",
         dragmode="zoom",  # 'select',
-        margin=dict(l=130 * font_size_scale, 
-                    r=50 * font_size_scale, 
-                    b=130 * font_size_scale, 
-                    t=100 * font_size_scale,
-                    ),
-    )
-    fig.update_xaxes(showline=True, linewidth=2, linecolor='black', 
-                    #  range=[1, min(100, df[x_name].max())],
-                     ticks = "outside", tickcolor='black', ticklen=10, tickwidth=2, ticksuffix=' ')
-
-    fig.update_yaxes(showline=True, linewidth=2, linecolor='black',
-                     title_standoff=40,
-                     ticks = "outside", tickcolor='black', ticklen=10, tickwidth=2, ticksuffix=' ')
+    ) 
     return fig
 
 
 def add_footnote():
     st.markdown('---')
-    st.markdown(f'#### Han Hou @ 2024 {__ver__}')
+    st.markdown(f'#### AIND Behavior Team @ 2025 {__ver__}')
     st.markdown('[bug report / feature request](https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues)')
+
+
+def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
+    """ Add a button to download df as csv """
+    csv = df.to_csv(index=True)
+    
+    # Create download buttons
+    st.download_button(
+        label=label,
+        data=csv,
+        file_name=file_name,
+        mime='text/csv'
+    )

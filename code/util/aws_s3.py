@@ -1,9 +1,13 @@
 import json
-
+import os
+import numpy as np
 import pandas as pd
 import s3fs
 import streamlit as st
 from PIL import Image
+
+from aind_auto_train.auto_train_manager import DynamicForagingAutoTrainManager
+from aind_auto_train.curriculum_manager import CurriculumManager
 
 from .settings import (draw_type_layout_definition,
                        draw_type_mapper_session_level,
@@ -28,15 +32,56 @@ def load_data(tables=['sessions'], data_source = 'bonsai'):
         file_name = s3_processed_nwb_folder[data_source] + f'df_{table}.pkl'
         try:
             with fs.open(file_name) as f:
-                df[table + '_bonsai'] = pd.read_pickle(f)
+                df[table + '_main'] = pd.read_pickle(f).rename(columns={'user_name': 'trainer', 'h2o': 'subject_alias'})
         except FileNotFoundError as e:
             st.markdown(f'''### df_{table}.pkl is missing on S3. \n'''
                         f'''## It is very likely that Han is [rerunning the whole pipeline](https://github.com/AllenNeuralDynamics/aind-foraging-behavior-bonsai-trigger-pipeline?tab=readme-ov-file#notes-on-manually-re-process-all-nwbs-and-overwrite-s3-database-and-thus-the-streamlit-app). Please come back after an hour.''')
             st.markdown('')
             st.image("https://github.com/user-attachments/assets/bea2c7a9-c561-4c5f-afa5-92d63c040be6",
                      width=500)
+        
     return df
 
+@st.cache_data(ttl=12*3600)
+def load_mouse_PI_mapping():
+    file_name = s3_nwb_folder['bonsai'] + 'mouse_pi_mapping.json'
+    with fs.open(file_name) as f:
+        mouse_PI_mapping = json.load(f)
+    return pd.DataFrame(mouse_PI_mapping)
+
+@st.cache_data(ttl=12*3600)
+def load_raw_sessions_on_VAST():
+    file_name = s3_nwb_folder['bonsai'] + 'raw_sessions_on_VAST.json'
+    with fs.open(file_name) as f:
+        raw_sessions_on_VAST = json.load(f)
+    return raw_sessions_on_VAST
+
+@st.cache_data(ttl=12*3600)
+def load_auto_train():
+    # Init auto training database
+    curriculum_manager = CurriculumManager(
+        saved_curriculums_on_s3=dict(
+            bucket='aind-behavior-data',
+            root='foraging_auto_training/saved_curriculums/'
+        ),
+        saved_curriculums_local=os.path.expanduser('~/curriculum_manager/'),
+    )
+    auto_train_manager = DynamicForagingAutoTrainManager(
+        manager_name='447_demo',
+        df_behavior_on_s3=dict(bucket='aind-behavior-data',
+                                root='foraging_nwb_bonsai_processed/',
+                                file_name='df_sessions.pkl'),
+        df_manager_root_on_s3=dict(bucket='aind-behavior-data',
+                                root='foraging_auto_training/')
+    )
+    
+    _df = auto_train_manager.df_manager.copy()
+    # Remove invalid subject_id
+    _df = _df[(999999 > _df["subject_id"].astype(int)) 
+              & (_df["subject_id"].astype(int) > 300000)]
+    auto_train_manager.df_manager = _df
+    
+    return auto_train_manager, curriculum_manager
 
 def draw_session_plots_quick_preview(df_to_draw_session):
 
@@ -50,8 +95,8 @@ def draw_session_plots_quick_preview(df_to_draw_session):
         except:
             date_str = key["session_date"].split("T")[0]
 
-        st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["h2o"]}, Session {int(key["session"])}, {date_str} '''
-                    f'''({key["user_name"]}@{key["data_source"]})''',
+        st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["subject_id"]} ({key["PI"]}), Session {int(key["session"])}, {date_str} '''
+                    f'''({key["trainer"]}@{key["data_source"]})''',
                     unsafe_allow_html=True)
 
         rows = []
@@ -88,7 +133,7 @@ def show_session_level_img_by_key_and_prefix(key, prefix, column=None, other_pat
     _f.image(img if img is not None else "https://cdn-icons-png.flaticon.com/512/3585/3585596.png", 
                 output_format='PNG', 
                 caption=f_name.split('/')[-1] if caption and f_name else '',
-                use_column_width='always',
+                use_container_width='always',
                 **kwargs)
 
     return img
@@ -133,3 +178,14 @@ def show_debug_info():
         with fs.open(s3_nwb_folder['bonsai'] + 'bonsai_pipeline.log') as file:
             log_content = file.read().decode('utf-8')
         st.text(log_content)
+
+
+def get_s3_public_url(
+    subject_id, session_date, nwb_suffix, figure_suffix="choice_history.png",
+    result_path="foraging_nwb_bonsai_processed", bucket_name="aind-behavior-data", 
+):
+    nwb_suffix = "" if np.isnan(nwb_suffix) or int(nwb_suffix) == 0 else f"_{int(nwb_suffix)}"
+    return (
+        f"https://{bucket_name}.s3.us-west-2.amazonaws.com/{result_path}/"
+        f"{subject_id}_{session_date}{nwb_suffix}/{subject_id}_{session_date}{nwb_suffix}_{figure_suffix}"
+    )

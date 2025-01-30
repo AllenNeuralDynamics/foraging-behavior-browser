@@ -1,6 +1,8 @@
 import numpy as np
 import plotly.express as px
 import plotly.graph_objs as go
+import plotly.io as pio
+pio.json.config.default_engine = "orjson"
 
 
 def moving_average(a, n=3) :

@@ -3,6 +3,8 @@
 
 import logging
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
 
 import pandas as pd
 import semver
@@ -13,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 from aind_data_access_api.document_db import MetadataDbClient
 
+from util.reformat import formatting_metadata_df
 
 @st.cache_data(ttl=3600*12) # Cache the df_docDB up to 12 hours
 def load_data_from_docDB():
@@ -114,15 +117,19 @@ def fetch_dynamic_foraging_data(client):
     # let's directly query the software name
     logger.warning("fetching 'dynamic foraging' in software name...")
     software_name_results = client.retrieve_docdb_records(
-        filter_query={"session.data_streams.software.name": "dynamic-foraging-task",
-                      "name": {"$not": {"$regex": ".*processed.*"}}, # only raw data
-                      },
-        paginate_batch_size=500
-    )              
+        filter_query={
+            "$or": [
+                {"session.data_streams.software.name": "dynamic-foraging-task"},
+                {"session.stimulus_epochs.software.name": "dynamic-foraging-task"},
+            ],
+            "name": {"$not": {"$regex": ".*processed.*"}},  # only raw data
+        },
+        paginate_batch_size=500,
+    )
     logger.warning(f"found {len(software_name_results)} results")
 
-    # there are more from the past that didn't specify modality correctly. 
-    # until this is fixed, need to guess by asset name 
+    # there are more from the past that didn't specify modality correctly.
+    # until this is fixed, need to guess by asset name
     logger.warning("fetching FIP records by name...")
     name_FIP_results = client.retrieve_docdb_records(
         filter_query={"name": {"$regex": "^FIP.*"}},
@@ -134,32 +141,32 @@ def fetch_dynamic_foraging_data(client):
     unique_results_by_id = {**{ r['_id']: r for r in software_name_results }, **{ r['_id']: r for r in name_FIP_results }}
     results = list(unique_results_by_id.values())
     logger.warning(f"found {len(results)} unique results")
-        
+
     # make a dataframe
     records_df = pd.DataFrame.from_records([map_record_to_dict(d) for d in results ])
-    
+
     # PREVIOUSLY, there are some sessions uploaded twice in two different locations.
     # let's filter out the ones in aind-ophys-data, a deprecated location
-    # this is no longer a problem-- so I'm taking off the drop but keeping the dupe check on. 
+    # this is no longer a problem-- so I'm taking off the drop but keeping the dupe check on.
     dup_df = records_df[records_df.duplicated('session_name',keep=False)]
     dup_df = dup_df[dup_df.session_loc.str.contains("aind-ophys-data")]
     if len(dup_df):
         logger.warning('duplicated entries found, please fix')
     # records_df = records_df.drop(dup_df.index.values)
-    
+
     # let's get processed results too
     logger.warning("fetching processed results...")
     processed_results = client.retrieve_docdb_records(filter_query={
         "name": {"$regex": "^behavior_.*processed_.*"}
     }) 
-    
+
     # converting to a dictionary
     processed_results_by_name = { r['name']: r for r in processed_results }  
-        
+
     # adding two columns to our master dataframe - result name and result s3 location
     records_df['processed_session_name'] = records_df.session_name.apply(lambda x: find_result(x, processed_results_by_name).get('name'))
     records_df['processed_session_loc'] = records_df.session_name.apply(lambda x: find_result(x, processed_results_by_name).get('location'))
-    # get external_links, strip it down to the string 
+    # get external_links, strip it down to the string
     co_data_asset_id_processed = records_df.session_name.apply(lambda x: find_result(x, processed_results_by_name).get('external_links'))
     records_df['processed_CO_dataID'] = strip_dict_for_id(co_data_asset_id_processed)
     records_df['CO_dataID'] = strip_dict_for_id(records_df['CO_dataID'])
@@ -217,3 +224,95 @@ def find_result(x, lookup):
         if result_name.startswith(x):
             return result
     return {}
+
+
+# --------- Helper functions for Data Inventory (Han) ----------
+@st.cache_data(ttl=3600*24)
+def fetch_single_query(query, pagination, paginate_batch_size):
+    """ Fetch a query from docDB and process the result into dataframe
+    
+    Return: 
+    - df: dataframe of the original returned records
+    - df_multi_sessions_per_day: the dataframe with multiple sessions per day
+    - df_unique_mouse_date: the dataframe with multiple sessions per day combined
+    """
+
+    # --- Fetch data from docDB ---
+    client = load_client()
+    results = client.retrieve_docdb_records(
+        filter_query=query["filter"],
+        projection={
+            "_id": 0,
+            "name": 1,
+            "rig.rig_id": 1,
+            "session.experimenter_full_name": 1,
+        },
+        paginate=pagination,
+        paginate_batch_size=paginate_batch_size,
+    )
+    print(f"Done querying {query['alias']}!")
+
+    # --- Process data into dataframe ---
+    df = pd.json_normalize(results)
+    
+    # Formatting dataframe
+    df, df_unique_mouse_date, df_multi_sessions_per_day = formatting_metadata_df(df)
+    df_unique_mouse_date[query["alias"]] = True  # Add a column to prepare for merging
+
+    return df, df_unique_mouse_date, df_multi_sessions_per_day
+
+# Don't cache this function otherwise the progress bar won't work
+def fetch_queries_from_docDB(queries_to_merge, pagination=False, paginate_batch_size=5000):  
+    """ Get merged queries from selected queries """
+    
+    dfs = {}
+
+    # Fetch data in serial
+    p_bar = st.progress(0, text="Querying docDB in serial...")
+    for i, query in enumerate(queries_to_merge):
+        df, df_unique_mouse_date, df_multi_sessions_per_day = fetch_single_query(
+            query, pagination=pagination, paginate_batch_size=paginate_batch_size
+        )
+        dfs[query["alias"]] = {
+            "df": df,
+            "df_unique_mouse_date": df_unique_mouse_date,
+            "df_multi_sessions_per_day": df_multi_sessions_per_day,
+        }
+        p_bar.progress((i+1) / len(queries_to_merge), text=f"Querying docDB... ({i+1}/{len(queries_to_merge)})")
+
+    if not dfs:
+        st.warning("Querying docDB error! Try \"Pagination\" in MetadataDbClient settings or ask Han.")
+        return None
+    
+    return dfs
+
+@st.cache_data(ttl=3600*12)
+def fetch_queries_from_docDB_parallel(queries_to_merge, pagination=False, paginate_batch_size=5000):
+    """ Get merged queries from selected queries """
+
+    dfs = {}
+
+    # Fetch data in parallel
+    with ThreadPoolExecutor(max_workers=len(queries_to_merge)) as executor:
+        future_to_query = {
+            executor.submit(
+                fetch_single_query,
+                key,
+                pagination=pagination,
+                paginate_batch_size=paginate_batch_size,
+            ): key
+            for key in queries_to_merge
+        }
+        for i, future in enumerate(as_completed(future_to_query), 1):
+            key = future_to_query[future]
+            try:
+                df, df_unique_mouse_date, df_multi_sessions_per_day = future.result()
+                dfs[key["alias"]] = { 
+                    "df": df,
+                    "df_unique_mouse_date": df_unique_mouse_date,
+                    "df_multi_sessions_per_day": df_multi_sessions_per_day,
+                }
+            except Exception as e:
+                print(f"Error querying {key}: {e}")
+                    
+    return dfs

@@ -22,9 +22,9 @@
           },
           {
             "dragId": "gw_Ue21",
-            "fid": "h2o",
-            "name": "h2o",
-            "basename": "h2o",
+            "fid": "subject_id",
+            "name": "subject_id",
+            "basename": "subject_id",
             "semanticType": "nominal",
             "analyticType": "dimension",
             "offset": 0
@@ -94,9 +94,9 @@
           },
           {
             "dragId": "gw_6ptm",
-            "fid": "user_name",
-            "name": "user_name",
-            "basename": "user_name",
+            "fid": "trainer",
+            "name": "trainer",
+            "basename": "trainer",
             "semanticType": "nominal",
             "analyticType": "dimension",
             "offset": 0
