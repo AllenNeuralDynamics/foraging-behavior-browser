@@ -422,9 +422,9 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
                 "subject_id",
                 "session_date",
                 "current_stage_suggested",
-                "if_stage_overriden_by_trainer",
+                "if_overriden_by_trainer",
             ]
-    ].copy()
+    ].copy().rename(columns={'if_overriden_by_trainer': 'if_stage_overriden_by_trainer'})
     tmp_auto_train['session_date'] = pd.to_datetime(tmp_auto_train['session_date'])
     _df.drop(columns=['if_stage_overriden_by_trainer'], inplace=True)
     _df = _df.merge(
