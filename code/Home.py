@@ -335,12 +335,12 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     st.session_state.curriculum_manager = curriculum_manager
 
     # Some ad-hoc modifications on df_sessions
-    _df = st.session_state.df['sessions_main']  # temporary df alias
+    _df = st.session_state.df['sessions_main'].copy()  # temporary df alias
 
     _df.columns = _df.columns.get_level_values(1)
     _df.sort_values(['session_start_time'], ascending=False, inplace=True)
     _df['session_start_time'] = _df['session_start_time'].astype(str)  # Turn to string
-    _df = _df.reset_index().query('subject_id != "0"')
+    _df = _df.reset_index()
 
     # Handle mouse and user name
     if 'bpod_backup_h2o' in _df.columns:
@@ -361,7 +361,6 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
         (_df["trainer"].isin(_df["PI"]) | _df["trainer"].isin(["Han Hou", "Marton Rozsa"])), 
         "trainer"
     ]  # Fill in PI with trainer if PI is missing and the trainer was ever a PI
-    
 
     # Add data source (Room + Hardware etc)
     _df[['institute', 'rig_type', 'room', 'hardware', 'data_source']] = _df['rig'].apply(lambda x: pd.Series(get_data_source(x)))
@@ -373,10 +372,10 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     # Remove invalid subject_id
     _df = _df[(999999 > _df["subject_id"].astype(int)) 
               & (_df["subject_id"].astype(int) > 300000)]
-    
+
     # Remove zero finished trials
     _df = _df[_df['finished_trials'] > 0]
-    
+
     # Remove abnormal values
     _df.loc[_df['weight_after'] > 100, 
             ['weight_after', 'weight_after_ratio', 'water_in_session_total', 'water_after_session', 'water_day_total']
@@ -411,7 +410,28 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
 
     # last day's total water
     _df['water_day_total_last_session'] = _df.groupby('subject_id')['water_day_total'].shift(1)
-    _df['water_after_session_last_session'] = _df.groupby('subject_id')['water_after_session'].shift(1)    
+    _df['water_after_session_last_session'] = _df.groupby('subject_id')['water_after_session'].shift(1)  
+    
+
+    # -- overwrite the `if_stage_overriden_by_trainer`
+    # Previously it was set to True if the trainer changes stage during a session.
+    # But it is more informative to define it as whether the trainer has overridden the curriculum.
+    # In other words, it is set to True only when stage_suggested ~= stage_actual, as defined in the autotrain curriculum.
+    tmp_auto_train = auto_train_manager.df_manager.query('if_closed_loop == True')[
+            [
+                "subject_id",
+                "session_date",
+                "current_stage_suggested",
+                "if_stage_overriden_by_trainer",
+            ]
+    ].copy()
+    tmp_auto_train['session_date'] = pd.to_datetime(tmp_auto_train['session_date'])
+    _df.drop(columns=['if_stage_overriden_by_trainer'], inplace=True)
+    _df = _df.merge(
+        tmp_auto_train,
+        on=["subject_id", "session_date"],
+        how='left',
+    )
 
     # fill nan for autotrain fields
     filled_values = {'curriculum_name': 'None', 
@@ -420,7 +440,6 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
                      'current_stage_actual': 'None',
                      'has_video': False,
                      'has_ephys': False,
-                     'if_overriden_by_trainer': False,
                      }
     _df.fillna(filled_values, inplace=True)
 
@@ -435,9 +454,6 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
 
     # drop 'bpod_backup_' columns
     _df.drop([col for col in _df.columns if 'bpod_backup_' in col], axis=1, inplace=True)
-
-    # fix if_overriden_by_trainer
-    _df['if_overriden_by_trainer'] = _df['if_overriden_by_trainer'].astype(bool)
 
     # _df = _df.merge(
     #     diff_relative_weight_next_day, how='left', on=['subject_id', 'session'])
