@@ -64,6 +64,8 @@ def get_data_source(rig):
         room = '323'
     elif rig_type == 'ephys':
         room = '323'
+    elif '322' in rig:
+        room = '322'
     else:
         room = '447'
     return institute, rig_type, room, hardware, '_'.join([institute, rig_type, room, hardware])
