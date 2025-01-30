@@ -417,6 +417,7 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     # Previously it was set to True if the trainer changes stage during a session.
     # But it is more informative to define it as whether the trainer has overridden the curriculum.
     # In other words, it is set to True only when stage_suggested ~= stage_actual, as defined in the autotrain curriculum.
+    _df.drop(columns=['if_overriden_by_trainer'], inplace=True)
     tmp_auto_train = auto_train_manager.df_manager.query('if_closed_loop == True')[
             [
                 "subject_id",
@@ -426,7 +427,6 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
             ]
     ].copy().rename(columns={'if_overriden_by_trainer': 'if_stage_overriden_by_trainer'})
     tmp_auto_train['session_date'] = pd.to_datetime(tmp_auto_train['session_date'])
-    _df.drop(columns=['if_stage_overriden_by_trainer'], inplace=True)
     _df = _df.merge(
         tmp_auto_train,
         on=["subject_id", "session_date"],
