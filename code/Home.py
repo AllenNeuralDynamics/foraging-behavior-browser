@@ -567,7 +567,7 @@ def app():
         return
 
     aggrid_outputs = aggrid_interactive_table_session(
-        df=st.session_state.df_session_filtered,
+        df=st.session_state.df_session_filtered.round(3),
         table_height=table_height,
     )
 
