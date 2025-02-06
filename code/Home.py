@@ -785,10 +785,17 @@ def add_main_tabs():
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
 
 if __name__ == "__main__":
-    ok = True
-    if 'df' not in st.session_state or 'sessions_main' not in st.session_state.df.keys(): 
-        ok = init()
+    try:
+        ok = True
+        if 'df' not in st.session_state or 'sessions_main' not in st.session_state.df.keys(): 
+            ok = init()
 
-    if ok:
-        app()
-        pass
+        if ok:
+            app()
+            pass
+    except Exception as e:
+        st.markdown('## Something went wrong! :scream: ')
+        st.markdown(':bulb: Please follow these steps to troubleshoot:')
+        st.markdown('####  1. Reload the page')
+        st.markdown('####  2. Click this original url https://foraging-behavior-browser.allenneuraldynamics-test.org/')
+        st.markdown('####  3. Report your bug here: https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues')
