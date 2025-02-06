@@ -794,8 +794,8 @@ if __name__ == "__main__":
             app()
             pass
     except Exception as e:
-        st.markdown('## Something went wrong! :scream: ')
-        st.markdown(':bulb: Please follow these steps to troubleshoot:')
+        st.markdown('# Something went wrong! :scream: ')
+        st.markdown('##:bulb: Please follow these steps to troubleshoot:')
         st.markdown('####  1. Reload the page')
         st.markdown('####  2. Click this original url https://foraging-behavior-browser.allenneuraldynamics-test.org/')
         st.markdown('####  3. Report your bug here: https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues')
