@@ -133,7 +133,7 @@ def draw_session_plots(df_to_draw_session):
                 my_bar.progress(int((i + 1) / len(df_to_draw_session) * 100))
 
 
-def session_plot_settings(df_selected, need_click=True):
+def session_plot_settings(df_selected_from_plotly=None, need_click=True):
     with st.form(key='session_plot_settings'):
         st.markdown('##### Show plots for individual sessions ')
         cols = st.columns([2, 6, 1])
@@ -146,10 +146,14 @@ def session_plot_settings(df_selected, need_click=True):
             default=session_plot_modes[0],
             key='session_plot_mode',
         )
-
-        n_session_to_draw = len(df_selected) \
-            if 'selected from table or plot' in st.session_state.selected_draw_sessions \
-            else len(st.session_state.df_session_filtered) 
+        
+        if "selected" in st.session_state.selected_draw_sessions:
+            if df_selected_from_plotly is None:  # Selected from dataframe
+                df_to_draw_sessions = st.session_state.df_selected_from_dataframe
+            else:
+                df_to_draw_sessions = df_selected_from_plotly
+        else:  # all sessions filtered from sidebar
+            df_to_draw_sessions = st.session_state.df_session_filtered
 
         _ = number_input_wrapper_for_url_query(
             st_prefix=cols[2],
@@ -177,20 +181,20 @@ def session_plot_settings(df_selected, need_click=True):
             key='session_plot_selected_draw_types',
         )
 
-        cols[0].markdown(f'{n_session_to_draw} sessions to draw')
+        cols[0].markdown(f'{len(df_to_draw_sessions)} sessions to draw')
         draw_it_now_override = cols[2].checkbox('Auto show', value=not need_click, disabled=not need_click)
         submitted = cols[0].form_submit_button(
             "Update settings", type="primary"
         )
 
     if not need_click:
-        return True
+        return True, df_to_draw_sessions
 
     if draw_it_now_override:
-        return True
+        return True, df_to_draw_sessions
 
-    draw_it = st.button(f'Show {n_session_to_draw} sessions!', use_container_width=False, type="primary")
-    return draw_it
+    draw_it = st.button(f'Show {len(df_to_draw_sessions)} sessions!', use_container_width=False, type="primary")
+    return draw_it, df_to_draw_sessions
 
 
 def plot_x_y_session():
@@ -620,13 +624,7 @@ def add_main_tabs():
             # Add session_plot_setting
             with st.columns([1])[0]:
                 st.markdown("***")
-                if_draw_all_sessions = session_plot_settings(df_selected_from_plotly)
-
-            df_to_draw_sessions = (
-                df_selected_from_plotly
-                if "selected" in st.session_state.get("selected_draw_sessions", "sessions selected from table or plot")
-                else st.session_state.df_session_filtered
-            )
+                if_draw_all_sessions, df_to_draw_sessions = session_plot_settings(df_selected_from_plotly=df_selected_from_plotly, need_click=True)
 
             if if_draw_all_sessions and len(df_to_draw_sessions):
                 draw_session_plots(df_to_draw_sessions)
@@ -666,13 +664,8 @@ def add_main_tabs():
         with placeholder:
             cols = st.columns([1])
             with cols[0]:
-                df_to_draw_sessions = (
-                    st.session_state.df_selected_from_dataframe
-                    if "selected" in st.session_state.get("selected_draw_sessions", "sessions selected from table or plot")
-                    else st.session_state.df_session_filtered
-                )
-                if_draw_all_sessions = session_plot_settings(
-                    df_to_draw_sessions, need_click=False
+                if_draw_all_sessions, df_to_draw_sessions = session_plot_settings(
+                    df_selected_from_plotly=None, need_click=False
                 )
 
             if if_draw_all_sessions and len(df_to_draw_sessions):
