@@ -110,9 +110,10 @@ def draw_session_plots(df_to_draw_session):
                     except:
                         date_str = key["session_date"].split("T")[0]
                     
-                    st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["subject_id"]} ({key["PI"]}), Session {int(key["session"])}, {date_str} '''
-                                f'''({key["trainer"]}@{key["data_source"]})''',
+                    st.markdown(f'''<h6 style='text-align: center; color: orange;'>{key["subject_id"]} ({key["PI"]}), {date_str}, Session {int(key["session"])}<br>'''
+                                f'''{key["trainer"]} @ {key["rig"]} ({key["data_source"]})''',
                                 unsafe_allow_html=True)
+                    
                     if len(st.session_state.session_plot_selected_draw_types) > 1:  # more than one types, use the pre-defined layout
                         for row, column_setting in enumerate(draw_type_layout_definition):
                             rows.append(this_major_col.columns(column_setting))
