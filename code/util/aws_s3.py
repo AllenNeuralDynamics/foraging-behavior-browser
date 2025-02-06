@@ -74,13 +74,15 @@ def load_auto_train():
         df_manager_root_on_s3=dict(bucket='aind-behavior-data',
                                 root='foraging_auto_training/')
     )
-    
-    _df = auto_train_manager.df_manager.copy()
+
+    _df = auto_train_manager.df_manager.copy().rename(
+        columns={"if_overriden_by_trainer": "if_stage_overriden_by_trainer"}
+    )
     # Remove invalid subject_id
     _df = _df[(999999 > _df["subject_id"].astype(int)) 
               & (_df["subject_id"].astype(int) > 300000)]
     auto_train_manager.df_manager = _df
-    
+
     return auto_train_manager, curriculum_manager
 
 def draw_session_plots_quick_preview(df_to_draw_session):
@@ -95,8 +97,8 @@ def draw_session_plots_quick_preview(df_to_draw_session):
         except:
             date_str = key["session_date"].split("T")[0]
 
-        st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["subject_id"]} ({key["PI"]}), Session {int(key["session"])}, {date_str} '''
-                    f'''({key["trainer"]}@{key["data_source"]})''',
+        st.markdown(f'''<h6 style='text-align: center; color: orange;'>{key["subject_id"]} ({key["PI"]}), {date_str}, Session {int(key["session"])}<br>'''
+                    f'''{key["trainer"]} @ {key["rig"]} ({key["data_source"]})''',
                     unsafe_allow_html=True)
 
         rows = []

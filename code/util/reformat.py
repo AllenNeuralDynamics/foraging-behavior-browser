@@ -62,6 +62,8 @@ def get_data_source(rig):
         room = '446'
     elif '323' in rig:
         room = '323'
+    elif '322' in rig:
+        room = '322'
     elif rig_type == 'ephys':
         room = '323'
     else:

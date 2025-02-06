@@ -110,9 +110,10 @@ def draw_session_plots(df_to_draw_session):
                     except:
                         date_str = key["session_date"].split("T")[0]
                     
-                    st.markdown(f'''<h5 style='text-align: center; color: orange;'>{key["subject_id"]} ({key["PI"]}), Session {int(key["session"])}, {date_str} '''
-                                f'''({key["trainer"]}@{key["data_source"]})''',
+                    st.markdown(f'''<h6 style='text-align: center; color: orange;'>{key["subject_id"]} ({key["PI"]}), {date_str}, Session {int(key["session"])}<br>'''
+                                f'''{key["trainer"]} @ {key["rig"]} ({key["data_source"]})''',
                                 unsafe_allow_html=True)
+                    
                     if len(st.session_state.session_plot_selected_draw_types) > 1:  # more than one types, use the pre-defined layout
                         for row, column_setting in enumerate(draw_type_layout_definition):
                             rows.append(this_major_col.columns(column_setting))
@@ -133,7 +134,7 @@ def draw_session_plots(df_to_draw_session):
                 my_bar.progress(int((i + 1) / len(df_to_draw_session) * 100))
 
 
-def session_plot_settings(df_selected, need_click=True):
+def session_plot_settings(df_selected_from_plotly=None, need_click=True):
     with st.form(key='session_plot_settings'):
         st.markdown('##### Show plots for individual sessions ')
         cols = st.columns([2, 6, 1])
@@ -146,10 +147,14 @@ def session_plot_settings(df_selected, need_click=True):
             default=session_plot_modes[0],
             key='session_plot_mode',
         )
-
-        n_session_to_draw = len(df_selected) \
-            if 'selected from table or plot' in st.session_state.selected_draw_sessions \
-            else len(st.session_state.df_session_filtered) 
+        
+        if "selected" in st.session_state.selected_draw_sessions:
+            if df_selected_from_plotly is None:  # Selected from dataframe
+                df_to_draw_sessions = st.session_state.df_selected_from_dataframe
+            else:
+                df_to_draw_sessions = df_selected_from_plotly
+        else:  # all sessions filtered from sidebar
+            df_to_draw_sessions = st.session_state.df_session_filtered
 
         _ = number_input_wrapper_for_url_query(
             st_prefix=cols[2],
@@ -177,20 +182,20 @@ def session_plot_settings(df_selected, need_click=True):
             key='session_plot_selected_draw_types',
         )
 
-        cols[0].markdown(f'{n_session_to_draw} sessions to draw')
+        cols[0].markdown(f'{len(df_to_draw_sessions)} sessions to draw')
         draw_it_now_override = cols[2].checkbox('Auto show', value=not need_click, disabled=not need_click)
         submitted = cols[0].form_submit_button(
             "Update settings", type="primary"
         )
 
     if not need_click:
-        return True
+        return True, df_to_draw_sessions
 
     if draw_it_now_override:
-        return True
+        return True, df_to_draw_sessions
 
-    draw_it = st.button(f'Show {n_session_to_draw} sessions!', use_container_width=False, type="primary")
-    return draw_it
+    draw_it = st.button(f'Show {len(df_to_draw_sessions)} sessions!', use_container_width=False, type="primary")
+    return draw_it, df_to_draw_sessions
 
 
 def plot_x_y_session():
@@ -335,12 +340,12 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     st.session_state.curriculum_manager = curriculum_manager
 
     # Some ad-hoc modifications on df_sessions
-    _df = st.session_state.df['sessions_main']  # temporary df alias
+    _df = st.session_state.df['sessions_main'].copy()  # temporary df alias
 
     _df.columns = _df.columns.get_level_values(1)
     _df.sort_values(['session_start_time'], ascending=False, inplace=True)
     _df['session_start_time'] = _df['session_start_time'].astype(str)  # Turn to string
-    _df = _df.reset_index().query('subject_id != "0"')
+    _df = _df.reset_index()
 
     # Handle mouse and user name
     if 'bpod_backup_h2o' in _df.columns:
@@ -361,7 +366,6 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
         (_df["trainer"].isin(_df["PI"]) | _df["trainer"].isin(["Han Hou", "Marton Rozsa"])), 
         "trainer"
     ]  # Fill in PI with trainer if PI is missing and the trainer was ever a PI
-    
 
     # Add data source (Room + Hardware etc)
     _df[['institute', 'rig_type', 'room', 'hardware', 'data_source']] = _df['rig'].apply(lambda x: pd.Series(get_data_source(x)))
@@ -373,10 +377,10 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     # Remove invalid subject_id
     _df = _df[(999999 > _df["subject_id"].astype(int)) 
               & (_df["subject_id"].astype(int) > 300000)]
-    
+
     # Remove zero finished trials
     _df = _df[_df['finished_trials'] > 0]
-    
+
     # Remove abnormal values
     _df.loc[_df['weight_after'] > 100, 
             ['weight_after', 'weight_after_ratio', 'water_in_session_total', 'water_after_session', 'water_day_total']
@@ -411,7 +415,28 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
 
     # last day's total water
     _df['water_day_total_last_session'] = _df.groupby('subject_id')['water_day_total'].shift(1)
-    _df['water_after_session_last_session'] = _df.groupby('subject_id')['water_after_session'].shift(1)    
+    _df['water_after_session_last_session'] = _df.groupby('subject_id')['water_after_session'].shift(1)  
+    
+
+    # -- overwrite the `if_stage_overriden_by_trainer`
+    # Previously it was set to True if the trainer changes stage during a session.
+    # But it is more informative to define it as whether the trainer has overridden the curriculum.
+    # In other words, it is set to True only when stage_suggested ~= stage_actual, as defined in the autotrain curriculum.
+    _df.drop(columns=['if_overriden_by_trainer'], inplace=True)
+    tmp_auto_train = auto_train_manager.df_manager.query('if_closed_loop == True')[
+            [
+                "subject_id",
+                "session_date",
+                "current_stage_suggested",
+                "if_stage_overriden_by_trainer",
+            ]
+    ].copy()
+    tmp_auto_train['session_date'] = pd.to_datetime(tmp_auto_train['session_date'])
+    _df = _df.merge(
+        tmp_auto_train,
+        on=["subject_id", "session_date"],
+        how='left',
+    )
 
     # fill nan for autotrain fields
     filled_values = {'curriculum_name': 'None', 
@@ -420,7 +445,6 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
                      'current_stage_actual': 'None',
                      'has_video': False,
                      'has_ephys': False,
-                     'if_overriden_by_trainer': False,
                      }
     _df.fillna(filled_values, inplace=True)
 
@@ -435,9 +459,6 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
 
     # drop 'bpod_backup_' columns
     _df.drop([col for col in _df.columns if 'bpod_backup_' in col], axis=1, inplace=True)
-
-    # fix if_overriden_by_trainer
-    _df['if_overriden_by_trainer'] = _df['if_overriden_by_trainer'].astype(bool)
 
     # _df = _df.merge(
     #     diff_relative_weight_next_day, how='left', on=['subject_id', 'session'])
@@ -567,7 +588,7 @@ def app():
         return
 
     aggrid_outputs = aggrid_interactive_table_session(
-        df=st.session_state.df_session_filtered,
+        df=st.session_state.df_session_filtered.round(3),
         table_height=table_height,
     )
 
@@ -604,13 +625,7 @@ def add_main_tabs():
             # Add session_plot_setting
             with st.columns([1])[0]:
                 st.markdown("***")
-                if_draw_all_sessions = session_plot_settings(df_selected_from_plotly)
-
-            df_to_draw_sessions = (
-                df_selected_from_plotly
-                if "selected" in st.session_state.get("selected_draw_sessions", "sessions selected from table or plot")
-                else st.session_state.df_session_filtered
-            )
+                if_draw_all_sessions, df_to_draw_sessions = session_plot_settings(df_selected_from_plotly=df_selected_from_plotly, need_click=True)
 
             if if_draw_all_sessions and len(df_to_draw_sessions):
                 draw_session_plots(df_to_draw_sessions)
@@ -650,13 +665,8 @@ def add_main_tabs():
         with placeholder:
             cols = st.columns([1])
             with cols[0]:
-                df_to_draw_sessions = (
-                    st.session_state.df_selected_from_dataframe
-                    if "selected" in st.session_state.get("selected_draw_sessions", "sessions selected from table or plot")
-                    else st.session_state.df_session_filtered
-                )
-                if_draw_all_sessions = session_plot_settings(
-                    df_to_draw_sessions, need_click=False
+                if_draw_all_sessions, df_to_draw_sessions = session_plot_settings(
+                    df_selected_from_plotly=None, need_click=False
                 )
 
             if if_draw_all_sessions and len(df_to_draw_sessions):
@@ -769,10 +779,17 @@ def add_main_tabs():
     # st.dataframe(st.session_state.df_session_filtered, use_container_width=True, height=1000)
 
 if __name__ == "__main__":
-    ok = True
-    if 'df' not in st.session_state or 'sessions_main' not in st.session_state.df.keys(): 
-        ok = init()
+    try:
+        ok = True
+        if 'df' not in st.session_state or 'sessions_main' not in st.session_state.df.keys(): 
+            ok = init()
 
-    if ok:
-        app()
-        pass
+        if ok:
+            app()
+            pass
+    except Exception as e:
+        st.markdown('# Something went wrong! :scream: ')
+        st.markdown('## :bulb: Please follow these steps to troubleshoot:')
+        st.markdown('####  1. Reload the page')
+        st.markdown('####  2. Click this original URL https://foraging-behavior-browser.allenneuraldynamics-test.org/')
+        st.markdown('####  3. Report your bug here: https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues (paste your URL and screenshoots)')

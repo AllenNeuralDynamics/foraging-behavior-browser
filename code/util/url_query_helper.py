@@ -99,6 +99,10 @@ def checkbox_wrapper_for_url_query(st_prefix, label, key, default, **kwargs):
     )
 
 def selectbox_wrapper_for_url_query(st_prefix, label, options, key, default, default_override=False, **kwargs):
+    """selectbox wrapper for url query
+    default : could be either a value in options or the index
+    default_override : if True, always use default, otherwise, session_state or query_params has higher priority
+    """
     # If default_override, use default. Otherwise, session_state or query_params has higher priority
     if not default_override:
         default = (
@@ -108,11 +112,16 @@ def selectbox_wrapper_for_url_query(st_prefix, label, options, key, default, def
             if key in st.query_params and st.query_params[key] in options
             else default
         )
+        
+    if type(default) is int and default not in options:
+        index = default  # allow user to use default as index
+    else:
+        index = options.index(default)
     
     return st_prefix.selectbox(
         label,
         options=options,
-        index=options.index(default),
+        index=index,
         key=key,
         **kwargs,
     )

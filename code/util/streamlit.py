@@ -886,7 +886,7 @@ def add_auto_train_manager():
                                                 'curriculum_name', 'curriculum_version', 'curriculum_schema_version',
                                                 'current_stage_suggested', 'current_stage_actual',
                                                 'session_at_current_stage',
-                                                'if_closed_loop', 'if_overriden_by_trainer',
+                                                'if_closed_loop', 'if_stage_overriden_by_trainer',
                                                 'foraging_efficiency', 'finished_trials', 
                                                 'decision', 'next_stage_suggested'
                                                 ]]
