@@ -101,6 +101,7 @@ def _get_metadata_col():
     ] + [
         'avg_trial_length_in_seconds',
         'weight_after_ratio',
+        'session_run_time_in_min',
     ]
 
     col_perf = [
