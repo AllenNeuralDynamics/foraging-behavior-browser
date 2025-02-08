@@ -20,6 +20,7 @@ import pandas as pd
 import streamlit as st
 import streamlit_nested_layout
 from aind_auto_train import __version__ as auto_train_version
+from aind_analysis_arch_result_access.han_pipeline import get_session_table
 from pygwalker.api.streamlit import StreamlitRenderer, init_streamlit_comm
 from util.aws_s3 import (draw_session_plots_quick_preview, 
                          load_data,
@@ -306,7 +307,10 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
         if key in ['selected_draw_types'] or '_changed' in key:
             del st.session_state[key]
 
-    df = load_data(['sessions'], data_source='bonsai')
+    # Bypass the original data access
+    # df = load_data(['sessions'], data_source='bonsai')
+    df_han = get_session_table()  # did all previous _df manipulations here
+    df = {'sessions_main': df_han}  # put it in df['session_main'] for backward compatibility
 
     if not len(df):
         return False
@@ -340,13 +344,8 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     st.session_state.curriculum_manager = curriculum_manager
 
     # Some ad-hoc modifications on df_sessions
-    _df = st.session_state.df['sessions_main'].copy()  # temporary df alias
-
-    _df.columns = _df.columns.get_level_values(1)
-    _df.sort_values(['session_start_time'], ascending=False, inplace=True)
-    _df['session_start_time'] = _df['session_start_time'].astype(str)  # Turn to string
-    _df = _df.reset_index()
-
+    _df = st.session_state.df['sessions_main'].copy()
+    
     # Handle mouse and user name
     if 'bpod_backup_h2o' in _df.columns:
         _df['subject_alias'] = np.where(_df['bpod_backup_h2o'].notnull(), _df['bpod_backup_h2o'], _df['subject_id'])
@@ -354,68 +353,6 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     else:
         _df['subject_alias'] = _df['subject_id']
 
-    # map trainer
-    _df['trainer'] = _df['trainer'].apply(_trainer_mapper)
-
-    # Merge in PI name
-    df_mouse_pi_mapping = load_mouse_PI_mapping()
-    st.session_state.df_mouse_pi_mapping = df_mouse_pi_mapping  # Save to session state for later use
-    _df = _df.merge(df_mouse_pi_mapping, how='left', on='subject_id') # Merge in PI name
-    _df.loc[_df["PI"].isnull(), "PI"] = _df.loc[
-        _df["PI"].isnull() & 
-        (_df["trainer"].isin(_df["PI"]) | _df["trainer"].isin(["Han Hou", "Marton Rozsa"])), 
-        "trainer"
-    ]  # Fill in PI with trainer if PI is missing and the trainer was ever a PI
-
-    # Add data source (Room + Hardware etc)
-    _df[['institute', 'rig_type', 'room', 'hardware', 'data_source']] = _df['rig'].apply(lambda x: pd.Series(get_data_source(x)))
-
-    # Handle session number
-    _df.dropna(subset=['session'], inplace=True) # Remove rows with no session number (only leave the nwb file with the largest finished_trials for now)
-    _df.drop(_df.query('session < 1').index, inplace=True)
-
-    # Remove invalid subject_id
-    _df = _df[(999999 > _df["subject_id"].astype(int)) 
-              & (_df["subject_id"].astype(int) > 300000)]
-
-    # Remove zero finished trials
-    _df = _df[_df['finished_trials'] > 0]
-
-    # Remove abnormal values
-    _df.loc[_df['weight_after'] > 100, 
-            ['weight_after', 'weight_after_ratio', 'water_in_session_total', 'water_after_session', 'water_day_total']
-            ] = np.nan
-
-    _df.loc[_df['water_in_session_manual'] > 100, 
-            ['water_in_session_manual', 'water_in_session_total', 'water_after_session']] = np.nan
-
-    _df.loc[(_df['duration_iti_median'] < 0) | (_df['duration_iti_mean'] < 0),
-            ['duration_iti_median', 'duration_iti_mean', 'duration_iti_std', 'duration_iti_min', 'duration_iti_max']] = np.nan
-
-    _df.loc[_df['invalid_lick_ratio'] < 0, 
-            ['invalid_lick_ratio']]= np.nan
-
-    # # add something else
-    # add abs(bais) to all terms that have 'bias' in name
-    for col in _df.columns:
-        if 'bias' in col:
-            _df[f'abs({col})'] = np.abs(_df[col])
-
-    # # delta weight
-    # diff_relative_weight_next_day = _df.set_index(
-    #     ['session']).sort_values('session', ascending=True).groupby('subject_id').apply(
-    #         lambda x: - x.relative_weight.diff(periods=-1)).rename("diff_relative_weight_next_day")
-
-    # weekday
-    _df.session_date = pd.to_datetime(_df.session_date)
-    _df['weekday'] = _df.session_date.dt.dayofweek + 1
-
-    # trial stats
-    _df['avg_trial_length_in_seconds'] = _df['session_run_time_in_min'] / _df['total_trials_with_autowater'] * 60
-
-    # last day's total water
-    _df['water_day_total_last_session'] = _df.groupby('subject_id')['water_day_total'].shift(1)
-    _df['water_after_session_last_session'] = _df.groupby('subject_id')['water_after_session'].shift(1)  
 
     # -- overwrite the `if_stage_overriden_by_trainer`
     # Previously it was set to True if the trainer changes stage during a session.
@@ -440,38 +377,6 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
         on=["subject_id", "session_date"],
         how='left',
     )
-
-    # fill nan for autotrain fields
-    filled_values = {'curriculum_name': 'None', 
-                     'curriculum_version': 'None',
-                     'curriculum_schema_version': 'None',
-                     'current_stage_actual': 'None',
-                     'has_video': False,
-                     'has_ephys': False,
-                     }
-    _df.fillna(filled_values, inplace=True)
-
-    # foraging performance = foraing_eff * finished_rate
-    if 'foraging_performance' not in _df.columns:
-        _df['foraging_performance'] = \
-            _df['foraging_eff'] \
-            * _df['finished_rate']
-        _df['foraging_performance_random_seed'] = \
-            _df['foraging_eff_random_seed'] \
-            * _df['finished_rate']
-
-    # drop 'bpod_backup_' columns
-    _df.drop([col for col in _df.columns if 'bpod_backup_' in col], axis=1, inplace=True)
-
-    # _df = _df.merge(
-    #     diff_relative_weight_next_day, how='left', on=['subject_id', 'session'])
-
-    # Recorder columns so that autotrain info is easier to see
-    first_several_cols = ['subject_id', 'session_date', 'nwb_suffix', 'session', 'rig', 
-                          'trainer', 'PI', 'curriculum_name', 'curriculum_version', 'current_stage_actual', 
-                          'task', 'notes']
-    new_order = first_several_cols + [col for col in _df.columns if col not in first_several_cols]
-    _df = _df[new_order]
 
     # --- Load data from docDB ---
     if_load_docDb = if_load_docDB_override if if_load_docDB_override is not None else (
@@ -796,3 +701,4 @@ if __name__ == "__main__":
         st.markdown('####  1. Reload the page')
         st.markdown('####  2. Click this original URL https://foraging-behavior-browser.allenneuraldynamics-test.org/')
         st.markdown('####  3. Report your bug here: https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues (paste your URL and screenshoots)')
+        raise e
