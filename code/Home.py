@@ -416,22 +416,25 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
     # last day's total water
     _df['water_day_total_last_session'] = _df.groupby('subject_id')['water_day_total'].shift(1)
     _df['water_after_session_last_session'] = _df.groupby('subject_id')['water_after_session'].shift(1)  
-    
 
     # -- overwrite the `if_stage_overriden_by_trainer`
     # Previously it was set to True if the trainer changes stage during a session.
     # But it is more informative to define it as whether the trainer has overridden the curriculum.
     # In other words, it is set to True only when stage_suggested ~= stage_actual, as defined in the autotrain curriculum.
     _df.drop(columns=['if_overriden_by_trainer'], inplace=True)
-    tmp_auto_train = auto_train_manager.df_manager.query('if_closed_loop == True')[
+    tmp_auto_train = (
+        auto_train_manager.df_manager.query("if_closed_loop == True")[
             [
                 "subject_id",
                 "session_date",
                 "current_stage_suggested",
                 "if_stage_overriden_by_trainer",
             ]
-    ].copy()
-    tmp_auto_train['session_date'] = pd.to_datetime(tmp_auto_train['session_date'])
+        ]
+        .copy()
+        .drop_duplicates(subset=["subject_id", "session_date"], keep="first")
+    )
+    tmp_auto_train["session_date"] = pd.to_datetime(tmp_auto_train["session_date"])
     _df = _df.merge(
         tmp_auto_train,
         on=["subject_id", "session_date"],
