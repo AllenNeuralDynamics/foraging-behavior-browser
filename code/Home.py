@@ -440,6 +440,14 @@ def app():
         cols[0].markdown(f'### Filter the sessions on the sidebar\n'
                          f'#####  {len(st.session_state.df_session_filtered)} sessions, '
                          f'{len(st.session_state.df_session_filtered.subject_id.unique())} mice filtered')
+        
+        with cols[0].expander(':bulb: Get the master session table by code', expanded=False):
+            st.code(f'''
+                    #!pip install aind-analysis-arch-result-access
+                    from aind_analysis_arch_result_access.han_pipeline import get_session_table
+                    df = get_session_table(if_load_bpod={st.session_state.bpod_loaded})
+                    ''')
+        
         with cols[1]:
             with st.form(key='load_settings', clear_on_submit=False):
                 if_load_bpod_sessions = checkbox_wrapper_for_url_query(
