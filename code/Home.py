@@ -307,15 +307,6 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
         if key in ['selected_draw_types'] or '_changed' in key:
             del st.session_state[key]
 
-    # Bypass the original data access
-    # df = load_data(['sessions'], data_source='bonsai')
-    df_han = get_session_table()  # did all previous _df manipulations here
-    df = {'sessions_main': df_han}  # put it in df['session_main'] for backward compatibility
-
-    if not len(df):
-        return False
-
-    # --- Perform any data source-dependent preprocessing here ---
     # Because sync_URL_to_session_state() needs df to be loaded (for dynamic column filtering),
     # 'if_load_bpod_sessions' has not been synced from URL to session state yet.
     # So here we need to manually get it from URL or session state.
@@ -325,14 +316,14 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
         else st.session_state.if_load_bpod_sessions 
         if 'if_load_bpod_sessions' in st.session_state
         else False)
+    st.session_state.bpod_loaded = _if_load_bpod
+    
+    # --- Load data using aind-analysis-arch-result-access ---
+    df_han = get_session_table(if_load_bpod=_if_load_bpod)
+    df = {'sessions_main': df_han}  # put it in df['session_main'] for backward compatibility
 
-    st.session_state.bpod_loaded = False
-    if _if_load_bpod:
-        df_bpod = load_data(['sessions'], data_source='bpod')
-        st.session_state.bpod_loaded = True
-
-        # For historial reason, the suffix of df['sessions_main'] just mean the data of the Home.py page
-        df['sessions_main'] = pd.concat([df['sessions_main'], df_bpod['sessions_main']], axis=0)
+    if not len(df):
+        return False
 
     st.session_state.df = df
     for source in ["dataframe", "plotly"]:
@@ -345,13 +336,6 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
 
     # Some ad-hoc modifications on df_sessions
     _df = st.session_state.df['sessions_main'].copy()
-    
-    # Handle mouse and user name
-    if 'bpod_backup_h2o' in _df.columns:
-        _df['subject_alias'] = np.where(_df['bpod_backup_h2o'].notnull(), _df['bpod_backup_h2o'], _df['subject_id'])
-        _df['trainer'] = np.where(_df['bpod_backup_user_name'].notnull(), _df['bpod_backup_user_name'], _df['trainer'])
-    else:
-        _df['subject_alias'] = _df['subject_id']
 
 
     # -- overwrite the `if_stage_overriden_by_trainer`
