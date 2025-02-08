@@ -447,6 +447,7 @@ def app():
                     from aind_analysis_arch_result_access.han_pipeline import get_session_table
                     df = get_session_table(if_load_bpod={st.session_state.bpod_loaded})
                     ''')
+            st.markdown("See [aind-analysis-arch-result-access](https://github.com/AllenNeuralDynamics/aind-analysis-arch-result-access) for details.")
         
         with cols[1]:
             with st.form(key='load_settings', clear_on_submit=False):
