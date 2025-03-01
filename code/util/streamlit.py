@@ -1189,8 +1189,6 @@ def add_download_plotly_as_svg(fig, file_name="plot.svg"):
     fig.write_image(svg_file, format='svg')
     svg_file.seek(0)  # Reset file pointer to the beginning
     
-    svg_file = save_plotly_to_svg(fig)
-
     # Add a download button to download the SVG file
     st.download_button(
         label="Download SVG",
