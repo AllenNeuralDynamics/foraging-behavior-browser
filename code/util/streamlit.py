@@ -17,6 +17,7 @@ import statsmodels.api as sm
 import streamlit as st
 import streamlit.components.v1 as components
 from streamlit_bokeh3_events import streamlit_bokeh3_events
+from bokeh.io import export_svgs
 from pandas.api.types import (is_categorical_dtype, is_numeric_dtype,
                               is_string_dtype)
 from scipy.stats import linregress
@@ -869,6 +870,7 @@ def add_auto_train_manager():
         refresh_on_update=True,
         override_height=fig_auto_train.height,
     )
+    add_download_bokeh_as_svg(fig_auto_train, "AutoTrainManager")
 
     # some event was thrown
     if event_result is not None:
@@ -1188,13 +1190,27 @@ def add_download_plotly_as_svg(fig, file_name="plot.svg"):
     svg_file = io.BytesIO()
     fig.write_image(svg_file, format='svg')
     svg_file.seek(0)  # Reset file pointer to the beginning
-    
-    svg_file = save_plotly_to_svg(fig)
 
     # Add a download button to download the SVG file
     st.download_button(
         label="Download SVG",
         data=svg_file,
+        file_name=file_name.replace(".svg", "") + ".svg",
+        mime="image/svg+xml"
+    )
+    
+    
+def add_download_bokeh_as_svg(p, file_name="plot.svg"):
+    export_svgs(p)
+    svg_data = p.svg  # This contains the SVG as a string
+    
+    # Convert SVG string to bytes
+    svg_bytes = svg_data.encode("utf-8")
+
+    # Create the download button
+    st.download_button(
+        label="Download SVG",
+        data=svg_bytes,
         file_name=file_name.replace(".svg", "") + ".svg",
         mime="image/svg+xml"
     )
