@@ -1,6 +1,7 @@
 import json
 from collections import OrderedDict
 from datetime import datetime
+import io
 
 from __init__ import __ver__
 
@@ -1179,4 +1180,21 @@ def download_df(df, label="Download filtered df as CSV", file_name="df.csv"):
         data=csv,
         file_name=file_name,
         mime='text/csv'
+    )
+
+
+def add_download_plotly_as_svg(fig, file_name="plot.svg"):
+    # Save a plotly figure to svg and download
+    svg_file = io.BytesIO()
+    fig.write_image(svg_file, format='svg')
+    svg_file.seek(0)  # Reset file pointer to the beginning
+    
+    svg_file = save_plotly_to_svg(fig)
+
+    # Add a download button to download the SVG file
+    st.download_button(
+        label="Download SVG",
+        data=svg_file,
+        file_name=file_name.replace(".svg", "") + ".svg",
+        mime="image/svg+xml"
     )

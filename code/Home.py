@@ -36,7 +36,8 @@ from util.streamlit import (_plot_population_x_y, add_auto_train_manager,
                             add_xy_selector, add_xy_setting,
                             aggrid_interactive_table_basic,
                             aggrid_interactive_table_session, data_selector,
-                            add_footnote)
+                            add_footnote,
+                            add_download_plotly_as_svg)
 from util.url_query_helper import (checkbox_wrapper_for_url_query,
                                    multiselect_wrapper_for_url_query,
                                    selectbox_wrapper_for_url_query,
@@ -272,6 +273,7 @@ def plot_x_y_session():
                                    use_container_width=False,
                                    theme=None,  # full controlled by plotly chart itself
                         )
+        add_download_plotly_as_svg(fig, 'x_y_plot.svg')
 
     with cols[1]:
         st.markdown('#### 👀 Quick preview')
