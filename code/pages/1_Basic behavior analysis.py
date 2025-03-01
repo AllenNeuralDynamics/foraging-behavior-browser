@@ -9,7 +9,7 @@ from plotly.subplots import make_subplots
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from util.aws_s3 import load_data
-from util.streamlit import add_session_filter, data_selector, add_footnote
+from util.streamlit import add_session_filter, data_selector, add_footnote, add_download_plotly_as_svg
 from scipy.stats import gaussian_kde
 import streamlit_nested_layout
 
@@ -326,6 +326,7 @@ def metrics_grouped_by_stages(df):
                     use_density,
                 )
                 st.plotly_chart(fig, use_container_width=True, key=f"{column}_{curriculum_name}")
+                add_download_plotly_as_svg(fig, f"{column}_{curriculum_name}.svg")
                 
         st.markdown("---")
 
