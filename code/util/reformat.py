@@ -93,6 +93,7 @@ def formatting_metadata_df(df, source_prefix="docDB"):
     )
 
     # Remove invalid subject_id
+    df = df[df.index.get_level_values("subject_id").notna()]  # Remove nan subject_id first
     df = df[(df.index.get_level_values("subject_id").astype(int) > 300000) 
             & (df.index.get_level_values("subject_id").astype(int) < 999999)]
 

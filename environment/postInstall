@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+   #!/usr/bin/env bash
 set -e
 
 # check if code-server is installed, and then install extensions into specified directory
