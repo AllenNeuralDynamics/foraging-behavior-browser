@@ -302,7 +302,7 @@ def show_curriculums():
 
 
 # ------- Layout starts here -------- #
-def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
+def init(if_load_bpod_data_override=None, if_load_docDB_override=None, if_load_sessions_older_than_one_year_override=None):
 
     # Clear specific session state and all filters
     for key in st.session_state:
@@ -320,8 +320,15 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
         else False)
     st.session_state.bpod_loaded = _if_load_bpod
     
+    _if_load_sessions_older_than_one_year = if_load_bpod_data_override if if_load_sessions_older_than_one_year_override is not None else (
+        st.query_params['if_load_sessions_older_than_one_year'].lower() == 'true'
+        if 'if_load_sessions_older_than_one_year' in st.query_params
+        else st.session_state.if_load_sessions_older_than_one_year 
+        if 'if_load_sessions_older_than_one_year' in st.session_state
+        else False)
+    
     # --- Load data using aind-analysis-arch-result-access ---
-    df_han = get_session_table(if_load_bpod=_if_load_bpod)
+    df_han = get_session_table(if_load_bpod=_if_load_bpod, if_load_sessions_older_than_one_year=_if_load_sessions_older_than_one_year_override)
     df = {'sessions_main': df_han}  # put it in df['session_main'] for backward compatibility
 
     if not len(df):
@@ -453,6 +460,12 @@ def app():
         
         with cols[1]:
             with st.form(key='load_settings', clear_on_submit=False):
+                if_load_sessions_older_than_one_year = checkbox_wrapper_for_url_query(
+                    st_prefix=st,
+                    label='Include sessions older than one year (reload after change)',
+                    key='if_load_sessions_older_than_one_year',
+                    default=False,
+                )
                 if_load_bpod_sessions = checkbox_wrapper_for_url_query(
                     st_prefix=st,
                     label='Include old Bpod sessions (reload after change)',
