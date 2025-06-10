@@ -454,9 +454,6 @@ def app():
         # -- 1. unit dataframe --
         
         cols = st.columns([4, 4, 4, 1])
-        cols[0].markdown(f'### Filter the sessions on the sidebar\n'
-                         f'#####  {len(st.session_state.df_session_filtered)} sessions, '
-                         f'{len(st.session_state.df_session_filtered.subject_id.unique())} mice filtered')
         
         with cols[0].expander(':bulb: Get the master session table by code', expanded=False):
             st.code(f'''
@@ -493,6 +490,12 @@ def app():
                     sync_session_state_to_URL()
                     init()
                     st.rerun()  # Reload the page to apply the changes
+                    
+        cols[0].markdown(f'### Filter the sessions on the sidebar\n' +
+                    f'#####  {len(st.session_state.df_session_filtered)} sessions, ' +
+                    f'{len(st.session_state.df_session_filtered.subject_id.unique())} mice filtered' +
+                    (f' (recent 6 months only)' if not st.session_state.if_load_sessions_older_than_6_month else '')
+                    )
               
         table_height = slider_wrapper_for_url_query(st_prefix=cols[-1],
                                                     label='Table height',
