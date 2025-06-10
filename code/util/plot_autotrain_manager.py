@@ -104,6 +104,10 @@ def plot_manager_all_progress_bokeh_source(
         axis=1,
     )
     df_to_draw.round(3)
+    
+    # --- Remove rows with NaN in color or edge_color ---
+    # to fix a bug where non-normalized stages appears in the autotrain table
+    df_to_draw = df_to_draw.dropna(subset=["color", "edge_color"])
 
     # --- Filter recent days ---
     df_to_draw['session_date'] = pd.to_datetime(df_to_draw['session_date'])
