@@ -62,7 +62,7 @@ def load_auto_train():
     curriculum_manager = CurriculumManager(
         saved_curriculums_on_s3=dict(
             bucket='aind-behavior-data',
-            root='foraging_auto_training/saved_curriculums/'
+            root='foraging_nwb_bonsai_processed/foraging_auto_training/saved_curriculums/'
         ),
         saved_curriculums_local=os.path.expanduser('~/curriculum_manager/'),
     )
@@ -72,7 +72,7 @@ def load_auto_train():
                                 root='foraging_nwb_bonsai_processed/',
                                 file_name='df_sessions.pkl'),
         df_manager_root_on_s3=dict(bucket='aind-behavior-data',
-                                root='foraging_auto_training/')
+                                root='foraging_nwb_bonsai_processed/foraging_auto_training/')
     )
 
     _df = auto_train_manager.df_manager.copy().rename(
