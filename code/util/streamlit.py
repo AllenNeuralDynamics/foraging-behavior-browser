@@ -816,7 +816,11 @@ def add_auto_train_manager():
         ),
         default=True,
     )
-    only_filtered_effective = only_filtered and len(st.session_state.df_session_filtered) < len(st.session_state.df["sessions_main"])
+    only_filtered_effective = (
+        only_filtered 
+        and len(st.session_state.df_session_filtered) < len(st.session_state.df["sessions_main"])
+        and len(st.session_state.df_session_filtered) < 500  # Only if filtered down to less than 500 sessions
+    )
 
     recent_months = slider_wrapper_for_url_query(cols[6],
                                                 label="only recent months",
@@ -888,7 +892,7 @@ def add_auto_train_manager():
             "current_stage_actual",
             "session_at_current_stage",
             "if_overriden_by_trainer",
-            "foraging_efficiency",
+            "foraging_eff",
             "finished_trials",
             "decision",
             "next_stage_suggested",

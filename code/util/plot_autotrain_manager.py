@@ -55,10 +55,13 @@ def plot_manager_all_progress_bokeh_source(
     df_to_draw["edge_color"] = (  # Use grey edge to indicate stage without suggestion 
         df_to_draw["current_stage_suggested"].map(stage_color_mapper).fillna("#d3d3d3")
     )
+    
+    # Convert session_date to string for URL generation
+    df_to_draw["session_date_str"] = df_to_draw["session_date"].astype(str)
     df_to_draw["imgs_1"] = df_to_draw.apply(
         lambda x: get_s3_public_url(
             subject_id=x["subject_id"],
-            session_date=x["session_date"],
+            session_date=x["session_date_str"],
             nwb_suffix=x["nwb_suffix"],
             figure_suffix="choice_history.png",
         ),
@@ -67,7 +70,7 @@ def plot_manager_all_progress_bokeh_source(
     df_to_draw["imgs_2"] = df_to_draw.apply(
         lambda x: get_s3_public_url(
             subject_id=x["subject_id"],
-            session_date=x["session_date"],
+            session_date=x["session_date_str"],
             nwb_suffix=x["nwb_suffix"],
             figure_suffix="logistic_regression_Su2022.png",
         ),
