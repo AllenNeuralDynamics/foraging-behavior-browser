@@ -32,41 +32,16 @@ def plot_manager_all_progress_bokeh_source(
     filtered_session_ids=None,
 ):
     # --- Prepare data ---
-    manager = st.session_state.auto_train_manager
-    df_manager = manager.df_manager.sort_values(
+    # Now we already merged full curriculum info in the master df_session by the result access api
+    # manager = st.session_state.auto_train_manager
+
+    df_to_draw = st.session_state.df['sessions_main'].sort_values(
         by=["subject_id", "session"],
         ascending=[sort_order == "ascending", False]
-    )
+    ).copy()
 
-    if not len(df_manager):
+    if not len(df_to_draw):
         return None
-
-    # Metadata merge from df_master
-    df_tmp_rig_trainer = st.session_state.df["sessions_main"][
-        ["subject_id", "session_date", "session", "rig", "trainer", "PI", "nwb_suffix", 
-         "foraging_eff_random_seed", "finished_trials", "finished_rate", 
-         "task", "curriculum_name", "curriculum_version", "current_stage_actual"]
-    ]
-    df_tmp_rig_trainer["session_date"] = df_tmp_rig_trainer["session_date"].astype(str)
-
-    df_to_draw = (
-        df_manager.drop_duplicates(
-            subset=["subject_id", "session_date"], keep="last"
-        )  # Duplicte sessions in the autotrain due to pipeline issues
-        .drop(
-            columns=[
-                "session",
-                "task",
-                "foraging_efficiency", 
-                "finished_trials", 
-            ]
-        )  # df_master has higher priority in session numbers
-        .merge(
-            df_tmp_rig_trainer.query(f"current_stage_actual != 'None'"),
-            on=["subject_id", "session_date"],
-            how="right",
-        )
-    )
 
     # If use_filtered_data, filter the data
     if if_use_filtered_data:
@@ -76,19 +51,17 @@ def plot_manager_all_progress_bokeh_source(
             how="inner",
         )
 
-    # Correct df_manager missing sessions (df_manager has higher priority in curriculum-related fields)
-    df_to_draw["curriculum_name"] = df_to_draw["curriculum_name_x"].fillna(df_to_draw["curriculum_name_y"])
-    df_to_draw["curriculum_version"] = df_to_draw["curriculum_version_x"].fillna(df_to_draw["curriculum_version_y"])
-    df_to_draw["current_stage_actual"] = df_to_draw["current_stage_actual_x"].fillna(df_to_draw["current_stage_actual_y"])
-
     df_to_draw["color"] = df_to_draw["current_stage_actual"].map(stage_color_mapper)
     df_to_draw["edge_color"] = (  # Use grey edge to indicate stage without suggestion 
         df_to_draw["current_stage_suggested"].map(stage_color_mapper).fillna("#d3d3d3")
     )
+    
+    # Convert session_date to string for URL generation
+    df_to_draw["session_date_str"] = df_to_draw["session_date"].astype(str)
     df_to_draw["imgs_1"] = df_to_draw.apply(
         lambda x: get_s3_public_url(
             subject_id=x["subject_id"],
-            session_date=x["session_date"],
+            session_date=x["session_date_str"],
             nwb_suffix=x["nwb_suffix"],
             figure_suffix="choice_history.png",
         ),
@@ -97,13 +70,17 @@ def plot_manager_all_progress_bokeh_source(
     df_to_draw["imgs_2"] = df_to_draw.apply(
         lambda x: get_s3_public_url(
             subject_id=x["subject_id"],
-            session_date=x["session_date"],
+            session_date=x["session_date_str"],
             nwb_suffix=x["nwb_suffix"],
             figure_suffix="logistic_regression_Su2022.png",
         ),
         axis=1,
     )
     df_to_draw.round(3)
+    
+    # --- Remove rows with NaN in color or edge_color ---
+    # to fix a bug where non-normalized stages appears in the autotrain table
+    df_to_draw = df_to_draw.dropna(subset=["color", "edge_color"])
 
     # --- Filter recent days ---
     df_to_draw['session_date'] = pd.to_datetime(df_to_draw['session_date'])

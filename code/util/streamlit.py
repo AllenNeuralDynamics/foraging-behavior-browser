@@ -774,8 +774,6 @@ def _add_download_filtered_session():
 
 def add_auto_train_manager():
 
-    df_training_manager = st.session_state.auto_train_manager.df_manager
-
     # -- Show plotly chart --
     cols = st.columns([1, 1, 1, 0.7, 0.7, 1.5, 1.5, 2])
     options = ["date", "session", "relative_date"]
@@ -818,7 +816,11 @@ def add_auto_train_manager():
         ),
         default=True,
     )
-    only_filtered_effective = only_filtered and len(st.session_state.df_session_filtered) < len(st.session_state.df["sessions_main"])
+    only_filtered_effective = (
+        only_filtered 
+        and len(st.session_state.df_session_filtered) < len(st.session_state.df["sessions_main"])
+        and len(st.session_state.df_session_filtered) < 500  # Only if filtered down to less than 500 sessions
+    )
 
     recent_months = slider_wrapper_for_url_query(cols[6],
                                                 label="only recent months",
@@ -856,7 +858,7 @@ def add_auto_train_manager():
             else None
         ),
     )
-    
+
     if fig_auto_train is None:
         st.markdown("### In the filtered sessions, no AutoTrain history to show!")
         return
@@ -878,19 +880,28 @@ def add_auto_train_manager():
             st.write(data_df.iloc[indices])
 
     # -- Show dataframe --
+    df_training_manager = st.session_state.df_session_filtered[
+        [
+            "subject_id",
+            "session_date",
+            "session",
+            "curriculum_name",
+            "curriculum_version",
+            "curriculum_schema_version",
+            "current_stage_suggested",
+            "current_stage_actual",
+            "session_at_current_stage",
+            "if_overriden_by_trainer",
+            "foraging_eff",
+            "finished_trials",
+            "decision",
+            "next_stage_suggested",
+        ]
+    ]
+
     # only show filtered subject
     df_training_manager = df_training_manager[df_training_manager['subject_id'].isin(
         st.session_state.df_session_filtered['subject_id'].unique().astype(str))]
-
-    # reorder columns
-    df_training_manager = df_training_manager[['subject_id', 'session_date', 'session', 
-                                                'curriculum_name', 'curriculum_version', 'curriculum_schema_version',
-                                                'current_stage_suggested', 'current_stage_actual',
-                                                'session_at_current_stage',
-                                                'if_closed_loop', 'if_stage_overriden_by_trainer',
-                                                'foraging_efficiency', 'finished_trials', 
-                                                'decision', 'next_stage_suggested'
-                                                ]]
 
     with st.expander('Automatic training manager', expanded=False):
         st.dataframe(df_training_manager, height=3000)

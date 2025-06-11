@@ -559,6 +559,6 @@ if __name__ == "__main__":
     # Share the same master df as the Home page
     if "df" not in st.session_state or "sessions_main" not in st.session_state.df.keys() or not st.session_state.bpod_loaded:
         st.spinner("Loading data from Han temp pipeline...")
-        init(if_load_docDB_override=False, if_load_bpod_data_override=True)
+        init(if_load_docDB_override=False, if_load_bpod_data_override=True, if_load_sessions_older_than_6_month_override=True)
 
     app()

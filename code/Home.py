@@ -302,7 +302,7 @@ def show_curriculums():
 
 
 # ------- Layout starts here -------- #
-def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
+def init(if_load_bpod_data_override=None, if_load_docDB_override=None, if_load_sessions_older_than_6_month_override=None):
 
     # Clear specific session state and all filters
     for key in st.session_state:
@@ -319,9 +319,25 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
         if 'if_load_bpod_sessions' in st.session_state
         else False)
     st.session_state.bpod_loaded = _if_load_bpod
-    
+
+    _if_load_sessions_older_than_6_month = (
+        if_load_sessions_older_than_6_month_override
+        if if_load_sessions_older_than_6_month_override is not None
+        else (
+            st.query_params["if_load_sessions_older_than_6_month"].lower() == "true"
+            if "if_load_sessions_older_than_6_month" in st.query_params
+            else (
+                st.session_state.if_load_sessions_older_than_6_month
+                if "if_load_sessions_older_than_6_month" in st.session_state
+                else False
+            )
+        )
+    )
+
     # --- Load data using aind-analysis-arch-result-access ---
-    df_han = get_session_table(if_load_bpod=_if_load_bpod)
+    # Convert boolean to months: if True, load all sessions (None), if False, load only recent 6 months
+    only_recent_n_month = None if _if_load_sessions_older_than_6_month else 6
+    df_han = get_session_table(if_load_bpod=_if_load_bpod, only_recent_n_month=only_recent_n_month)
     df = {'sessions_main': df_han}  # put it in df['session_main'] for backward compatibility
 
     if not len(df):
@@ -332,37 +348,11 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None):
         st.session_state[f'df_selected_from_{source}'] = pd.DataFrame(columns=['subject_id', 'session'])
 
     # Load autotrain
-    auto_train_manager, curriculum_manager = load_auto_train()
-    st.session_state.auto_train_manager = auto_train_manager
+    _, curriculum_manager = load_auto_train()
     st.session_state.curriculum_manager = curriculum_manager
 
     # Some ad-hoc modifications on df_sessions
     _df = st.session_state.df['sessions_main'].copy()
-
-
-    # -- overwrite the `if_stage_overriden_by_trainer`
-    # Previously it was set to True if the trainer changes stage during a session.
-    # But it is more informative to define it as whether the trainer has overridden the curriculum.
-    # In other words, it is set to True only when stage_suggested ~= stage_actual, as defined in the autotrain curriculum.
-    _df.drop(columns=['if_overriden_by_trainer'], inplace=True)
-    tmp_auto_train = (
-        auto_train_manager.df_manager.query("if_closed_loop == True")[
-            [
-                "subject_id",
-                "session_date",
-                "current_stage_suggested",
-                "if_stage_overriden_by_trainer",
-            ]
-        ]
-        .copy()
-        .drop_duplicates(subset=["subject_id", "session_date"], keep="first")
-    )
-    tmp_auto_train["session_date"] = pd.to_datetime(tmp_auto_train["session_date"])
-    _df = _df.merge(
-        tmp_auto_train,
-        on=["subject_id", "session_date"],
-        how='left',
-    )
 
     # --- Load data from docDB ---
     if_load_docDb = if_load_docDB_override if if_load_docDB_override is not None else (
@@ -439,9 +429,6 @@ def app():
         # -- 1. unit dataframe --
         
         cols = st.columns([4, 4, 4, 1])
-        cols[0].markdown(f'### Filter the sessions on the sidebar\n'
-                         f'#####  {len(st.session_state.df_session_filtered)} sessions, '
-                         f'{len(st.session_state.df_session_filtered.subject_id.unique())} mice filtered')
         
         with cols[0].expander(':bulb: Get the master session table by code', expanded=False):
             st.code(f'''
@@ -453,6 +440,12 @@ def app():
         
         with cols[1]:
             with st.form(key='load_settings', clear_on_submit=False):
+                if_load_sessions_older_than_6_month = checkbox_wrapper_for_url_query(
+                    st_prefix=st,
+                    label='Include sessions older than 6 months (reload after change)',
+                    key='if_load_sessions_older_than_6_month',
+                    default=False,
+                )
                 if_load_bpod_sessions = checkbox_wrapper_for_url_query(
                     st_prefix=st,
                     label='Include old Bpod sessions (reload after change)',
@@ -472,6 +465,12 @@ def app():
                     sync_session_state_to_URL()
                     init()
                     st.rerun()  # Reload the page to apply the changes
+                    
+        cols[0].markdown(f'### Filter the sessions on the sidebar\n' +
+                    f'#####  {len(st.session_state.df_session_filtered)} sessions, ' +
+                    f'{len(st.session_state.df_session_filtered.subject_id.unique())} mice filtered' +
+                    (f' (recent 6 months only)' if not st.session_state.if_load_sessions_older_than_6_month else '')
+                    )
               
         table_height = slider_wrapper_for_url_query(st_prefix=cols[-1],
                                                     label='Table height',

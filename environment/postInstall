@@ -1,28 +1,53 @@
-   #!/usr/bin/env bash
+#!/usr/bin/env bash
 set -e
 
-# check if code-server is installed, and then install extensions into specified directory
-if code-server --disable-telemetry --version; then
-if [ ! -d "/.vscode/extensions" ]
-    then
-       echo "Directory /.vscode/extensions DOES NOT exists."
-       mkdir -p /.vscode/extensions/
-       fi
-       
-       code-server --disable-telemetry --extensions-dir=/.vscode/extensions --install-extension ms-python.python
-       code-server --disable-telemetry --extensions-dir=/.vscode/extensions --install-extension njpwerner.autodocstring
-       code-server --disable-telemetry --extensions-dir=/.vscode/extensions --install-extension KevinRose.vsc-python-indent
-       code-server --disable-telemetry --extensions-dir=/.vscode/extensions --install-extension mhutchie.git-graph
-       code-server --disable-telemetry --extensions-dir=/.vscode/extensions --install-extension zhuangtongfa.material-theme
-       code-server --disable-telemetry --extensions-dir=/.vscode/extensions --install-extension ms-python.black-formatter
-       code-server --disable-telemetry --extensions-dir=/.vscode/extensions --install-extension eamodio.gitlens
-	  	 code-server --disable-telemetry --extensions-dir=/.vscode/extensions --install-extension ryanluker.vscode-coverage-gutters
-       
-       curl -L -o copilot_1.161.zip https://github.com/user-attachments/files/16859733/copilot_1.161.zip
-       unzip copilot_1.161.zip
-       code-server --extensions-dir=/.vscode/extensions --install-extension GitHub.copilot-1.161.0.vsix
-       rm copilot_1.161.zip GitHub.copilot-1.161.0.vsix
+# install updated version of code-server
+VERSION=4.100.3
+mkdir /.code-server
+cd /.code-server
+curl -fL "https://github.com/coder/code-server/releases/download/v$VERSION/code-server-$VERSION-linux-amd64.tar.gz" \
+  | tar -xz
+ln -s /.code-server/code-server-$VERSION-linux-amd64/bin/code-server  /usr/bin/code-server
+cd -
 
-       else
-          echo "code-server not found"
-       fi
+# Check if code-server is installed, then install extensions into specified directory
+if code-server --disable-telemetry --version; then
+    EXT_DIR="/.vscode/extensions"
+    if [ ! -d "$EXT_DIR" ]; then
+        echo "Directory $EXT_DIR does not exist."
+        mkdir -p "$EXT_DIR"
+    fi
+
+    # --- For extensions available in the default open-vsx registry ---
+    EXTENSIONS=(
+        ms-python.python
+        njpwerner.autodocstring
+        KevinRose.vsc-python-indent
+        mhutchie.git-graph
+        zhuangtongfa.material-theme
+        ms-python.black-formatter
+        eamodio.gitlens
+        ryanluker.vscode-coverage-gutters
+    )
+
+    for EXT in "${EXTENSIONS[@]}"; do
+        code-server --disable-telemetry --extensions-dir="$EXT_DIR" --install-extension "$EXT"
+    done
+
+    # --- For extensions not available in the default open-vsx registry ---
+    download_and_install_extension() {
+        publisher=$1
+        name=$2
+        version=$3
+        file=/tmp/$publisher.$name.$version.vsix
+        curl -fL http://${publisher}.gallery.vsassets.io/_apis/public/gallery/publisher/${publisher}/extension/${name}/${version}/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage \
+            --output $file
+        code-server --extensions-dir=/.vscode/extensions --install-extension $file
+    }
+
+    download_and_install_extension github copilot 1.326.0
+    download_and_install_extension github copilot-chat 0.27.3
+
+else
+    echo "code-server not found"
+fi
