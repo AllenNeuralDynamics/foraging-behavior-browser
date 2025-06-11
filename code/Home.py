@@ -348,36 +348,11 @@ def init(if_load_bpod_data_override=None, if_load_docDB_override=None, if_load_s
         st.session_state[f'df_selected_from_{source}'] = pd.DataFrame(columns=['subject_id', 'session'])
 
     # Load autotrain
-    auto_train_manager, curriculum_manager = load_auto_train()
-    st.session_state.auto_train_manager = auto_train_manager
+    _, curriculum_manager = load_auto_train()
     st.session_state.curriculum_manager = curriculum_manager
 
     # Some ad-hoc modifications on df_sessions
     _df = st.session_state.df['sessions_main'].copy()
-
-    # -- overwrite the `if_stage_overriden_by_trainer`
-    # Previously it was set to True if the trainer changes stage during a session.
-    # But it is more informative to define it as whether the trainer has overridden the curriculum.
-    # In other words, it is set to True only when stage_suggested ~= stage_actual, as defined in the autotrain curriculum.
-    _df.drop(columns=['if_overriden_by_trainer'], inplace=True)
-    tmp_auto_train = (
-        auto_train_manager.df_manager.query("if_closed_loop == True")[
-            [
-                "subject_id",
-                "session_date",
-                "current_stage_suggested",
-                "if_stage_overriden_by_trainer",
-            ]
-        ]
-        .copy()
-        .drop_duplicates(subset=["subject_id", "session_date"], keep="first")
-    )
-    tmp_auto_train["session_date"] = pd.to_datetime(tmp_auto_train["session_date"])
-    _df = _df.merge(
-        tmp_auto_train,
-        on=["subject_id", "session_date"],
-        how='left',
-    )
 
     # --- Load data from docDB ---
     if_load_docDb = if_load_docDB_override if if_load_docDB_override is not None else (
