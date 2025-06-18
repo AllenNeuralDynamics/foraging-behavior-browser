@@ -30,7 +30,8 @@ except:
 
 model_families = {
     "Q-learning": "ForagerQLearning",
-    "Loss counting": "ForagerLossCounting"
+    "Compare-to-threshold": "ForagerCompareThreshold",
+    "Loss counting": "ForagerLossCounting",
 }
 
 task_families = {
@@ -57,6 +58,7 @@ def select_params(forager):
         default_range=[-20, 20],
         para_range_override={
             "choice_kernel_relative_weight": [0.0, 2.0],
+            "threshold": [-1.0, 1.0],
         })
 
     params = {}
