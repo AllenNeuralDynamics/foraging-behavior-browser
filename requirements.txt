@@ -26,5 +26,5 @@ bokeh==3.4.3
 kaleido==0.2.1
 git+https://github.com/AllenNeuralDynamics/aind-foraging-behavior-bonsai-automatic-training.git@main
 git+https://github.com/AllenNeuralDynamics/aind-dynamic-foraging-models.git@develop
-git+https://github.com/AllenNeuralDynamics/aind-behavior-gym.git@develop
-git+https://github.com/AllenNeuralDynamics/aind-analysis-arch-result-access.git@main
+aind-behavior-gym==0.4.3
+aind-analysis-arch-result-access==0.7.1
