@@ -255,6 +255,14 @@ def fetch_single_query(query, pagination, paginate_batch_size):
     # --- Process data into dataframe ---
     df = pd.json_normalize(results)
     
+    def to_list(x):
+        if x is None or (isinstance(x, float) and pd.isna(x)):
+            return None
+        return x if isinstance(x, (list, tuple)) else [str(x)]
+
+    df["session.experimenter_full_name"] = df["session.experimenter_full_name"].apply(
+        to_list)
+    
     # Formatting dataframe
     df, df_unique_mouse_date, df_multi_sessions_per_day = formatting_metadata_df(df)
     df_unique_mouse_date[query["alias"]] = True  # Add a column to prepare for merging
