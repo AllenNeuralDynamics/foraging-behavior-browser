@@ -50,15 +50,16 @@ def plot_manager_all_progress_bokeh_source(
             on=["subject_id", "session"],
             how="inner",
         )
+        df_to_draw = df_to_draw.copy()
 
-    df_to_draw["color"] = df_to_draw["current_stage_actual"].map(stage_color_mapper)
-    df_to_draw["edge_color"] = (  # Use grey edge to indicate stage without suggestion 
+    df_to_draw.loc[:, "color"] = df_to_draw["current_stage_actual"].map(stage_color_mapper)
+    df_to_draw.loc[:, "edge_color"] = (  # Use grey edge to indicate stage without suggestion 
         df_to_draw["current_stage_suggested"].map(stage_color_mapper).fillna("#d3d3d3")
     )
     
     # Convert session_date to string for URL generation
-    df_to_draw["session_date_str"] = df_to_draw["session_date"].astype(str)
-    df_to_draw["imgs_1"] = df_to_draw.apply(
+    df_to_draw.loc[:, "session_date_str"] = df_to_draw["session_date"].astype(str)
+    df_to_draw.loc[:, "imgs_1"] = df_to_draw.apply(
         lambda x: get_s3_public_url(
             subject_id=x["subject_id"],
             session_date=x["session_date_str"],
@@ -67,7 +68,7 @@ def plot_manager_all_progress_bokeh_source(
         ),
         axis=1,
     )
-    df_to_draw["imgs_2"] = df_to_draw.apply(
+    df_to_draw.loc[:, "imgs_2"] = df_to_draw.apply(
         lambda x: get_s3_public_url(
             subject_id=x["subject_id"],
             session_date=x["session_date_str"],
@@ -80,13 +81,13 @@ def plot_manager_all_progress_bokeh_source(
     
     # --- Remove rows with NaN in color or edge_color ---
     # to fix a bug where non-normalized stages appears in the autotrain table
-    df_to_draw = df_to_draw.dropna(subset=["color", "edge_color"])
+    df_to_draw = df_to_draw.dropna(subset=["color", "edge_color"]).copy()
 
     # --- Filter recent days ---
-    df_to_draw['session_date'] = pd.to_datetime(df_to_draw['session_date'])
+    df_to_draw.loc[:, 'session_date'] = pd.to_datetime(df_to_draw['session_date'])
     if not if_use_filtered_data and x_axis == 'date' and recent_days is not None:
         date_start = datetime.today() - pd.Timedelta(days=recent_days)
-        df_to_draw = df_to_draw.query('session_date >= @date_start')
+        df_to_draw = df_to_draw.query('session_date >= @date_start').copy()
 
     # Sort subjects
     if sort_by == "subject_id":
@@ -114,26 +115,29 @@ def plot_manager_all_progress_bokeh_source(
     else:
         raise ValueError("Invalid sort_by value.")
 
+    df_to_draw = df_to_draw.copy()
+
     # Select x
     if x_axis == 'session':
-        df_to_draw["x"] = df_to_draw['session']
+        df_to_draw.loc[:, "x"] = df_to_draw['session']
     elif x_axis == 'date':
-        df_to_draw["x"] = df_to_draw['session_date']
+        df_to_draw.loc[:, "x"] = df_to_draw['session_date']
     elif x_axis == 'relative_date':
         # groupby subject_id and all subtracted by the min date of each subject
-        df_to_draw["x"] = (
+        df_to_draw.loc[:, "x"] = (
             df_to_draw.groupby("subject_id")["session_date"]
             .transform(lambda x: x - x.min())
             .dt.days
         )
 
-    df_to_draw["session_date"] = df_to_draw["session_date"].dt.strftime('%Y-%m-%d')
+    # Convert session_date to string format AFTER x-axis calculations
+    df_to_draw.loc[:, "session_date"] = df_to_draw["session_date"].dt.strftime('%Y-%m-%d')
 
     # --- Reorder subjects ---
     df_subjects = []
 
     for n, subject_id in enumerate(subject_ids):
-        df_subject = df_to_draw[df_to_draw['subject_id'] == subject_id]
+        df_subject = df_to_draw[df_to_draw['subject_id'] == subject_id].copy()
         df_subject["y"] = len(subject_ids) - n
         df_subjects.append(df_subject)
 
