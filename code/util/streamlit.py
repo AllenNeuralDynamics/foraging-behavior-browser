@@ -698,7 +698,7 @@ def add_dot_property_mapper():
         
     return size_mapper, size_mapper_range, size_mapper_gamma
 
-@st.fragment(run_every=5)
+@st.fragment()
 def data_selector():
             
     with st.expander(f'Session selector', expanded=True):        
