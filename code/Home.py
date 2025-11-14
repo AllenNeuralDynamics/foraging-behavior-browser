@@ -60,6 +60,14 @@ except:
     pass
 
 
+# Inhibit the deprecated user warning from streamlit 1.45.1
+# https://discuss.streamlit.io/t/can-not-find-cause-of-st-experimental-user-deprecation-warning/111680
+def no_op(*args, **kwargs):
+    """This function replaces the original one and does not perform any action."""
+    pass
+st.user_info.maybe_show_deprecated_user_warning = no_op
+
+
 def _trainer_mapper(trainer):
     user_mapper = {
         'Avalon Amaya': ['Avalon'],
