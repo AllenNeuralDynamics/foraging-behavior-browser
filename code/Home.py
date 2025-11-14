@@ -701,6 +701,6 @@ if __name__ == "__main__":
         st.markdown('# Something went wrong! :scream: ')
         st.markdown('## :bulb: Please follow these steps to troubleshoot:')
         st.markdown('####  1. Reload the page')
-        st.markdown('####  2. Click this original URL https://foraging-behavior-browser.allenneuraldynamics-test.org/')
+        st.markdown('####  2. Click this original URL https://foraging-behavior-browser.allenneuraldynamics.org/')
         st.markdown('####  3. Report your bug here: https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues (paste your URL and screenshoots)')
         raise e
