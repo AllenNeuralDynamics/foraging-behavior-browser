@@ -698,7 +698,7 @@ def add_dot_property_mapper():
         
     return size_mapper, size_mapper_range, size_mapper_gamma
 
-@st.fragment(run_every=5)
+@st.fragment()
 def data_selector():
             
     with st.expander(f'Session selector', expanded=True):        
@@ -1177,7 +1177,7 @@ def _plot_population_x_y(df, x_name='session', y_name='foraging_eff', group_by='
 
 def add_footnote():
     st.markdown('---')
-    st.markdown(f'#### AIND Behavior Team @ 2025 {__ver__}')
+    st.markdown(f'#### Han Hou @ AIND Behavior Team\n{__ver__}')
     st.markdown('[bug report / feature request](https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues)')
 
 

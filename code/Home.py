@@ -60,6 +60,14 @@ except:
     pass
 
 
+# Inhibit the deprecated user warning from streamlit 1.45.1
+# https://discuss.streamlit.io/t/can-not-find-cause-of-st-experimental-user-deprecation-warning/111680
+def no_op(*args, **kwargs):
+    """This function replaces the original one and does not perform any action."""
+    pass
+st.user_info.maybe_show_deprecated_user_warning = no_op
+
+
 def _trainer_mapper(trainer):
     user_mapper = {
         'Avalon Amaya': ['Avalon'],
@@ -693,6 +701,6 @@ if __name__ == "__main__":
         st.markdown('# Something went wrong! :scream: ')
         st.markdown('## :bulb: Please follow these steps to troubleshoot:')
         st.markdown('####  1. Reload the page')
-        st.markdown('####  2. Click this original URL https://foraging-behavior-browser.allenneuraldynamics-test.org/')
+        st.markdown('####  2. Click this original URL https://foraging-behavior-browser.allenneuraldynamics.org/')
         st.markdown('####  3. Report your bug here: https://github.com/AllenNeuralDynamics/foraging-behavior-browser/issues (paste your URL and screenshoots)')
         raise e
