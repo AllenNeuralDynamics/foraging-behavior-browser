@@ -178,6 +178,9 @@ def plot_manager_all_progress_bokeh(
     if data_df is None:
         return None, None
     
+    # Ensure session_date is always a formatted datetime string for hover
+    if 'session_date' in data_df.columns:
+        data_df['session_date'] = pd.to_datetime(data_df['session_date'], errors='coerce').dt.strftime('%Y-%m-%d')
     source = ColumnDataSource(data_df)
 
     # Add hover tool
